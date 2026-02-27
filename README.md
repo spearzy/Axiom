@@ -98,6 +98,11 @@ dotnet add <your-test-project>.csproj reference src/Axiom.Assertions/Axiom.Asser
 - `Axiom.Vectors` (scaffold only for now)
 - `Axiom.Benchmarks`
 
+### Scaffold Docs
+
+- Analyzers scaffold: [src/Axiom.Analyzers/README.md](src/Axiom.Analyzers/README.md)
+- Vectors scaffold: [src/Axiom.Vectors/README.md](src/Axiom.Vectors/README.md)
+
 ## Design Notes
 
 See [docs/design.md](docs/design.md) for architecture and design direction.
