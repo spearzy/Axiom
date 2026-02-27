@@ -50,10 +50,10 @@ public class BatchTests
         });
 
         const string expected = "Batch 'outer' failed with 3 assertion failure(s):\n1) first\n2) second\n3) third";
-        Xunit.Assert.Equal(expected, NormalizeNewLines(exception.Message));
+        Xunit.Assert.Equal(expected, NormaliseNewLines(exception.Message));
     }
 
-    private static string NormalizeNewLines(string value)
+    private static string NormaliseNewLines(string value)
     {
         return value.Replace("\r\n", "\n", StringComparison.Ordinal);
     }
