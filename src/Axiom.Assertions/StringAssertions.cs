@@ -13,53 +13,55 @@ public sealed class StringAssertions
 
     public AndContinuation<StringAssertions> NotBeNull()
     {
-        // M3 behavior: fail immediately; M4 will route this through Batch when active.
         if (Subject is null)
-        {
-            throw new InvalidOperationException(
-                $"Expected {SubjectLabel()} to not be null, but found <null>.");
-        }
+            Fail($"Expected {SubjectLabel()} to not be null, but found <null>.");
 
         return new AndContinuation<StringAssertions>(this);
     }
 
     public AndContinuation<StringAssertions> StartWith(string expectedPrefix)
     {
-        if (Subject is null)
+        var subject = Subject;
+        if (subject is null)
         {
-            throw new InvalidOperationException(
-                $"Expected {SubjectLabel()} to start with \"{expectedPrefix}\", but found <null>.");
+            Fail($"Expected {SubjectLabel()} to start with \"{expectedPrefix}\", but found <null>.");
+            return new AndContinuation<StringAssertions>(this);
         }
 
-        if (!Subject.StartsWith(expectedPrefix, StringComparison.Ordinal))
-        {
-            throw new InvalidOperationException(
-                $"Expected {SubjectLabel()} to start with \"{expectedPrefix}\", but found \"{Subject}\".");
-        }
+        if (!subject.StartsWith(expectedPrefix, StringComparison.Ordinal))
+            Fail($"Expected {SubjectLabel()} to start with \"{expectedPrefix}\", but found \"{subject}\".");
 
         return new AndContinuation<StringAssertions>(this);
     }
 
     public AndContinuation<StringAssertions> EndWith(string expectedSuffix)
     {
-        if (Subject is null)
-        {
-            throw new InvalidOperationException(
-                $"Expected {SubjectLabel()} to end with \"{expectedSuffix}\", but found <null>.");
+        var subject = Subject;
+        if (subject is null) {
+            Fail($"Expected {SubjectLabel()} to end with \"{expectedSuffix}\", but found <null>.");
+            return new AndContinuation<StringAssertions>(this);
         }
 
-        if (!Subject.EndsWith(expectedSuffix, StringComparison.Ordinal))
-        {
-            throw new InvalidOperationException(
-                $"Expected {SubjectLabel()} to end with \"{expectedSuffix}\", but found \"{Subject}\".");
-        }
+        if (!subject.EndsWith(expectedSuffix, StringComparison.Ordinal))
+            Fail($"Expected {SubjectLabel()} to end with \"{expectedSuffix}\", but found \"{subject}\".");
 
         return new AndContinuation<StringAssertions>(this);
     }
 
     private string SubjectLabel()
     {
-        // Prefer captured expression text (e.g. "value") for clearer failure messages.
         return string.IsNullOrWhiteSpace(SubjectExpression) ? "<subject>" : SubjectExpression;
+    }
+
+    private void Fail(string message)
+    {
+        var batch = Batch.Current;
+        if (batch is not null)
+        {
+            batch.AddFailure(message);
+            return;
+        }
+
+        throw new InvalidOperationException(message);
     }
 }
