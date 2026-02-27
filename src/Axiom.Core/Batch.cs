@@ -1,5 +1,3 @@
-using System.Text;
-
 namespace Axiom;
 
 public sealed class Batch : IDisposable
@@ -53,7 +51,7 @@ public sealed class Batch : IDisposable
             return;
         }
 
-        throw new InvalidOperationException(BuildMessage(_failures));
+        throw new InvalidOperationException(BatchReportRenderer.Render(Name, _failures));
     }
 
     private void AddFailures(List<string> failures)
@@ -67,22 +65,4 @@ public sealed class Batch : IDisposable
         _failures.AddRange(failures);
     }
 
-    private string BuildMessage(List<string> failures)
-    {
-        var header = Name is { Length: > 0 }
-            ? $"Batch '{Name}' failed with {failures.Count} assertion failure(s):"
-            : $"Batch failed with {failures.Count} assertion failure(s):";
-
-        var builder = new StringBuilder(header);
-        // Stable, deterministic output: failures are emitted in insertion order.
-        for (var i = 0; i < failures.Count; i++)
-        {
-            builder.AppendLine();
-            builder.Append(i + 1);
-            builder.Append(") ");
-            builder.Append(failures[i]);
-        }
-
-        return builder.ToString();
-    }
 }

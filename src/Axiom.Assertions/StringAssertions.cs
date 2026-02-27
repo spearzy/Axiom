@@ -14,7 +14,13 @@ public sealed class StringAssertions
     public AndContinuation<StringAssertions> NotBeNull()
     {
         if (Subject is null)
-            Fail($"Expected {SubjectLabel()} to not be null, but found <null>.");
+        {
+            var failure = new Failure(
+                SubjectLabel(),
+                new Expectation("to not be null", IncludeExpectedValue: false),
+                Subject);
+            Fail(FailureMessageRenderer.Render(failure));
+        }
 
         return new AndContinuation<StringAssertions>(this);
     }
@@ -24,12 +30,22 @@ public sealed class StringAssertions
         var subject = Subject;
         if (subject is null)
         {
-            Fail($"Expected {SubjectLabel()} to start with \"{expectedPrefix}\", but found <null>.");
+            var failure = new Failure(
+                SubjectLabel(),
+                new Expectation("to start with", expectedPrefix),
+                subject);
+            Fail(FailureMessageRenderer.Render(failure));
             return new AndContinuation<StringAssertions>(this);
         }
 
         if (!subject.StartsWith(expectedPrefix, StringComparison.Ordinal))
-            Fail($"Expected {SubjectLabel()} to start with \"{expectedPrefix}\", but found \"{subject}\".");
+        {
+            var failure = new Failure(
+                SubjectLabel(),
+                new Expectation("to start with", expectedPrefix),
+                subject);
+            Fail(FailureMessageRenderer.Render(failure));
+        }
 
         return new AndContinuation<StringAssertions>(this);
     }
@@ -39,12 +55,22 @@ public sealed class StringAssertions
         var subject = Subject;
         if (subject is null)
         {
-            Fail($"Expected {SubjectLabel()} to end with \"{expectedSuffix}\", but found <null>.");
+            var failure = new Failure(
+                SubjectLabel(),
+                new Expectation("to end with", expectedSuffix),
+                subject);
+            Fail(FailureMessageRenderer.Render(failure));
             return new AndContinuation<StringAssertions>(this);
         }
 
         if (!subject.EndsWith(expectedSuffix, StringComparison.Ordinal))
-            Fail($"Expected {SubjectLabel()} to end with \"{expectedSuffix}\", but found \"{subject}\".");
+        {
+            var failure = new Failure(
+                SubjectLabel(),
+                new Expectation("to end with", expectedSuffix),
+                subject);
+            Fail(FailureMessageRenderer.Render(failure));
+        }
 
         return new AndContinuation<StringAssertions>(this);
     }
