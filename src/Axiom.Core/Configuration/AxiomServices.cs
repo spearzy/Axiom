@@ -24,4 +24,10 @@ public static class AxiomServices
     {
         _configuration = new AxiomConfiguration();
     }
+
+    public static void UseModule(IAxiomModule module)
+    {
+        ArgumentNullException.ThrowIfNull(module);
+        Configure(module.Configure);
+    }
 }
