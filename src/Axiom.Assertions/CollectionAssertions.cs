@@ -5,61 +5,58 @@ using Axiom.Core.Failures;
 
 namespace Axiom.Assertions;
 
-public sealed class CollectionAssertions<T>
+// Shared collection assertion logic invoked by extension methods to avoid per-call wrapper allocations.
+internal static class CollectionAssertionEngine
 {
-    public CollectionAssertions(IEnumerable<T>? subject, string? subjectExpression)
+    public static void AssertContain<T>(
+        IEnumerable<T>? subject,
+        string? subjectExpression,
+        T expected,
+        string? because)
     {
-        Subject = subject;
-        SubjectExpression = subjectExpression;
-    }
-
-    public IEnumerable<T>? Subject { get; }
-    public string? SubjectExpression { get; }
-
-    public AndContinuation<CollectionAssertions<T>> Contain(T expected, string? because = null)
-    {
-        var subject = Subject;
         if (subject is null)
         {
             var nullFailure = new Failure(
-                SubjectLabel(),
+                SubjectLabel(subjectExpression),
                 new Expectation("to contain", expected),
                 subject,
                 because);
             Fail(FailureMessageRenderer.Render(nullFailure));
-            return new AndContinuation<CollectionAssertions<T>>(this);
+            return;
         }
 
-        var comparer = GetComparer();
+        var comparer = GetComparer<T>();
         foreach (var item in subject)
         {
             if (comparer.Equals(item, expected))
             {
-                return new AndContinuation<CollectionAssertions<T>>(this);
+                return;
             }
         }
 
         var failure = new Failure(
-            SubjectLabel(),
+            SubjectLabel(subjectExpression),
             new Expectation("to contain", expected),
             subject,
             because);
         Fail(FailureMessageRenderer.Render(failure));
-        return new AndContinuation<CollectionAssertions<T>>(this);
     }
 
-    public AndContinuation<CollectionAssertions<T>> HaveCount(int expectedCount, string? because = null)
+    public static void AssertHaveCount(
+        IEnumerable? subject,
+        string? subjectExpression,
+        int expectedCount,
+        string? because)
     {
-        var subject = Subject;
         if (subject is null)
         {
             var nullFailure = new Failure(
-                SubjectLabel(),
+                SubjectLabel(subjectExpression),
                 new Expectation("to have count", expectedCount),
                 subject,
                 because);
             Fail(FailureMessageRenderer.Render(nullFailure));
-            return new AndContinuation<CollectionAssertions<T>>(this);
+            return;
         }
 
         var actualCount = TryGetCount(subject, out var knownCount)
@@ -69,22 +66,20 @@ public sealed class CollectionAssertions<T>
         if (actualCount != expectedCount)
         {
             var failure = new Failure(
-                SubjectLabel(),
+                SubjectLabel(subjectExpression),
                 new Expectation("to have count", expectedCount),
                 actualCount,
                 because);
             Fail(FailureMessageRenderer.Render(failure));
         }
-
-        return new AndContinuation<CollectionAssertions<T>>(this);
     }
 
-    private string SubjectLabel()
+    private static string SubjectLabel(string? subjectExpression)
     {
-        return string.IsNullOrWhiteSpace(SubjectExpression) ? "<subject>" : SubjectExpression;
+        return string.IsNullOrWhiteSpace(subjectExpression) ? "<subject>" : subjectExpression;
     }
 
-    private static IEqualityComparer<T> GetComparer()
+    private static IEqualityComparer<T> GetComparer<T>()
     {
         if (AxiomServices.Configuration.ComparerProvider.TryGetEqualityComparer<T>(out var comparer) &&
             comparer is not null)
@@ -95,21 +90,9 @@ public sealed class CollectionAssertions<T>
         return EqualityComparer<T>.Default;
     }
 
-    private static bool TryGetCount(IEnumerable<T> subject, out int count)
+    private static bool TryGetCount(IEnumerable subject, out int count)
     {
         // Prefer non-enumerating count paths when collection interfaces are available.
-        if (subject is ICollection<T> genericCollection)
-        {
-            count = genericCollection.Count;
-            return true;
-        }
-
-        if (subject is IReadOnlyCollection<T> readOnlyCollection)
-        {
-            count = readOnlyCollection.Count;
-            return true;
-        }
-
         if (subject is ICollection nonGenericCollection)
         {
             count = nonGenericCollection.Count;
@@ -120,12 +103,20 @@ public sealed class CollectionAssertions<T>
         return false;
     }
 
-    private static int CountItems(IEnumerable<T> subject)
+    private static int CountItems(IEnumerable subject)
     {
         var count = 0;
-        foreach (var _ in subject)
+        var enumerator = subject.GetEnumerator();
+        try
         {
-            count++;
+            while (enumerator.MoveNext())
+            {
+                count++;
+            }
+        }
+        finally
+        {
+            (enumerator as IDisposable)?.Dispose();
         }
 
         return count;

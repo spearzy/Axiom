@@ -34,11 +34,18 @@ Expected value to start with "ab", but found "test".
 
 ## Current Features
 
-- `Should()` entrypoint for `string?` subjects.
+- `Should()` entrypoints for:
+  - `string?`
+  - generic values (`T`)
+  - `Action`
+  - `Func<Task>`
+  - `Func<ValueTask>`
 - Fluent chaining:
-  - `NotBeNull()`
-  - `StartWith(...)`
-  - `EndWith(...)`
+  - strings: `NotBeNull()`, `StartWith(...)`, `EndWith(...)`
+  - values: `Be(...)`, `NotBe(...)`
+  - actions: `Throw<TException>()`
+  - async actions: `ThrowAsync<TException>()`
+  - collections (on enumerable values): `Contain(...)`, `HaveCount(...)`
   - `.And`
 - `Batch` aggregation:
   - outside a batch, failures throw immediately,
@@ -57,6 +64,29 @@ Expected value to start with "ab", but found "test".
     .StartWith("te").And
     .EndWith("st").And
     .NotBeNull();
+```
+
+### Value Assertions
+
+```csharp
+42.Should().Be(42).And.NotBe(0);
+```
+
+### Exception Assertions
+
+```csharp
+Action sync = () => throw new InvalidOperationException();
+sync.Should().Throw<InvalidOperationException>();
+
+Func<Task> asyncAction = () => Task.FromException(new InvalidOperationException());
+await asyncAction.Should().ThrowAsync<InvalidOperationException>();
+```
+
+### Collection Assertions
+
+```csharp
+int[] values = [1, 2, 3];
+values.Should().Contain(2).And.HaveCount(3);
 ```
 
 ### Batch Aggregation
@@ -124,9 +154,16 @@ dotnet run -c Release --project benchmarks/Axiom.Benchmarks/Axiom.Benchmarks.csp
 ```
 
 Current scenarios:
-- `StartWith_Pass_OutsideBatch`
-- `StartWith_Fail_OutsideBatch` (exception caught inside benchmark)
-- `StartWith_Fail_InsideBatch` (aggregated throw on batch dispose)
+- String assertions:
+  - `StartWith_Pass_OutsideBatch`
+  - `StartWith_Fail_OutsideBatch` (exception caught inside benchmark)
+  - `StartWith_Fail_InsideBatch` (aggregated throw on batch dispose)
+- Collection assertions:
+  - `Contain_Pass_OutsideBatch`
+  - `Contain_Fail_OutsideBatch` (exception caught inside benchmark)
+  - `HaveCount_Pass_OutsideBatch`
+  - `HaveCount_Fail_OutsideBatch` (exception caught inside benchmark)
+  - `ContainAndHaveCount_Pass_OutsideBatch`
 
 ## Contributing
 
