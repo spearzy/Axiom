@@ -1,6 +1,4 @@
-using Axiom;
-
-namespace Axiom.Tests;
+namespace Axiom.Tests.Assertions.Strings.NotBeNull;
 
 public sealed class NotBeNullTests
 {

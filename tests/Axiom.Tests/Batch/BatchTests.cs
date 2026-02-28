@@ -1,25 +1,25 @@
-namespace Axiom.Tests;
+namespace Axiom.Tests.Batch;
 
 public class BatchTests
 {
     [Fact]
     public void Current_IsSet_AndRestored_ForNestedBatches()
     {
-        Xunit.Assert.Null(Batch.Current);
+        Xunit.Assert.Null(Axiom.Core.Batch.Current);
 
-        using (var outer = Axiom.Assert.Batch("outer"))
+        using (var outer = Axiom.Core.Assert.Batch("outer"))
         {
-            Xunit.Assert.Same(outer, Batch.Current);
+            Xunit.Assert.Same(outer, Axiom.Core.Batch.Current);
 
-            using (var inner = new Batch("inner"))
+            using (var inner = new Axiom.Core.Batch("inner"))
             {
-                Xunit.Assert.Same(inner, Batch.Current);
+                Xunit.Assert.Same(inner, Axiom.Core.Batch.Current);
             }
 
-            Xunit.Assert.Same(outer, Batch.Current);
+            Xunit.Assert.Same(outer, Axiom.Core.Batch.Current);
         }
 
-        Xunit.Assert.Null(Batch.Current);
+        Xunit.Assert.Null(Axiom.Core.Batch.Current);
     }
 
     [Fact]
@@ -27,7 +27,7 @@ public class BatchTests
     {
         var exception = Xunit.Record.Exception(() =>
         {
-            using var _ = new Batch();
+            using var _ = new Axiom.Core.Batch();
         });
 
         Xunit.Assert.Null(exception);
@@ -38,10 +38,10 @@ public class BatchTests
     {
         var exception = Xunit.Assert.Throws<InvalidOperationException>(() =>
         {
-            using var outer = new Batch("outer");
+            using var outer = new Axiom.Core.Batch("outer");
             outer.AddFailure("first");
 
-            using (var inner = new Batch("inner"))
+            using (var inner = new Axiom.Core.Batch("inner"))
             {
                 inner.AddFailure("second");
             }

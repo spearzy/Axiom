@@ -1,4 +1,4 @@
-namespace Axiom.Tests;
+namespace Axiom.Tests.Assertions.Values.Chaining;
 
 public sealed class ValueChainingTests
 {

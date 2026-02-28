@@ -1,4 +1,4 @@
-namespace Axiom;
+namespace Axiom.Core.Formatting;
 
 public interface IValueFormatter
 {

@@ -1,4 +1,7 @@
-namespace Axiom;
+using Axiom.Core.Configuration;
+using Axiom.Core.Formatting;
+
+namespace Axiom.Core.Failures;
 
 public static class FailureMessageRenderer
 {

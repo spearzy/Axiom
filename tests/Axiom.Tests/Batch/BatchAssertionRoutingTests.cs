@@ -1,4 +1,4 @@
-namespace Axiom.Tests;
+namespace Axiom.Tests.Batch;
 
 public class BatchAssertionRoutingTests
 {
@@ -17,7 +17,7 @@ public class BatchAssertionRoutingTests
 
         var ex = Xunit.Record.Exception(() =>
         {
-            using var batch = new Batch();
+            using var batch = new Axiom.Core.Batch();
             value.Should().StartWith("ab");
         });
 
@@ -31,7 +31,7 @@ public class BatchAssertionRoutingTests
 
         var ex = Xunit.Assert.Throws<InvalidOperationException>(() =>
         {
-            using var batch = new Batch("strings");
+            using var batch = new Axiom.Core.Batch("strings");
             value.Should().StartWith("ab");
             value.Should().EndWith("cd");
         });

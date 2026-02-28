@@ -1,4 +1,4 @@
-namespace Axiom;
+namespace Axiom.Assertions;
 
 public readonly struct AndContinuation<TAssertions>
 {

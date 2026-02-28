@@ -1,4 +1,4 @@
-namespace Axiom.Tests;
+namespace Axiom.Tests.Core.Configuration;
 
 public sealed class AxiomModuleTests : IDisposable
 {

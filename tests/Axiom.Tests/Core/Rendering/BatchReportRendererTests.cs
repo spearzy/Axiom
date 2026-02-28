@@ -1,4 +1,4 @@
-namespace Axiom.Tests;
+namespace Axiom.Tests.Core.Rendering;
 
 public sealed class BatchReportRendererTests
 {

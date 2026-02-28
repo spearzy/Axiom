@@ -1,6 +1,6 @@
 using System.Globalization;
 
-namespace Axiom;
+namespace Axiom.Core.Formatting;
 
 public sealed class DefaultValueFormatter : IValueFormatter
 {

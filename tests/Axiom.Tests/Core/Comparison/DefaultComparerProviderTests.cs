@@ -1,4 +1,4 @@
-namespace Axiom.Tests;
+namespace Axiom.Tests.Core.Comparison;
 
 public sealed class DefaultComparerProviderTests
 {

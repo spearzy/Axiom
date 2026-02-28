@@ -1,6 +1,6 @@
 using System.Runtime.CompilerServices;
 
-namespace Axiom;
+namespace Axiom.Assertions;
 
 public static class GenericShouldExtensions
 {

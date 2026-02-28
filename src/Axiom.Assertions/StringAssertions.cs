@@ -1,4 +1,7 @@
-namespace Axiom;
+using Axiom.Core;
+using Axiom.Core.Failures;
+
+namespace Axiom.Assertions;
 
 public sealed class StringAssertions
 {

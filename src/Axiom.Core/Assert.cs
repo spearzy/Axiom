@@ -1,4 +1,4 @@
-namespace Axiom;
+namespace Axiom.Core;
 
 public static class Assert
 {

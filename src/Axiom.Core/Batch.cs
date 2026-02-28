@@ -1,4 +1,6 @@
-namespace Axiom;
+using Axiom.Core.Failures;
+
+namespace Axiom.Core;
 
 public sealed class Batch : IDisposable
 {

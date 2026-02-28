@@ -1,4 +1,4 @@
-namespace Axiom;
+namespace Axiom.Core.Comparison;
 
 public sealed class DefaultComparerProvider : IComparerProvider
 {

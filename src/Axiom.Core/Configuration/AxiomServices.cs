@@ -1,4 +1,6 @@
-namespace Axiom;
+using Axiom.Core.Modules;
+
+namespace Axiom.Core.Configuration;
 
 public static class AxiomServices
 {

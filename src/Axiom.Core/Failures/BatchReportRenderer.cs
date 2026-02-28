@@ -1,6 +1,6 @@
 using System.Text;
 
-namespace Axiom;
+namespace Axiom.Core.Failures;
 
 public static class BatchReportRenderer
 {

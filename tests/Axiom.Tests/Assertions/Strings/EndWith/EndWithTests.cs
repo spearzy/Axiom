@@ -1,6 +1,4 @@
-using Axiom;
-
-namespace Axiom.Tests;
+namespace Axiom.Tests.Assertions.Strings.EndWith;
 
 public sealed class EndWithTests
 {

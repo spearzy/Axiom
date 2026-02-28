@@ -1,4 +1,4 @@
-namespace Axiom.Tests;
+namespace Axiom.Tests.EntryPoints.Should;
 
 public sealed class GenericShouldEntryPointTests
 {

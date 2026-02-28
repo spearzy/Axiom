@@ -1,4 +1,7 @@
-namespace Axiom;
+using Axiom.Core.Comparison;
+using Axiom.Core.Formatting;
+
+namespace Axiom.Core.Configuration;
 
 public sealed class AxiomConfiguration
 {
