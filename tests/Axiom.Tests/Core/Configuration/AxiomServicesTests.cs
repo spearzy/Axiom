@@ -31,6 +31,24 @@ public sealed class AxiomServicesTests : IDisposable
         Xunit.Assert.Equal(expected, message);
     }
 
+    [Fact]
+    public void Configure_ClonesOutputOptions_InsteadOfReusingReference()
+    {
+        AxiomServices.Configure(c =>
+        {
+            c.Output.Enabled = true;
+            c.Output.ShowPasses = true;
+        });
+
+        var before = AxiomServices.Configuration.Output;
+        AxiomServices.Configure(c => c.ValueFormatter = new ConstantFormatter("fmt"));
+
+        var after = AxiomServices.Configuration.Output;
+        Xunit.Assert.NotSame(before, after);
+        Xunit.Assert.True(after.Enabled);
+        Xunit.Assert.True(after.ShowPasses);
+    }
+
     private sealed class ConstantFormatter : IValueFormatter
     {
         private readonly string _text;

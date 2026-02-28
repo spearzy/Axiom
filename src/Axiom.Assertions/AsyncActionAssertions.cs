@@ -1,5 +1,7 @@
+using System.Runtime.CompilerServices;
 using Axiom.Core;
 using Axiom.Core.Failures;
+using Axiom.Core.Output;
 
 namespace Axiom.Assertions;
 
@@ -14,7 +16,10 @@ public sealed class AsyncActionAssertions
     public Func<ValueTask> Subject { get; }
     public string? SubjectExpression { get; }
 
-    public async ValueTask<AndContinuation<AsyncActionAssertions>> ThrowAsync<TException>(string? because = null)
+    public async ValueTask<AndContinuation<AsyncActionAssertions>> ThrowAsync<TException>(
+        string? because = null,
+        [CallerFilePath] string? callerFilePath = null,
+        [CallerLineNumber] int callerLineNumber = 0)
         where TException : Exception
     {
         Exception? capturedException = null;
@@ -29,6 +34,7 @@ public sealed class AsyncActionAssertions
 
         if (capturedException is TException)
         {
+            AssertionOutputWriter.ReportPass(nameof(ThrowAsync), SubjectLabel(), callerFilePath, callerLineNumber);
             return new AndContinuation<AsyncActionAssertions>(this);
         }
 
@@ -41,7 +47,7 @@ public sealed class AsyncActionAssertions
             new Expectation("to throw", typeof(TException)),
             actual,
             because);
-        Fail(FailureMessageRenderer.Render(failure));
+        Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
 
         return new AndContinuation<AsyncActionAssertions>(this);
     }
@@ -51,8 +57,10 @@ public sealed class AsyncActionAssertions
         return string.IsNullOrWhiteSpace(SubjectExpression) ? "<subject>" : SubjectExpression;
     }
 
-    private static void Fail(string message)
+    private static void Fail(string message, string? callerFilePath, int callerLineNumber)
     {
+        AssertionOutputWriter.ReportFailure(message, callerFilePath, callerLineNumber);
+
         var batch = Batch.Current;
         if (batch is not null)
         {

@@ -1,6 +1,8 @@
+using System.Runtime.CompilerServices;
 using Axiom.Core;
 using Axiom.Core.Configuration;
 using Axiom.Core.Failures;
+using Axiom.Core.Output;
 
 namespace Axiom.Assertions;
 
@@ -15,7 +17,11 @@ public sealed class ValueAssertions<T>
     public T Subject { get; }
     public string? SubjectExpression { get; }
 
-    public AndContinuation<ValueAssertions<T>> Be(T expected, string? because = null)
+    public AndContinuation<ValueAssertions<T>> Be(
+        T expected,
+        string? because = null,
+        [CallerFilePath] string? callerFilePath = null,
+        [CallerLineNumber] int callerLineNumber = 0)
     {
         var comparer = GetComparer();
         if (!comparer.Equals(Subject, expected))
@@ -25,13 +31,18 @@ public sealed class ValueAssertions<T>
                 new Expectation("to be", expected),
                 Subject,
                 because);
-            Fail(FailureMessageRenderer.Render(failure));
+            Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
         }
 
+        AssertionOutputWriter.ReportPass(nameof(Be), SubjectLabel(), callerFilePath, callerLineNumber);
         return new AndContinuation<ValueAssertions<T>>(this);
     }
 
-    public AndContinuation<ValueAssertions<T>> NotBe(T unexpected, string? because = null)
+    public AndContinuation<ValueAssertions<T>> NotBe(
+        T unexpected,
+        string? because = null,
+        [CallerFilePath] string? callerFilePath = null,
+        [CallerLineNumber] int callerLineNumber = 0)
     {
         var comparer = GetComparer();
         if (comparer.Equals(Subject, unexpected))
@@ -41,9 +52,10 @@ public sealed class ValueAssertions<T>
                 new Expectation("to not be", unexpected),
                 Subject,
                 because);
-            Fail(FailureMessageRenderer.Render(failure));
+            Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
         }
 
+        AssertionOutputWriter.ReportPass(nameof(NotBe), SubjectLabel(), callerFilePath, callerLineNumber);
         return new AndContinuation<ValueAssertions<T>>(this);
     }
 
@@ -64,8 +76,10 @@ public sealed class ValueAssertions<T>
         return EqualityComparer<T>.Default;
     }
 
-    private static void Fail(string message)
+    private static void Fail(string message, string? callerFilePath, int callerLineNumber)
     {
+        AssertionOutputWriter.ReportFailure(message, callerFilePath, callerLineNumber);
+
         var batch = Batch.Current;
         if (batch is not null)
         {

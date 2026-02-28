@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Runtime.CompilerServices;
 
 namespace Axiom.Assertions;
 
@@ -7,7 +8,9 @@ public static class CollectionValueAssertionExtensions
     public static AndContinuation<ValueAssertions<TCollection>> Contain<TCollection, TItem>(
         this ValueAssertions<TCollection> assertions,
         TItem expected,
-        string? because = null)
+        string? because = null,
+        [CallerFilePath] string? callerFilePath = null,
+        [CallerLineNumber] int callerLineNumber = 0)
         where TCollection : IEnumerable<TItem>
     {
         ArgumentNullException.ThrowIfNull(assertions);
@@ -17,7 +20,9 @@ public static class CollectionValueAssertionExtensions
             assertions.Subject,
             assertions.SubjectExpression,
             expected,
-            because);
+            because,
+            callerFilePath,
+            callerLineNumber);
 
         return new AndContinuation<ValueAssertions<TCollection>>(assertions);
     }
@@ -25,7 +30,9 @@ public static class CollectionValueAssertionExtensions
     public static AndContinuation<ValueAssertions<TCollection>> HaveCount<TCollection>(
         this ValueAssertions<TCollection> assertions,
         int expectedCount,
-        string? because = null)
+        string? because = null,
+        [CallerFilePath] string? callerFilePath = null,
+        [CallerLineNumber] int callerLineNumber = 0)
         where TCollection : IEnumerable
     {
         ArgumentNullException.ThrowIfNull(assertions);
@@ -34,7 +41,9 @@ public static class CollectionValueAssertionExtensions
             assertions.Subject,
             assertions.SubjectExpression,
             expectedCount,
-            because);
+            because,
+            callerFilePath,
+            callerLineNumber);
 
         return new AndContinuation<ValueAssertions<TCollection>>(assertions);
     }

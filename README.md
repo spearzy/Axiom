@@ -89,6 +89,22 @@ int[] values = [1, 2, 3];
 values.Should().Contain(2).And.HaveCount(3);
 ```
 
+### Optional Colored Assertion Output
+
+```csharp
+using Axiom.Core.Configuration;
+
+AxiomServices.Configure(c =>
+{
+    c.Output.Enabled = true;
+    c.Output.ShowPasses = true;
+    c.Output.UseColors = true;
+    c.Output.IncludeSourceLine = true;
+});
+```
+
+When enabled, Axiom prints readable pass/fail output with source location (and source line for failures when available).
+
 ### Batch Aggregation
 
 ```csharp

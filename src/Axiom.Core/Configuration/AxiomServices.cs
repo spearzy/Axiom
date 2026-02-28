@@ -16,6 +16,7 @@ public static class AxiomServices
         {
             ComparerProvider = _configuration.ComparerProvider,
             ValueFormatter = _configuration.ValueFormatter,
+            Output = _configuration.Output.Clone(),
         };
 
         configure(next);

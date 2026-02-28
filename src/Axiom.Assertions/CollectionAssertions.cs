@@ -2,6 +2,7 @@ using System.Collections;
 using Axiom.Core;
 using Axiom.Core.Configuration;
 using Axiom.Core.Failures;
+using Axiom.Core.Output;
 
 namespace Axiom.Assertions;
 
@@ -12,16 +13,19 @@ internal static class CollectionAssertionEngine
         IEnumerable<T>? subject,
         string? subjectExpression,
         T expected,
-        string? because)
+        string? because,
+        string? callerFilePath,
+        int callerLineNumber)
     {
+        var subjectLabel = SubjectLabel(subjectExpression);
         if (subject is null)
         {
             var nullFailure = new Failure(
-                SubjectLabel(subjectExpression),
+                subjectLabel,
                 new Expectation("to contain", expected),
                 subject,
                 because);
-            Fail(FailureMessageRenderer.Render(nullFailure));
+            Fail(FailureMessageRenderer.Render(nullFailure), callerFilePath, callerLineNumber);
             return;
         }
 
@@ -30,32 +34,36 @@ internal static class CollectionAssertionEngine
         {
             if (comparer.Equals(item, expected))
             {
+                AssertionOutputWriter.ReportPass("Contain", subjectLabel, callerFilePath, callerLineNumber);
                 return;
             }
         }
 
         var failure = new Failure(
-            SubjectLabel(subjectExpression),
+            subjectLabel,
             new Expectation("to contain", expected),
             subject,
             because);
-        Fail(FailureMessageRenderer.Render(failure));
+        Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
     }
 
     public static void AssertHaveCount(
         IEnumerable? subject,
         string? subjectExpression,
         int expectedCount,
-        string? because)
+        string? because,
+        string? callerFilePath,
+        int callerLineNumber)
     {
+        var subjectLabel = SubjectLabel(subjectExpression);
         if (subject is null)
         {
             var nullFailure = new Failure(
-                SubjectLabel(subjectExpression),
+                subjectLabel,
                 new Expectation("to have count", expectedCount),
                 subject,
                 because);
-            Fail(FailureMessageRenderer.Render(nullFailure));
+            Fail(FailureMessageRenderer.Render(nullFailure), callerFilePath, callerLineNumber);
             return;
         }
 
@@ -66,12 +74,15 @@ internal static class CollectionAssertionEngine
         if (actualCount != expectedCount)
         {
             var failure = new Failure(
-                SubjectLabel(subjectExpression),
+                subjectLabel,
                 new Expectation("to have count", expectedCount),
                 actualCount,
                 because);
-            Fail(FailureMessageRenderer.Render(failure));
+            Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
+            return;
         }
+
+        AssertionOutputWriter.ReportPass("HaveCount", subjectLabel, callerFilePath, callerLineNumber);
     }
 
     private static string SubjectLabel(string? subjectExpression)
@@ -122,8 +133,10 @@ internal static class CollectionAssertionEngine
         return count;
     }
 
-    private static void Fail(string message)
+    private static void Fail(string message, string? callerFilePath, int callerLineNumber)
     {
+        AssertionOutputWriter.ReportFailure(message, callerFilePath, callerLineNumber);
+
         var batch = Batch.Current;
         if (batch is not null)
         {
