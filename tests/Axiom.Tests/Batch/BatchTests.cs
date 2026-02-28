@@ -1,6 +1,6 @@
 namespace Axiom.Tests.Batch;
 
-public class BatchTests
+public sealed class BatchTests
 {
     [Fact]
     public void Current_IsSet_AndRestored_ForNestedBatches()

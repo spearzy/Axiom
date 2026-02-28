@@ -1,6 +1,6 @@
 namespace Axiom.Tests.Batch;
 
-public class BatchAssertionRoutingTests
+public sealed class BatchAssertionRoutingTests
 {
     [Fact]
     public void StartWith_OutsideBatch_ThrowsImmediately()
