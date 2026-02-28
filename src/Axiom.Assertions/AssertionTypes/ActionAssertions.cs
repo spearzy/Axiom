@@ -1,22 +1,23 @@
 using System.Runtime.CompilerServices;
+using Axiom.Assertions.Chaining;
 using Axiom.Core;
 using Axiom.Core.Failures;
 using Axiom.Core.Output;
 
-namespace Axiom.Assertions;
+namespace Axiom.Assertions.AssertionTypes;
 
-public sealed class AsyncActionAssertions
+public sealed class ActionAssertions
 {
-    public AsyncActionAssertions(Func<ValueTask> subject, string? subjectExpression)
+    public ActionAssertions(Action subject, string? subjectExpression)
     {
         Subject = subject;
         SubjectExpression = subjectExpression;
     }
 
-    public Func<ValueTask> Subject { get; }
+    public Action Subject { get; }
     public string? SubjectExpression { get; }
 
-    public async ValueTask<AndContinuation<AsyncActionAssertions>> ThrowAsync<TException>(
+    public AndContinuation<ActionAssertions> Throw<TException>(
         string? because = null,
         [CallerFilePath] string? callerFilePath = null,
         [CallerLineNumber] int callerLineNumber = 0)
@@ -25,17 +26,19 @@ public sealed class AsyncActionAssertions
         Exception? capturedException = null;
         try
         {
-            await Subject().ConfigureAwait(false);
+            // Execute once and capture what happened so we can evaluate it deterministically.
+            Subject();
         }
         catch (Exception ex)
         {
             capturedException = ex;
         }
 
+        // Accept the requested type or any subtype (common assertion-library expectation).
         if (capturedException is TException)
         {
-            AssertionOutputWriter.ReportPass(nameof(ThrowAsync), SubjectLabel(), callerFilePath, callerLineNumber);
-            return new AndContinuation<AsyncActionAssertions>(this);
+            AssertionOutputWriter.ReportPass(nameof(Throw), SubjectLabel(), callerFilePath, callerLineNumber);
+            return new AndContinuation<ActionAssertions>(this);
         }
 
         object actual = capturedException is null
@@ -49,7 +52,7 @@ public sealed class AsyncActionAssertions
             because);
         Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
 
-        return new AndContinuation<AsyncActionAssertions>(this);
+        return new AndContinuation<ActionAssertions>(this);
     }
 
     private string SubjectLabel()
@@ -64,7 +67,7 @@ public sealed class AsyncActionAssertions
         var batch = Batch.Current;
         if (batch is not null)
         {
-            // Keep going inside a batch; root dispose raises one combined exception.
+            // In a batch we aggregate; root batch dispose will throw one combined exception.
             batch.AddFailure(message);
             return;
         }

@@ -4,7 +4,7 @@ using Axiom.Core.Configuration;
 using Axiom.Core.Failures;
 using Axiom.Core.Output;
 
-namespace Axiom.Assertions;
+namespace Axiom.Assertions.AssertionTypes;
 
 // Shared collection assertion logic invoked by extension methods to avoid per-call wrapper allocations.
 internal static class CollectionAssertionEngine

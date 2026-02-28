@@ -1,7 +1,9 @@
 using System.Collections;
 using System.Runtime.CompilerServices;
+using Axiom.Assertions.AssertionTypes;
+using Axiom.Assertions.Chaining;
 
-namespace Axiom.Assertions;
+namespace Axiom.Assertions.Extensions;
 
 public static class CollectionValueAssertionExtensions
 {

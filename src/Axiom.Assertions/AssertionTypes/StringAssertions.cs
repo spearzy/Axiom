@@ -1,9 +1,10 @@
 using System.Runtime.CompilerServices;
+using Axiom.Assertions.Chaining;
 using Axiom.Core;
 using Axiom.Core.Failures;
 using Axiom.Core.Output;
 
-namespace Axiom.Assertions;
+namespace Axiom.Assertions.AssertionTypes;
 
 public sealed class StringAssertions
 {

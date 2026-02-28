@@ -1,4 +1,4 @@
-namespace Axiom.Assertions;
+namespace Axiom.Assertions.Chaining;
 
 public readonly struct AndContinuation<TAssertions>
 {
