@@ -110,13 +110,23 @@ public sealed class ValueAssertions<T>
         string? callerFilePath,
         int callerLineNumber)
     {
-        _ = expected;
-        _ = options;
-        _ = because;
-        _ = callerFilePath;
-        _ = callerLineNumber;
+        var subjectLabel = SubjectLabel();
+        var differences = EquivalencyEngine.Compare(Subject, expected, subjectLabel, options);
+        if (differences.Count > 0)
+        {
+            var message = EquivalencyReportRenderer.Render(
+                subjectLabel,
+                expected,
+                differences,
+                options.MaxDifferences,
+                because);
 
-        throw new NotSupportedException("BeEquivalentTo is not implemented yet.");
+            Fail(message, callerFilePath, callerLineNumber);
+            return new AndContinuation<ValueAssertions<T>>(this);
+        }
+
+        AssertionOutputWriter.ReportPass(nameof(BeEquivalentTo), subjectLabel, callerFilePath, callerLineNumber);
+        return new AndContinuation<ValueAssertions<T>>(this);
     }
 
     private static void Fail(string message, string? callerFilePath, int callerLineNumber)
