@@ -131,4 +131,58 @@ public sealed class BeEquivalentToGlobalDefaultsTests : IDisposable
 
         Assert.Contains("Values differ.", ex.Message, StringComparison.Ordinal);
     }
+
+    [Fact]
+    public void GivenGlobalDecimalTolerance_WhenNoPerCallOverride_ThenUsesGlobalDefaults()
+    {
+        EquivalencyDefaults.Configure(options => options.DecimalTolerance = 0.05m);
+
+        var actual = 100.00m;
+        var expected = 100.03m;
+
+        var ex = Record.Exception(() => actual.Should().BeEquivalentTo(expected));
+
+        Assert.Null(ex);
+    }
+
+    [Fact]
+    public void GivenGlobalDecimalTolerance_WhenPerCallToleranceIsStricter_ThenPerCallOverrideWins()
+    {
+        EquivalencyDefaults.Configure(options => options.DecimalTolerance = 0.05m);
+
+        var actual = 100.00m;
+        var expected = 100.03m;
+
+        var ex = Assert.Throws<InvalidOperationException>(() =>
+            actual.Should().BeEquivalentTo(expected, options => options.DecimalTolerance = 0.01m));
+
+        Assert.Contains("Values differ.", ex.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void GivenGlobalTimeSpanTolerance_WhenNoPerCallOverride_ThenUsesGlobalDefaults()
+    {
+        EquivalencyDefaults.Configure(options => options.TimeSpanTolerance = TimeSpan.FromSeconds(1));
+
+        var actual = TimeSpan.FromSeconds(10);
+        var expected = TimeSpan.FromSeconds(10.8);
+
+        var ex = Record.Exception(() => actual.Should().BeEquivalentTo(expected));
+
+        Assert.Null(ex);
+    }
+
+    [Fact]
+    public void GivenGlobalTimeSpanTolerance_WhenPerCallToleranceIsStricter_ThenPerCallOverrideWins()
+    {
+        EquivalencyDefaults.Configure(options => options.TimeSpanTolerance = TimeSpan.FromSeconds(1));
+
+        var actual = TimeSpan.FromSeconds(10);
+        var expected = TimeSpan.FromSeconds(10.8);
+
+        var ex = Assert.Throws<InvalidOperationException>(() =>
+            actual.Should().BeEquivalentTo(expected, options => options.TimeSpanTolerance = TimeSpan.FromMilliseconds(200)));
+
+        Assert.Contains("Values differ.", ex.Message, StringComparison.Ordinal);
+    }
 }
