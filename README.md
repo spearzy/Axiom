@@ -42,7 +42,7 @@ Expected value to start with "ab", but found "test".
   - `Func<ValueTask>`
 - Fluent chaining:
   - strings: `NotBeNull()`, `StartWith(...)`, `EndWith(...)`
-  - values: `Be(...)`, `NotBe(...)`
+  - values: `Be(...)`, `NotBe(...)`, `BeEquivalentTo(...)`
   - actions: `Throw<TException>()`
   - async actions: `ThrowAsync<TException>()`
   - collections (on enumerable values): `Contain(...)`, `HaveCount(...)`
@@ -71,6 +71,43 @@ Expected value to start with "ab", but found "test".
 ```csharp
 42.Should().Be(42).And.NotBe(0);
 ```
+
+### Equivalency Assertions
+
+```csharp
+var actual = new { Name = "Bob", Scores = new[] { 3, 1, 2 } };
+var expected = new { Name = "Bob", Scores = new[] { 1, 2, 3 } };
+
+actual.Should().BeEquivalentTo(
+    expected,
+    options => options.CollectionOrder = EquivalencyCollectionOrder.Any);
+```
+
+### Optional Global Equivalency Defaults
+
+You only need this if you want project-wide defaults.  
+If you do nothing, Axiom uses built-in defaults.
+
+```csharp
+using Axiom.Assertions.Equivalency;
+
+EquivalencyDefaults.Configure(options =>
+{
+    options.CollectionOrder = EquivalencyCollectionOrder.Any;
+    options.FailOnExtraMembers = false;
+});
+```
+
+Per-call options always override global defaults:
+
+```csharp
+actual.Should().BeEquivalentTo(expected, options =>
+{
+    options.CollectionOrder = EquivalencyCollectionOrder.Strict;
+});
+```
+
+The `options` parameter above is an `Action<EquivalencyOptions>`.
 
 ### Exception Assertions
 

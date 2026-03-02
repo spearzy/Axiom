@@ -67,7 +67,7 @@ public sealed class ValueAssertions<T>
         [CallerFilePath] string? callerFilePath = null,
         [CallerLineNumber] int callerLineNumber = 0)
     {
-        var options = new EquivalencyOptions();
+        var options = EquivalencyDefaults.Snapshot();
         return BeEquivalentToInternal(expected, options, because, callerFilePath, callerLineNumber);
     }
 
@@ -80,10 +80,9 @@ public sealed class ValueAssertions<T>
     {
         ArgumentNullException.ThrowIfNull(configure);
 
-        var options = new EquivalencyOptions();
+        var options = EquivalencyDefaults.Snapshot();
         configure(options);
-        // Snapshot options so this assertion run is deterministic even if caller later mutates captured state.
-        return BeEquivalentToInternal(expected, options.Clone(), because, callerFilePath, callerLineNumber);
+        return BeEquivalentToInternal(expected, options, because, callerFilePath, callerLineNumber);
     }
 
     private string SubjectLabel()
