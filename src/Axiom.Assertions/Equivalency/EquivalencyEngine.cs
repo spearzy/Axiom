@@ -1,11 +1,17 @@
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using Axiom.Core.Comparison;
+using Axiom.Core.Configuration;
 
 namespace Axiom.Assertions.Equivalency;
 
 internal static class EquivalencyEngine
 {
+    // Cache per runtime comparison type so we pay reflection cost only once per type.
+    private static readonly ConcurrentDictionary<Type, Func<IComparerProvider, object, object, bool?>> ComparerInvokers = new();
+
     public static IReadOnlyList<EquivalencyDifference> Compare(
         object? actual,
         object? expected,
@@ -78,7 +84,7 @@ internal static class EquivalencyEngine
 
         if (IsLeafType(actualType) || IsLeafType(expectedType))
         {
-            if (!Equals(actual, expected))
+            if (!LeafValuesEquivalent(actual, expected, actualType, expectedType))
             {
                 differences.Add(new EquivalencyDifference(path, expected, actual, "Values differ."));
             }
@@ -267,6 +273,93 @@ internal static class EquivalencyEngine
         var localVisitedPairs = new HashSet<ReferencePair>(ReferencePairComparer.Instance);
         CompareNode(actual, expected, path, options, localDifferences, localVisitedPairs);
         return localDifferences.Count == 0;
+    }
+
+    private static bool LeafValuesEquivalent(
+        object actual,
+        object expected,
+        Type actualType,
+        Type expectedType)
+    {
+        if (TryCompareWithConfiguredComparer(actual, expected, actualType, expectedType, out var comparerResult))
+        {
+            return comparerResult;
+        }
+
+        return Equals(actual, expected);
+    }
+
+    private static bool TryCompareWithConfiguredComparer(
+        object actual,
+        object expected,
+        Type actualType,
+        Type expectedType,
+        out bool areEquivalent)
+    {
+        areEquivalent = false;
+        // We can only ask the provider for one generic T, so first choose a shared T
+        // that can represent both runtime values (same type or assignable base/interface).
+        var comparisonType = GetSharedComparisonType(actualType, expectedType);
+        if (comparisonType is null)
+        {
+            return false;
+        }
+
+        var provider = AxiomServices.Configuration.ComparerProvider;
+        // Build (or reuse) a strongly-typed comparer call delegate for this runtime type.
+        var invoker = ComparerInvokers.GetOrAdd(comparisonType, static type => BuildComparerInvoker(type));
+        var comparerResult = invoker(provider, actual, expected);
+        if (!comparerResult.HasValue)
+        {
+            return false;
+        }
+
+        areEquivalent = comparerResult.Value;
+        return true;
+    }
+
+    private static Type? GetSharedComparisonType(Type actualType, Type expectedType)
+    {
+        if (actualType == expectedType)
+        {
+            return actualType;
+        }
+
+        if (actualType.IsAssignableFrom(expectedType))
+        {
+            return actualType;
+        }
+
+        if (expectedType.IsAssignableFrom(actualType))
+        {
+            return expectedType;
+        }
+
+        return null;
+    }
+
+    private static Func<IComparerProvider, object, object, bool?> BuildComparerInvoker(Type comparisonType)
+    {
+        // Convert CompareWithProviderCore<T> into a callable delegate where T is only known at runtime.
+        // This avoids repeated reflection inside hot comparison paths.
+        var compareMethod = typeof(EquivalencyEngine)
+            .GetMethod(nameof(CompareWithProviderCore), BindingFlags.NonPublic | BindingFlags.Static)!
+            .MakeGenericMethod(comparisonType);
+
+        return (Func<IComparerProvider, object, object, bool?>)compareMethod
+            .CreateDelegate(typeof(Func<IComparerProvider, object, object, bool?>));
+    }
+
+    private static bool? CompareWithProviderCore<T>(IComparerProvider provider, object actual, object expected)
+    {
+        // If no comparer exists for T, return null so caller can fall back to default equality.
+        if (!provider.TryGetEqualityComparer<T>(out var comparer) || comparer is null)
+        {
+            return null;
+        }
+
+        // Delegate is only built for compatible types, so these casts are intentional and safe here.
+        return comparer.Equals((T)actual, (T)expected);
     }
 
     private static Dictionary<string, Func<object, object?>> GetComparableMembers(Type type, EquivalencyOptions options)
