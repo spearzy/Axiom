@@ -143,4 +143,40 @@ public sealed class BeEquivalentToToleranceTests : IDisposable
 
         Assert.Contains("Values differ.", ex.Message, StringComparison.Ordinal);
     }
+
+    [Fact]
+    public void GivenNaNValues_WhenComparingWithTolerance_ThenNaNMatchesNaN()
+    {
+        var actual = double.NaN;
+        var expected = double.NaN;
+
+        var ex = Record.Exception(() =>
+            actual.Should().BeEquivalentTo(expected, options => options.DoubleTolerance = 0.01d));
+
+        Assert.Null(ex);
+    }
+
+    [Fact]
+    public void GivenPositiveInfinityValues_WhenComparingWithTolerance_ThenTheyMatch()
+    {
+        var actual = double.PositiveInfinity;
+        var expected = double.PositiveInfinity;
+
+        var ex = Record.Exception(() =>
+            actual.Should().BeEquivalentTo(expected, options => options.DoubleTolerance = 0.01d));
+
+        Assert.Null(ex);
+    }
+
+    [Fact]
+    public void GivenOppositeInfinityValues_WhenComparingWithTolerance_ThenTheyDoNotMatch()
+    {
+        var actual = double.PositiveInfinity;
+        var expected = double.NegativeInfinity;
+
+        var ex = Assert.Throws<InvalidOperationException>(() =>
+            actual.Should().BeEquivalentTo(expected, options => options.DoubleTolerance = 0.01d));
+
+        Assert.Contains("Values differ.", ex.Message, StringComparison.Ordinal);
+    }
 }
