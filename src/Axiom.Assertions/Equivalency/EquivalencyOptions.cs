@@ -19,6 +19,11 @@ public sealed class EquivalencyOptions
     public bool IncludePublicFields { get; set; } = true;
     public bool FailOnMissingMembers { get; set; } = true;
     public bool FailOnExtraMembers { get; set; } = true;
+    public double? DoubleTolerance { get; set; }
+    public decimal? DecimalTolerance { get; set; }
+    public TimeSpan? DateTimeTolerance { get; set; }
+    public TimeSpan? DateTimeOffsetTolerance { get; set; }
+    public TimeSpan? TimeSpanTolerance { get; set; }
 
     public IReadOnlySet<string> IgnoredMemberNames => _ignoredMemberNames;
     public IReadOnlySet<string> IgnoredPaths => _ignoredPaths;
@@ -50,6 +55,11 @@ public sealed class EquivalencyOptions
             IncludePublicFields = IncludePublicFields,
             FailOnMissingMembers = FailOnMissingMembers,
             FailOnExtraMembers = FailOnExtraMembers,
+            DoubleTolerance = DoubleTolerance,
+            DecimalTolerance = DecimalTolerance,
+            DateTimeTolerance = DateTimeTolerance,
+            DateTimeOffsetTolerance = DateTimeOffsetTolerance,
+            TimeSpanTolerance = TimeSpanTolerance,
         };
 
         foreach (var member in _ignoredMemberNames)

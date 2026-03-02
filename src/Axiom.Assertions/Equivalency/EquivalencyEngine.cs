@@ -84,7 +84,7 @@ internal static class EquivalencyEngine
 
         if (IsLeafType(actualType) || IsLeafType(expectedType))
         {
-            if (!LeafValuesEquivalent(actual, expected, actualType, expectedType))
+            if (!LeafValuesEquivalent(actual, expected, actualType, expectedType, options))
             {
                 differences.Add(new EquivalencyDifference(path, expected, actual, "Values differ."));
             }
@@ -289,14 +289,74 @@ internal static class EquivalencyEngine
         object actual,
         object expected,
         Type actualType,
-        Type expectedType)
+        Type expectedType,
+        EquivalencyOptions options)
     {
+        // Per-assertion tolerance settings take priority for supported leaf types.
+        if (TryCompareWithTolerance(actual, expected, options, out var toleranceResult))
+        {
+            return toleranceResult;
+        }
+
         if (TryCompareWithConfiguredComparer(actual, expected, actualType, expectedType, out var comparerResult))
         {
             return comparerResult;
         }
 
         return Equals(actual, expected);
+    }
+
+    private static bool TryCompareWithTolerance(
+        object actual,
+        object expected,
+        EquivalencyOptions options,
+        out bool areEquivalent)
+    {
+        switch (actual)
+        {
+            // Absolute delta check for double with NaN/Infinity-safe handling.
+            case double actualDouble when expected is double expectedDouble && options.DoubleTolerance.HasValue:
+                areEquivalent = AreDoublesEquivalent(actualDouble, expectedDouble, Math.Abs(options.DoubleTolerance.Value));
+                return true;
+
+            // Absolute delta check for decimal values.
+            case decimal actualDecimal when expected is decimal expectedDecimal && options.DecimalTolerance.HasValue:
+                areEquivalent = decimal.Abs(actualDecimal - expectedDecimal) <= decimal.Abs(options.DecimalTolerance.Value);
+                return true;
+
+            // Compare clock instants by permitted time window.
+            case DateTime actualDateTime when expected is DateTime expectedDateTime && options.DateTimeTolerance.HasValue:
+                areEquivalent = (actualDateTime - expectedDateTime).Duration() <= options.DateTimeTolerance.Value.Duration();
+                return true;
+
+            // Compare offset-aware instants by permitted time window.
+            case DateTimeOffset actualDateTimeOffset when expected is DateTimeOffset expectedDateTimeOffset && options.DateTimeOffsetTolerance.HasValue:
+                areEquivalent = (actualDateTimeOffset - expectedDateTimeOffset).Duration() <= options.DateTimeOffsetTolerance.Value.Duration();
+                return true;
+
+            // Compare durations by permitted time window.
+            case TimeSpan actualTimeSpan when expected is TimeSpan expectedTimeSpan && options.TimeSpanTolerance.HasValue:
+                areEquivalent = (actualTimeSpan - expectedTimeSpan).Duration() <= options.TimeSpanTolerance.Value.Duration();
+                return true;
+        }
+
+        areEquivalent = false;
+        return false;
+    }
+
+    private static bool AreDoublesEquivalent(double actual, double expected, double tolerance)
+    {
+        if (double.IsNaN(actual) || double.IsNaN(expected))
+        {
+            return double.IsNaN(actual) && double.IsNaN(expected);
+        }
+
+        if (double.IsInfinity(actual) || double.IsInfinity(expected))
+        {
+            return actual.Equals(expected);
+        }
+
+        return Math.Abs(actual - expected) <= tolerance;
     }
 
     private static bool TryCompareWithConfiguredComparer(
