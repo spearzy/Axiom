@@ -142,6 +142,11 @@ internal static class EquivalencyEngine
 
             if (!hasActual && hasExpected)
             {
+                if (!options.FailOnMissingMembers)
+                {
+                    continue;
+                }
+
                 var expectedValue = expectedGetter!(expected);
                 differences.Add(new EquivalencyDifference(memberPath, expectedValue, null, "Member missing on actual type."));
                 continue;
@@ -149,6 +154,11 @@ internal static class EquivalencyEngine
 
             if (hasActual && !hasExpected)
             {
+                if (!options.FailOnExtraMembers)
+                {
+                    continue;
+                }
+
                 var actualValue = actualGetter!(actual);
                 differences.Add(new EquivalencyDifference(memberPath, null, actualValue, "Member missing on expected type."));
                 continue;

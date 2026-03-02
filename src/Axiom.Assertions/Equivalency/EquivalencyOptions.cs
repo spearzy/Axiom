@@ -17,6 +17,8 @@ public sealed class EquivalencyOptions
     public StringComparison StringComparison { get; set; } = StringComparison.Ordinal;
     public bool IncludePublicProperties { get; set; } = true;
     public bool IncludePublicFields { get; set; } = true;
+    public bool FailOnMissingMembers { get; set; } = true;
+    public bool FailOnExtraMembers { get; set; } = true;
 
     public IReadOnlySet<string> IgnoredMemberNames => _ignoredMemberNames;
     public IReadOnlySet<string> IgnoredPaths => _ignoredPaths;
@@ -46,6 +48,8 @@ public sealed class EquivalencyOptions
             StringComparison = StringComparison,
             IncludePublicProperties = IncludePublicProperties,
             IncludePublicFields = IncludePublicFields,
+            FailOnMissingMembers = FailOnMissingMembers,
+            FailOnExtraMembers = FailOnExtraMembers,
         };
 
         foreach (var member in _ignoredMemberNames)
