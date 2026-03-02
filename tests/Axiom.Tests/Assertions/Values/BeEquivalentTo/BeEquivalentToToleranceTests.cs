@@ -34,6 +34,18 @@ public sealed class BeEquivalentToToleranceTests : IDisposable
     }
 
     [Fact]
+    public void GivenFloatValues_WhenWithinPerCallTolerance_ThenDoesNotThrow()
+    {
+        var actual = 10.00f;
+        var expected = 10.01f;
+
+        var ex = Record.Exception(() =>
+            actual.Should().BeEquivalentTo(expected, options => options.FloatTolerance = 0.02f));
+
+        Assert.Null(ex);
+    }
+
+    [Fact]
     public void GivenDoubleValues_WhenOutsidePerCallTolerance_ThenThrows()
     {
         var actual = 10.00d;
@@ -46,6 +58,30 @@ public sealed class BeEquivalentToToleranceTests : IDisposable
     }
 
     [Fact]
+    public void GivenHalfValues_WhenOutsidePerCallTolerance_ThenThrows()
+    {
+        Half actual = (Half)10.00;
+        Half expected = (Half)10.02;
+
+        var ex = Assert.Throws<InvalidOperationException>(() =>
+            actual.Should().BeEquivalentTo(expected, options => options.HalfTolerance = 0.01f));
+
+        Assert.Contains("Values differ.", ex.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void GivenDateOnlyValues_WhenWithinPerCallTolerance_ThenDoesNotThrow()
+    {
+        var actual = new DateOnly(2026, 03, 02);
+        var expected = actual.AddDays(1);
+
+        var ex = Record.Exception(() =>
+            actual.Should().BeEquivalentTo(expected, options => options.DateOnlyTolerance = TimeSpan.FromDays(1)));
+
+        Assert.Null(ex);
+    }
+
+    [Fact]
     public void GivenDateTimeValues_WhenWithinPerCallTolerance_ThenDoesNotThrow()
     {
         var actual = new DateTime(2026, 03, 02, 12, 00, 00, DateTimeKind.Utc);
@@ -55,6 +91,18 @@ public sealed class BeEquivalentToToleranceTests : IDisposable
             actual.Should().BeEquivalentTo(expected, options => options.DateTimeTolerance = TimeSpan.FromSeconds(1)));
 
         Assert.Null(ex);
+    }
+
+    [Fact]
+    public void GivenTimeOnlyValues_WhenOutsidePerCallTolerance_ThenThrows()
+    {
+        var actual = new TimeOnly(10, 15, 00);
+        var expected = new TimeOnly(10, 15, 02);
+
+        var ex = Assert.Throws<InvalidOperationException>(() =>
+            actual.Should().BeEquivalentTo(expected, options => options.TimeOnlyTolerance = TimeSpan.FromMilliseconds(500)));
+
+        Assert.Contains("Values differ.", ex.Message, StringComparison.Ordinal);
     }
 
     [Fact]

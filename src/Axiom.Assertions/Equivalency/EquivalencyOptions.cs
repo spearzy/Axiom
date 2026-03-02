@@ -19,10 +19,14 @@ public sealed class EquivalencyOptions
     public bool IncludePublicFields { get; set; } = true;
     public bool FailOnMissingMembers { get; set; } = true;
     public bool FailOnExtraMembers { get; set; } = true;
+    public float? FloatTolerance { get; set; }
     public double? DoubleTolerance { get; set; }
+    public float? HalfTolerance { get; set; }
     public decimal? DecimalTolerance { get; set; }
+    public TimeSpan? DateOnlyTolerance { get; set; }
     public TimeSpan? DateTimeTolerance { get; set; }
     public TimeSpan? DateTimeOffsetTolerance { get; set; }
+    public TimeSpan? TimeOnlyTolerance { get; set; }
     public TimeSpan? TimeSpanTolerance { get; set; }
 
     public IReadOnlySet<string> IgnoredMemberNames => _ignoredMemberNames;
@@ -55,10 +59,14 @@ public sealed class EquivalencyOptions
             IncludePublicFields = IncludePublicFields,
             FailOnMissingMembers = FailOnMissingMembers,
             FailOnExtraMembers = FailOnExtraMembers,
+            FloatTolerance = FloatTolerance,
             DoubleTolerance = DoubleTolerance,
+            HalfTolerance = HalfTolerance,
             DecimalTolerance = DecimalTolerance,
+            DateOnlyTolerance = DateOnlyTolerance,
             DateTimeTolerance = DateTimeTolerance,
             DateTimeOffsetTolerance = DateTimeOffsetTolerance,
+            TimeOnlyTolerance = TimeOnlyTolerance,
             TimeSpanTolerance = TimeSpanTolerance,
         };
 

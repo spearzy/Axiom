@@ -315,14 +315,29 @@ internal static class EquivalencyEngine
     {
         switch (actual)
         {
+            // Absolute delta check for float with NaN/Infinity-safe handling.
+            case float actualFloat when expected is float expectedFloat && options.FloatTolerance.HasValue:
+                areEquivalent = AreFloatsEquivalent(actualFloat, expectedFloat, Math.Abs(options.FloatTolerance.Value));
+                return true;
+
             // Absolute delta check for double with NaN/Infinity-safe handling.
             case double actualDouble when expected is double expectedDouble && options.DoubleTolerance.HasValue:
                 areEquivalent = AreDoublesEquivalent(actualDouble, expectedDouble, Math.Abs(options.DoubleTolerance.Value));
                 return true;
 
+            // Compare Half values via float arithmetic to keep tolerance behaviour consistent.
+            case Half actualHalf when expected is Half expectedHalf && options.HalfTolerance.HasValue:
+                areEquivalent = AreFloatsEquivalent((float)actualHalf, (float)expectedHalf, Math.Abs(options.HalfTolerance.Value));
+                return true;
+
             // Absolute delta check for decimal values.
             case decimal actualDecimal when expected is decimal expectedDecimal && options.DecimalTolerance.HasValue:
                 areEquivalent = decimal.Abs(actualDecimal - expectedDecimal) <= decimal.Abs(options.DecimalTolerance.Value);
+                return true;
+
+            // DateOnly has day precision, so compare day gap against the configured window.
+            case DateOnly actualDateOnly when expected is DateOnly expectedDateOnly && options.DateOnlyTolerance.HasValue:
+                areEquivalent = TimeSpan.FromDays(Math.Abs(actualDateOnly.DayNumber - expectedDateOnly.DayNumber)) <= options.DateOnlyTolerance.Value.Duration();
                 return true;
 
             // Compare clock instants by permitted time window.
@@ -335,6 +350,11 @@ internal static class EquivalencyEngine
                 areEquivalent = (actualDateTimeOffset - expectedDateTimeOffset).Duration() <= options.DateTimeOffsetTolerance.Value.Duration();
                 return true;
 
+            // Compare time-of-day values by permitted time window.
+            case TimeOnly actualTimeOnly when expected is TimeOnly expectedTimeOnly && options.TimeOnlyTolerance.HasValue:
+                areEquivalent = (actualTimeOnly - expectedTimeOnly).Duration() <= options.TimeOnlyTolerance.Value.Duration();
+                return true;
+
             // Compare durations by permitted time window.
             case TimeSpan actualTimeSpan when expected is TimeSpan expectedTimeSpan && options.TimeSpanTolerance.HasValue:
                 areEquivalent = (actualTimeSpan - expectedTimeSpan).Duration() <= options.TimeSpanTolerance.Value.Duration();
@@ -343,6 +363,21 @@ internal static class EquivalencyEngine
 
         areEquivalent = false;
         return false;
+    }
+
+    private static bool AreFloatsEquivalent(float actual, float expected, float tolerance)
+    {
+        if (float.IsNaN(actual) || float.IsNaN(expected))
+        {
+            return float.IsNaN(actual) && float.IsNaN(expected);
+        }
+
+        if (float.IsInfinity(actual) || float.IsInfinity(expected))
+        {
+            return actual.Equals(expected);
+        }
+
+        return Math.Abs(actual - expected) <= tolerance;
     }
 
     private static bool AreDoublesEquivalent(double actual, double expected, double tolerance)
