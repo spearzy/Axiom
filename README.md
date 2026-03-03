@@ -42,6 +42,69 @@ Expected value to start with "ab", but found "test".
 - Extensible value comparison/formatting via comparer and formatter hooks
 - Target frameworks: `net10.0` (primary), `net9.0`, and `net8.0`
 
+## Implemented Assertion Methods (Current)
+
+### Value assertions
+- `Be(expected)`
+- `NotBe(unexpected)`
+- `BeNull()`
+- `NotBeNull()`
+- `BeSameAs(expectedReference)`
+- `NotBeSameAs(unexpectedReference)`
+- `BeOfType<TExpected>()`
+- `BeAssignableTo<TExpected>()`
+- `NotBeAssignableTo<TExpected>()`
+- `BeGreaterThan(value)`
+- `BeGreaterThanOrEqualTo(value)`
+- `BeLessThan(value)`
+- `BeLessThanOrEqualTo(value)`
+- `BeInRange(min, max)`
+- `BeEquivalentTo(expected)`
+- `BeEquivalentTo(expected, configureOptions)`
+- `BeTrue()` / `BeFalse()` (extension methods on `ValueAssertions<bool>`)
+
+### String assertions
+- `NotBeNull()`
+- `StartWith(expectedPrefix)`
+- `EndWith(expectedSuffix)`
+- `Contain(expectedSubstring)`
+- `NotContain(unexpectedSubstring)`
+- `HaveLength(expectedLength)`
+- `BeEmpty()`
+- `NotBeEmpty()`
+
+### Exception assertions
+- `Throw<TException>()`
+- `ThrowExactly<TException>()`
+- `NotThrow()`
+- `ThrowAsync<TException>()`
+- `ThrowExactlyAsync<TException>()`
+- `NotThrowAsync()`
+
+### Collection assertions
+- `Contain(item)`
+- `HaveCount(expectedCount)`
+- `BeEmpty()`
+- `NotBeEmpty()`
+- `ContainSingle()`
+- `OnlyContain(predicate)`
+- `NotContain(predicate)`
+- `ContainInOrder(expectedSequence, allowGaps = true)`
+- `ContainInOrder(expectedSequence, keySelector, allowGaps = true)`
+
+### Dictionary assertions
+- `ContainKey(key)`
+- `NotContainKey(key)`
+- `ContainValue(value)`
+- `NotContainValue(value)`
+- `ContainEntry(key, value)`
+
+### Temporal assertions
+- `BeBefore(expected)`
+- `BeAfter(expected)`
+- `BeWithin(expected, tolerance)`
+for `DateTime`, `DateTimeOffset`, `DateOnly`, and `TimeOnly`.
+
 ## Usage
 
 ### Fluent String Assertions
@@ -49,14 +112,25 @@ Expected value to start with "ab", but found "test".
 ```csharp
 "test".Should()
     .StartWith("te").And
+    .Contain("es").And
+    .HaveLength(4).And
+    .NotContain("ab").And
     .EndWith("st").And
+    .NotBeEmpty().And
     .NotBeNull();
 ```
 
 ### Value Assertions
 
 ```csharp
-42.Should().Be(42).And.NotBe(0);
+42.Should()
+    .Be(42).And
+    .NotBe(0).And
+    .BeGreaterThan(10).And
+    .BeInRange(40, 50);
+
+object value = "hello";
+value.Should().BeOfType<string>().And.BeAssignableTo<object>();
 ```
 
 ### Equivalency Assertions
@@ -173,21 +247,52 @@ AxiomServices.Configure(c =>
 ### Exception Assertions
 
 ```csharp
-Action sync = () => throw new InvalidOperationException();
-sync.Should().Throw<InvalidOperationException>();
+Action strictThrow = () => throw new InvalidOperationException();
+strictThrow.Should().ThrowExactly<InvalidOperationException>();
+
+Action noThrow = () => { };
+noThrow.Should().NotThrow();
 
 Func<Task> asyncAction = () => Task.FromException(new InvalidOperationException());
-await asyncAction.Should().ThrowAsync<InvalidOperationException>();
+await asyncAction.Should().ThrowAsync<Exception>();
+await asyncAction.Should().ThrowExactlyAsync<InvalidOperationException>();
+
+Func<Task> asyncNoThrow = () => Task.CompletedTask;
+await asyncNoThrow.Should().NotThrowAsync();
 ```
 
 ### Collection Assertions
 
 ```csharp
 int[] values = [1, 2, 3];
-values.Should().Contain(2).And.HaveCount(3);
+values.Should()
+    .Contain(2).And
+    .ContainInOrder([1, 3], allowGaps: true).And
+    .HaveCount(3).And
+    .NotBeEmpty();
+
+Dictionary<string, int> scores = new()
+{
+    ["a"] = 1,
+    ["b"] = 2
+};
+
+scores.Should()
+    .ContainKey("a").And
+    .ContainValue(2).And
+    .ContainEntry("b", 2);
 ```
 
-### Optional Colored Assertion Output
+### Temporal Assertions
+
+```csharp
+var now = DateTime.UtcNow;
+var later = now.AddMinutes(2);
+
+later.Should().BeAfter(now).And.BeWithin(now.AddMinutes(2), TimeSpan.FromSeconds(1));
+```
+
+### Optional Coloured Assertion Output
 
 ```csharp
 using Axiom.Core.Configuration;
