@@ -28,4 +28,15 @@ public sealed class CollectionChainingTests
 
         values.Should().BeEmpty().And.HaveCount(0);
     }
+
+    [Fact]
+    public void PredicateAndOrderChain_CanBeComposed()
+    {
+        int[] values = [1, 2, 3];
+
+        values.Should()
+            .NotContain((int x) => x < 0).And
+            .OnlyContain((int x) => x > 0).And
+            .ContainInOrder([1, 3]);
+    }
 }

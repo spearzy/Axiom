@@ -106,4 +106,70 @@ public static class CollectionValueAssertionExtensions
 
         return new AndContinuation<ValueAssertions<TCollection>>(assertions);
     }
+
+    public static AndContinuation<ValueAssertions<TCollection>> OnlyContain<TCollection, TItem>(
+        this ValueAssertions<TCollection> assertions,
+        Func<TItem, bool> predicate,
+        string? because = null,
+        [CallerFilePath] string? callerFilePath = null,
+        [CallerLineNumber] int callerLineNumber = 0)
+        where TCollection : IEnumerable<TItem>
+    {
+        ArgumentNullException.ThrowIfNull(assertions);
+        ArgumentNullException.ThrowIfNull(predicate);
+
+        CollectionAssertionEngine.AssertOnlyContain(
+            assertions.Subject,
+            assertions.SubjectExpression,
+            predicate,
+            because,
+            callerFilePath,
+            callerLineNumber);
+
+        return new AndContinuation<ValueAssertions<TCollection>>(assertions);
+    }
+
+    public static AndContinuation<ValueAssertions<TCollection>> NotContain<TCollection, TItem>(
+        this ValueAssertions<TCollection> assertions,
+        Func<TItem, bool> predicate,
+        string? because = null,
+        [CallerFilePath] string? callerFilePath = null,
+        [CallerLineNumber] int callerLineNumber = 0)
+        where TCollection : IEnumerable<TItem>
+    {
+        ArgumentNullException.ThrowIfNull(assertions);
+        ArgumentNullException.ThrowIfNull(predicate);
+
+        CollectionAssertionEngine.AssertNotContain(
+            assertions.Subject,
+            assertions.SubjectExpression,
+            predicate,
+            because,
+            callerFilePath,
+            callerLineNumber);
+
+        return new AndContinuation<ValueAssertions<TCollection>>(assertions);
+    }
+
+    public static AndContinuation<ValueAssertions<TCollection>> ContainInOrder<TCollection, TItem>(
+        this ValueAssertions<TCollection> assertions,
+        IEnumerable<TItem> expectedSequence,
+        string? because = null,
+        [CallerFilePath] string? callerFilePath = null,
+        [CallerLineNumber] int callerLineNumber = 0)
+        where TCollection : IEnumerable<TItem>
+    {
+        ArgumentNullException.ThrowIfNull(assertions);
+        ArgumentNullException.ThrowIfNull(expectedSequence);
+
+        CollectionAssertionEngine.AssertContainInOrder(
+            assertions.Subject,
+            assertions.SubjectExpression,
+            expectedSequence,
+            because,
+            callerFilePath,
+            callerLineNumber);
+
+        return new AndContinuation<ValueAssertions<TCollection>>(assertions);
+    }
 }
