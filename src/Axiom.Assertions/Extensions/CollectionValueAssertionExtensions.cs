@@ -155,6 +155,7 @@ public static class CollectionValueAssertionExtensions
         this ValueAssertions<TCollection> assertions,
         IEnumerable<TItem> expectedSequence,
         string? because = null,
+        bool allowGaps = true,
         [CallerFilePath] string? callerFilePath = null,
         [CallerLineNumber] int callerLineNumber = 0)
         where TCollection : IEnumerable<TItem>
@@ -167,6 +168,34 @@ public static class CollectionValueAssertionExtensions
             assertions.SubjectExpression,
             expectedSequence,
             because,
+            allowGaps,
+            callerFilePath,
+            callerLineNumber);
+
+        return new AndContinuation<ValueAssertions<TCollection>>(assertions);
+    }
+
+    public static AndContinuation<ValueAssertions<TCollection>> ContainInOrder<TCollection, TItem, TKey>(
+        this ValueAssertions<TCollection> assertions,
+        IEnumerable<TKey> expectedSequence,
+        Func<TItem, TKey> keySelector,
+        string? because = null,
+        bool allowGaps = true,
+        [CallerFilePath] string? callerFilePath = null,
+        [CallerLineNumber] int callerLineNumber = 0)
+        where TCollection : IEnumerable<TItem>
+    {
+        ArgumentNullException.ThrowIfNull(assertions);
+        ArgumentNullException.ThrowIfNull(expectedSequence);
+        ArgumentNullException.ThrowIfNull(keySelector);
+
+        CollectionAssertionEngine.AssertContainInOrderByKey(
+            assertions.Subject,
+            assertions.SubjectExpression,
+            expectedSequence,
+            keySelector,
+            because,
+            allowGaps,
             callerFilePath,
             callerLineNumber);
 

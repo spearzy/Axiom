@@ -275,16 +275,18 @@ internal static class CollectionAssertionEngine
         string? subjectExpression,
         IEnumerable<T> expectedSequence,
         string? because,
+        bool allowGaps,
         string? callerFilePath,
         int callerLineNumber)
     {
         var subjectLabel = SubjectLabel(subjectExpression);
         var expectedItems = MaterialiseExpectedSequence(expectedSequence);
+        var expectationText = BuildContainInOrderExpectationText(allowGaps, usesSelectedKey: false);
         if (subject is null)
         {
             var nullFailure = new Failure(
                 subjectLabel,
-                new Expectation("to contain items in order", new RenderedText(FormatSequence(expectedItems))),
+                new Expectation(expectationText, new RenderedText(FormatSequence(expectedItems))),
                 subject,
                 because);
             Fail(FailureMessageRenderer.Render(nullFailure), callerFilePath, callerLineNumber);
@@ -299,6 +301,96 @@ internal static class CollectionAssertionEngine
 
         var comparer = GetComparer<T>();
         var expectedIndex = 0;
+        var matched = allowGaps
+            ? ContainsInOrderAllowingGaps(subject, expectedItems, comparer, out expectedIndex)
+            : ContainsInOrderWithoutGaps(subject, expectedItems, comparer);
+        if (matched)
+        {
+            AssertionOutputWriter.ReportPass("ContainInOrder", subjectLabel, callerFilePath, callerLineNumber);
+            return;
+        }
+
+        var failure = new Failure(
+            subjectLabel,
+            new Expectation(expectationText, new RenderedText(FormatSequence(expectedItems))),
+            allowGaps
+                ? new RenderedText(
+                    $"missing expected item at sequence index {expectedIndex}: {FormatSingleValue(expectedItems[expectedIndex])}")
+                : new RenderedText("missing adjacent ordered sequence"),
+            because);
+        Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
+    }
+
+    public static void AssertContainInOrderByKey<T, TKey>(
+        IEnumerable<T>? subject,
+        string? subjectExpression,
+        IEnumerable<TKey> expectedSequence,
+        Func<T, TKey> keySelector,
+        string? because,
+        bool allowGaps,
+        string? callerFilePath,
+        int callerLineNumber)
+    {
+        var subjectLabel = SubjectLabel(subjectExpression);
+        var expectedItems = MaterialiseExpectedSequence(expectedSequence);
+        var expectationText = BuildContainInOrderExpectationText(allowGaps, usesSelectedKey: true);
+        if (subject is null)
+        {
+            var nullFailure = new Failure(
+                subjectLabel,
+                new Expectation(expectationText, new RenderedText(FormatSequence(expectedItems))),
+                subject,
+                because);
+            Fail(FailureMessageRenderer.Render(nullFailure), callerFilePath, callerLineNumber);
+            return;
+        }
+
+        if (expectedItems.Length == 0)
+        {
+            AssertionOutputWriter.ReportPass("ContainInOrder", subjectLabel, callerFilePath, callerLineNumber);
+            return;
+        }
+
+        var comparer = GetComparer<TKey>();
+        var expectedIndex = 0;
+        var matched = allowGaps
+            ? ContainsProjectedInOrderAllowingGaps(subject, expectedItems, keySelector, comparer, out expectedIndex)
+            : ContainsProjectedInOrderWithoutGaps(subject, expectedItems, keySelector, comparer);
+        if (matched)
+        {
+            AssertionOutputWriter.ReportPass("ContainInOrder", subjectLabel, callerFilePath, callerLineNumber);
+            return;
+        }
+
+        var failure = new Failure(
+            subjectLabel,
+            new Expectation(expectationText, new RenderedText(FormatSequence(expectedItems))),
+            allowGaps
+                ? new RenderedText(
+                    $"missing expected selected value at sequence index {expectedIndex}: {FormatSingleValue(expectedItems[expectedIndex])}")
+                : new RenderedText("missing adjacent ordered sequence for selected values"),
+            because);
+        Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
+    }
+
+    private static string BuildContainInOrderExpectationText(bool allowGaps, bool usesSelectedKey)
+    {
+        var baseExpectation = usesSelectedKey
+            ? "to contain selected values in order"
+            : "to contain items in order";
+
+        return allowGaps
+            ? baseExpectation
+            : $"{baseExpectation} with no gaps";
+    }
+
+    private static bool ContainsInOrderAllowingGaps<T>(
+        IEnumerable<T> subject,
+        IReadOnlyList<T> expectedItems,
+        IEqualityComparer<T> comparer,
+        out int expectedIndex)
+    {
+        expectedIndex = 0;
         foreach (var item in subject)
         {
             if (!comparer.Equals(item, expectedItems[expectedIndex]))
@@ -307,20 +399,135 @@ internal static class CollectionAssertionEngine
             }
 
             expectedIndex++;
-            if (expectedIndex == expectedItems.Length)
+            if (expectedIndex == expectedItems.Count)
             {
-                AssertionOutputWriter.ReportPass("ContainInOrder", subjectLabel, callerFilePath, callerLineNumber);
-                return;
+                return true;
             }
         }
 
-        var failure = new Failure(
-            subjectLabel,
-            new Expectation("to contain items in order", new RenderedText(FormatSequence(expectedItems))),
-            new RenderedText(
-                $"missing expected item at sequence index {expectedIndex}: {FormatSingleValue(expectedItems[expectedIndex])}"),
-            because);
-        Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
+        return false;
+    }
+
+    private static bool ContainsProjectedInOrderAllowingGaps<T, TKey>(
+        IEnumerable<T> subject,
+        IReadOnlyList<TKey> expectedItems,
+        Func<T, TKey> keySelector,
+        IEqualityComparer<TKey> comparer,
+        out int expectedIndex)
+    {
+        expectedIndex = 0;
+        foreach (var item in subject)
+        {
+            var selectedValue = keySelector(item);
+            if (!comparer.Equals(selectedValue, expectedItems[expectedIndex]))
+            {
+                continue;
+            }
+
+            expectedIndex++;
+            if (expectedIndex == expectedItems.Count)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static bool ContainsInOrderWithoutGaps<T>(
+        IEnumerable<T> subject,
+        IReadOnlyList<T> expectedItems,
+        IEqualityComparer<T> comparer)
+    {
+        // Keep a running partial match and, on mismatch, jump to the best known fallback.
+        // This avoids restarting the whole pattern check from scratch for each subject item.
+        var fallbackTable = BuildFallbackTable(expectedItems, comparer);
+        var matchedCount = 0;
+
+        foreach (var item in subject)
+        {
+            while (matchedCount > 0 && !comparer.Equals(item, expectedItems[matchedCount]))
+            {
+                matchedCount = fallbackTable[matchedCount - 1];
+            }
+
+            if (!comparer.Equals(item, expectedItems[matchedCount]))
+            {
+                continue;
+            }
+
+            matchedCount++;
+            if (matchedCount == expectedItems.Count)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static bool ContainsProjectedInOrderWithoutGaps<T, TKey>(
+        IEnumerable<T> subject,
+        IReadOnlyList<TKey> expectedItems,
+        Func<T, TKey> keySelector,
+        IEqualityComparer<TKey> comparer)
+    {
+        // Same fallback matching approach as above, but against the selected key values.
+        var fallbackTable = BuildFallbackTable(expectedItems, comparer);
+        var matchedCount = 0;
+
+        foreach (var item in subject)
+        {
+            var selectedValue = keySelector(item);
+            while (matchedCount > 0 && !comparer.Equals(selectedValue, expectedItems[matchedCount]))
+            {
+                matchedCount = fallbackTable[matchedCount - 1];
+            }
+
+            if (!comparer.Equals(selectedValue, expectedItems[matchedCount]))
+            {
+                continue;
+            }
+
+            matchedCount++;
+            if (matchedCount == expectedItems.Count)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static int[] BuildFallbackTable<T>(IReadOnlyList<T> pattern, IEqualityComparer<T> comparer)
+    {
+        // For each pattern index, store the length of the longest prefix that is also a suffix
+        // for the pattern segment ending at that index.
+        var fallbackTable = new int[pattern.Count];
+        var candidateLength = 0;
+        var i = 1;
+
+        while (i < pattern.Count)
+        {
+            if (comparer.Equals(pattern[i], pattern[candidateLength]))
+            {
+                candidateLength++;
+                fallbackTable[i] = candidateLength;
+                i++;
+                continue;
+            }
+
+            if (candidateLength == 0)
+            {
+                fallbackTable[i] = 0;
+                i++;
+                continue;
+            }
+
+            candidateLength = fallbackTable[candidateLength - 1];
+        }
+
+        return fallbackTable;
     }
 
     private static string SubjectLabel(string? subjectExpression)

@@ -5,6 +5,8 @@ namespace Axiom.Tests.Assertions.Collections.Batch;
 
 public sealed class CollectionBatchRoutingTests
 {
+    private sealed record WorkflowStep(int Position, string Name);
+
     [Fact]
     public void Contain_OutsideBatch_ThrowsImmediately()
     {
@@ -123,5 +125,28 @@ public sealed class CollectionBatchRoutingTests
         Assert.Contains("1) Expected values to only contain items matching predicate (first non-matching index 0), but found 1.", message);
         Assert.Contains("2) Expected values to not contain any item matching predicate (first matching index 1), but found 2.", message);
         Assert.Contains("3) Expected values to contain items in order [1, 3, 2], but found missing expected item at sequence index 2: 2.", message);
+    }
+
+    [Fact]
+    public void Batch_Dispose_ThrowsCombinedFailures_FromKeySelectedOrderAssertions()
+    {
+        WorkflowStep[] steps =
+        [
+            new(1, "validate"),
+            new(2, "enrich"),
+            new(3, "persist")
+        ];
+
+        var ex = Assert.Throws<InvalidOperationException>(() =>
+        {
+            using var batch = new Axiom.Core.Batch("collection-order-keys");
+            steps.Should().ContainInOrder([1, 3, 2], (WorkflowStep step) => step.Position);
+            steps.Should().ContainInOrder([1, 3], (WorkflowStep step) => step.Position, allowGaps: false);
+        });
+
+        var message = ex.Message.Replace("\r\n", "\n", StringComparison.Ordinal);
+        Assert.Contains("Batch 'collection-order-keys' failed with 2 assertion failure(s):", message);
+        Assert.Contains("1) Expected steps to contain selected values in order [1, 3, 2], but found missing expected selected value at sequence index 2: 2.", message);
+        Assert.Contains("2) Expected steps to contain selected values in order with no gaps [1, 3], but found missing adjacent ordered sequence for selected values.", message);
     }
 }

@@ -5,6 +5,8 @@ namespace Axiom.Tests.Assertions.Collections.Chaining;
 
 public sealed class CollectionChainingTests
 {
+    private sealed record WorkflowStep(int Position, string Name);
+
     [Fact]
     public void FullChain_CanBeComposed()
     {
@@ -38,5 +40,20 @@ public sealed class CollectionChainingTests
             .NotContain((int x) => x < 0).And
             .OnlyContain((int x) => x > 0).And
             .ContainInOrder([1, 3]);
+    }
+
+    [Fact]
+    public void KeySelectionOrderChain_CanBeComposed()
+    {
+        WorkflowStep[] steps =
+        [
+            new(1, "validate"),
+            new(2, "enrich"),
+            new(3, "persist")
+        ];
+
+        steps.Should()
+            .ContainInOrder([1, 2], (WorkflowStep step) => step.Position, allowGaps: false).And
+            .NotContain((WorkflowStep step) => step.Name == "archive");
     }
 }
