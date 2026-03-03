@@ -196,4 +196,72 @@ public sealed class ValueChainingTests
 
         value.Should().BeAssignableTo<object>().And.NotBeAssignableTo<int>();
     }
+
+    [Fact]
+    public void BeGreaterThan_ReturnsContinuation_AndPointsBackToSameAssertions()
+    {
+        const int value = 10;
+
+        var baseAssertions = value.Should();
+        var continuation = baseAssertions.BeGreaterThan(5);
+
+        Assert.Same(baseAssertions, continuation.And);
+    }
+
+    [Fact]
+    public void BeGreaterThanOrEqualTo_ReturnsContinuation_AndPointsBackToSameAssertions()
+    {
+        const int value = 10;
+
+        var baseAssertions = value.Should();
+        var continuation = baseAssertions.BeGreaterThanOrEqualTo(10);
+
+        Assert.Same(baseAssertions, continuation.And);
+    }
+
+    [Fact]
+    public void BeLessThan_ReturnsContinuation_AndPointsBackToSameAssertions()
+    {
+        const int value = 3;
+
+        var baseAssertions = value.Should();
+        var continuation = baseAssertions.BeLessThan(5);
+
+        Assert.Same(baseAssertions, continuation.And);
+    }
+
+    [Fact]
+    public void BeLessThanOrEqualTo_ReturnsContinuation_AndPointsBackToSameAssertions()
+    {
+        const int value = 3;
+
+        var baseAssertions = value.Should();
+        var continuation = baseAssertions.BeLessThanOrEqualTo(3);
+
+        Assert.Same(baseAssertions, continuation.And);
+    }
+
+    [Fact]
+    public void BeInRange_ReturnsContinuation_AndPointsBackToSameAssertions()
+    {
+        const int value = 3;
+
+        var baseAssertions = value.Should();
+        var continuation = baseAssertions.BeInRange(1, 5);
+
+        Assert.Same(baseAssertions, continuation.And);
+    }
+
+    [Fact]
+    public void OrderedComparisonChain_CanBeComposed()
+    {
+        const int value = 5;
+
+        value.Should()
+            .BeGreaterThan(1).And
+            .BeGreaterThanOrEqualTo(5).And
+            .BeLessThan(10).And
+            .BeLessThanOrEqualTo(5).And
+            .BeInRange(1, 5);
+    }
 }

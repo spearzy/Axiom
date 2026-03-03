@@ -205,6 +205,109 @@ public sealed class ValueAssertions<T>(T subject, string? subjectExpression)
         return new AndContinuation<ValueAssertions<T>>(this);
     }
 
+    public AndContinuation<ValueAssertions<T>> BeGreaterThan(
+        T threshold,
+        string? because = null,
+        [CallerFilePath] string? callerFilePath = null,
+        [CallerLineNumber] int callerLineNumber = 0)
+    {
+        if (!TryCompareValues(Subject, threshold, out var comparison) || comparison <= 0)
+        {
+            var failure = new Failure(SubjectLabel(),
+                new Expectation("to be greater than", threshold), Subject, because);
+
+            Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
+        }
+
+        AssertionOutputWriter.ReportPass(nameof(BeGreaterThan), SubjectLabel(), callerFilePath, callerLineNumber);
+        return new AndContinuation<ValueAssertions<T>>(this);
+    }
+
+    public AndContinuation<ValueAssertions<T>> BeGreaterThanOrEqualTo(
+        T threshold,
+        string? because = null,
+        [CallerFilePath] string? callerFilePath = null,
+        [CallerLineNumber] int callerLineNumber = 0)
+    {
+        if (!TryCompareValues(Subject, threshold, out var comparison) || comparison < 0)
+        {
+            var failure = new Failure(SubjectLabel(),
+                new Expectation("to be greater than or equal to", threshold), Subject, because);
+
+            Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
+        }
+
+        AssertionOutputWriter.ReportPass(nameof(BeGreaterThanOrEqualTo), SubjectLabel(), callerFilePath, callerLineNumber);
+        return new AndContinuation<ValueAssertions<T>>(this);
+    }
+
+    public AndContinuation<ValueAssertions<T>> BeLessThan(
+        T threshold,
+        string? because = null,
+        [CallerFilePath] string? callerFilePath = null,
+        [CallerLineNumber] int callerLineNumber = 0)
+    {
+        if (!TryCompareValues(Subject, threshold, out var comparison) || comparison >= 0)
+        {
+            var failure = new Failure(SubjectLabel(),
+                new Expectation("to be less than", threshold), Subject, because);
+
+            Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
+        }
+
+        AssertionOutputWriter.ReportPass(nameof(BeLessThan), SubjectLabel(), callerFilePath, callerLineNumber);
+        return new AndContinuation<ValueAssertions<T>>(this);
+    }
+
+    public AndContinuation<ValueAssertions<T>> BeLessThanOrEqualTo(
+        T threshold,
+        string? because = null,
+        [CallerFilePath] string? callerFilePath = null,
+        [CallerLineNumber] int callerLineNumber = 0)
+    {
+        if (!TryCompareValues(Subject, threshold, out var comparison) || comparison > 0)
+        {
+            var failure = new Failure(SubjectLabel(),
+                new Expectation("to be less than or equal to", threshold), Subject, because);
+
+            Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
+        }
+
+        AssertionOutputWriter.ReportPass(nameof(BeLessThanOrEqualTo), SubjectLabel(), callerFilePath, callerLineNumber);
+        return new AndContinuation<ValueAssertions<T>>(this);
+    }
+
+    public AndContinuation<ValueAssertions<T>> BeInRange(
+        T minimum,
+        T maximum,
+        string? because = null,
+        [CallerFilePath] string? callerFilePath = null,
+        [CallerLineNumber] int callerLineNumber = 0)
+    {
+        if (!TryCompareValues(minimum, maximum, out var boundsComparison))
+        {
+            throw new ArgumentException("Range bounds must support ordering comparisons.", nameof(minimum));
+        }
+
+        if (boundsComparison > 0)
+        {
+            throw new ArgumentException("minimum must be less than or equal to maximum.", nameof(minimum));
+        }
+
+        var isLowerBoundComparable = TryCompareValues(Subject, minimum, out var lowerComparison);
+        var isUpperBoundComparable = TryCompareValues(Subject, maximum, out var upperComparison);
+        if (!isLowerBoundComparable || !isUpperBoundComparable || lowerComparison < 0 || upperComparison > 0)
+        {
+            var failure = new Failure(SubjectLabel(),
+                new Expectation("to be in range", new InclusiveRange(minimum, maximum)), Subject, because);
+
+            Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
+        }
+
+        AssertionOutputWriter.ReportPass(nameof(BeInRange), SubjectLabel(), callerFilePath, callerLineNumber);
+        return new AndContinuation<ValueAssertions<T>>(this);
+    }
+
     private string SubjectLabel()
     {
         return string.IsNullOrWhiteSpace(SubjectExpression) ? "<subject>" : SubjectExpression;
@@ -220,6 +323,37 @@ public sealed class ValueAssertions<T>(T subject, string? subjectExpression)
         }
 
         return EqualityComparer<T>.Default;
+    }
+
+    private static bool TryCompareValues(T left, T right, out int comparison)
+    {
+        // Prefer the strongly typed comparer when available.
+        if (left is IComparable<T> genericComparable)
+        {
+            try
+            {
+                comparison = genericComparable.CompareTo(right);
+                return true;
+            }
+            catch (ArgumentException)
+            {
+            }
+        }
+
+        if (left is IComparable comparable)
+        {
+            try
+            {
+                comparison = comparable.CompareTo(right);
+                return true;
+            }
+            catch (ArgumentException)
+            {
+            }
+        }
+
+        comparison = 0;
+        return false;
     }
 
     private AndContinuation<ValueAssertions<T>> BeEquivalentToInternal<TExpected>(
@@ -260,5 +394,13 @@ public sealed class ValueAssertions<T>(T subject, string? subjectExpression)
         }
 
         throw new InvalidOperationException(message);
+    }
+
+    private readonly record struct InclusiveRange(T Minimum, T Maximum)
+    {
+        public override string ToString()
+        {
+            return $"[{Minimum}, {Maximum}]";
+        }
     }
 }
