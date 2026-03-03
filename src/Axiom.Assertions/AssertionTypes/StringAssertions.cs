@@ -94,6 +94,137 @@ public sealed class StringAssertions(string? subject, string? subjectExpression)
         return new AndContinuation<StringAssertions>(this);
     }
 
+    public AndContinuation<StringAssertions> Contain(
+        string expectedSubstring,
+        string? because = null,
+        [CallerFilePath] string? callerFilePath = null,
+        [CallerLineNumber] int callerLineNumber = 0)
+    {
+        var subject = Subject;
+        if (subject is null)
+        {
+            var failure = new Failure(
+                SubjectLabel(),
+                new Expectation("to contain", expectedSubstring),
+                subject,
+                because);
+            Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
+            return new AndContinuation<StringAssertions>(this);
+        }
+
+        if (!subject.Contains(expectedSubstring, StringComparison.Ordinal))
+        {
+            var failure = new Failure(
+                SubjectLabel(),
+                new Expectation("to contain", expectedSubstring),
+                subject,
+                because);
+            Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
+        }
+
+        AssertionOutputWriter.ReportPass(nameof(Contain), SubjectLabel(), callerFilePath, callerLineNumber);
+        return new AndContinuation<StringAssertions>(this);
+    }
+
+    public AndContinuation<StringAssertions> NotContain(
+        string unexpectedSubstring,
+        string? because = null,
+        [CallerFilePath] string? callerFilePath = null,
+        [CallerLineNumber] int callerLineNumber = 0)
+    {
+        var subject = Subject;
+        if (subject is null)
+        {
+            var failure = new Failure(
+                SubjectLabel(),
+                new Expectation("to not contain", unexpectedSubstring),
+                subject,
+                because);
+            Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
+            return new AndContinuation<StringAssertions>(this);
+        }
+
+        if (subject.Contains(unexpectedSubstring, StringComparison.Ordinal))
+        {
+            var failure = new Failure(
+                SubjectLabel(),
+                new Expectation("to not contain", unexpectedSubstring),
+                subject,
+                because);
+            Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
+        }
+
+        AssertionOutputWriter.ReportPass(nameof(NotContain), SubjectLabel(), callerFilePath, callerLineNumber);
+        return new AndContinuation<StringAssertions>(this);
+    }
+
+    public AndContinuation<StringAssertions> HaveLength(
+        int expectedLength,
+        string? because = null,
+        [CallerFilePath] string? callerFilePath = null,
+        [CallerLineNumber] int callerLineNumber = 0)
+    {
+        if (expectedLength < 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(expectedLength), "expectedLength must be non-negative.");
+        }
+
+        var subject = Subject;
+        if (subject is null || subject.Length != expectedLength)
+        {
+            object? actual = subject is null ? null : subject.Length;
+            var failure = new Failure(
+                SubjectLabel(),
+                new Expectation("to have length", expectedLength),
+                actual,
+                because);
+            Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
+        }
+
+        AssertionOutputWriter.ReportPass(nameof(HaveLength), SubjectLabel(), callerFilePath, callerLineNumber);
+        return new AndContinuation<StringAssertions>(this);
+    }
+
+    public AndContinuation<StringAssertions> BeEmpty(
+        string? because = null,
+        [CallerFilePath] string? callerFilePath = null,
+        [CallerLineNumber] int callerLineNumber = 0)
+    {
+        var subject = Subject;
+        if (subject is null || subject.Length != 0)
+        {
+            var failure = new Failure(
+                SubjectLabel(),
+                new Expectation("to be empty", IncludeExpectedValue: false),
+                subject,
+                because);
+            Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
+        }
+
+        AssertionOutputWriter.ReportPass(nameof(BeEmpty), SubjectLabel(), callerFilePath, callerLineNumber);
+        return new AndContinuation<StringAssertions>(this);
+    }
+
+    public AndContinuation<StringAssertions> NotBeEmpty(
+        string? because = null,
+        [CallerFilePath] string? callerFilePath = null,
+        [CallerLineNumber] int callerLineNumber = 0)
+    {
+        var subject = Subject;
+        if (string.IsNullOrEmpty(subject))
+        {
+            var failure = new Failure(
+                SubjectLabel(),
+                new Expectation("to not be empty", IncludeExpectedValue: false),
+                subject,
+                because);
+            Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
+        }
+
+        AssertionOutputWriter.ReportPass(nameof(NotBeEmpty), SubjectLabel(), callerFilePath, callerLineNumber);
+        return new AndContinuation<StringAssertions>(this);
+    }
+
     private string SubjectLabel()
     {
         return string.IsNullOrWhiteSpace(SubjectExpression) ? "<subject>" : SubjectExpression;
