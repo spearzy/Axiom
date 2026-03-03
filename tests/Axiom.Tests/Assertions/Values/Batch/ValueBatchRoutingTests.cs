@@ -103,4 +103,63 @@ public sealed class ValueBatchRoutingTests
         Assert.Contains("1) Expected isEnabled to be False, but found True.", message);
         Assert.Contains("2) Expected isReady to be True, but found False.", message);
     }
+
+    [Fact]
+    public void BeNull_OutsideBatch_ThrowsImmediately()
+    {
+        int? value = 1;
+
+        Assert.Throws<InvalidOperationException>(() => value.Should().BeNull());
+    }
+
+    [Fact]
+    public void BeNull_InsideBatch_DoesNotThrowAtAssertionCallSite()
+    {
+        int? value = 1;
+
+        using var batch = new Axiom.Core.Batch();
+        var callEx = Record.Exception(() => value.Should().BeNull());
+
+        Assert.Null(callEx);
+        Assert.Throws<InvalidOperationException>(() => batch.Dispose());
+    }
+
+    [Fact]
+    public void NotBeNull_OutsideBatch_ThrowsImmediately()
+    {
+        int? value = null;
+
+        Assert.Throws<InvalidOperationException>(() => value.Should().NotBeNull());
+    }
+
+    [Fact]
+    public void NotBeNull_InsideBatch_DoesNotThrowAtAssertionCallSite()
+    {
+        int? value = null;
+
+        using var batch = new Axiom.Core.Batch();
+        var callEx = Record.Exception(() => value.Should().NotBeNull());
+
+        Assert.Null(callEx);
+        Assert.Throws<InvalidOperationException>(() => batch.Dispose());
+    }
+
+    [Fact]
+    public void Batch_Dispose_ThrowsCombinedFailures_FromNullabilityAssertions()
+    {
+        int? hasValue = 1;
+        int? noValue = null;
+
+        var ex = Assert.Throws<InvalidOperationException>(() =>
+        {
+            using var batch = new Axiom.Core.Batch("nullability");
+            hasValue.Should().BeNull();
+            noValue.Should().NotBeNull();
+        });
+
+        var message = ex.Message.Replace("\r\n", "\n", StringComparison.Ordinal);
+        Assert.Contains("Batch 'nullability' failed with 2 assertion failure(s):", message);
+        Assert.Contains("1) Expected hasValue to be null, but found 1.", message);
+        Assert.Contains("2) Expected noValue to not be null, but found <null>.", message);
+    }
 }

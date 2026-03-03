@@ -61,6 +61,8 @@ public sealed class ValueChainingTests
 
         var baseAssertions = value.Should();
         var continuation = baseAssertions.BeTrue();
+
+        Assert.Same(baseAssertions, continuation.And);
     }
 
     [Fact]
@@ -69,5 +71,35 @@ public sealed class ValueChainingTests
         const bool value = true;
 
         value.Should().BeTrue().And.NotBe(false);
+    }
+
+    [Fact]
+    public void BeNull_ReturnsContinuation_AndPointsBackToSameAssertions()
+    {
+        int? value = null;
+
+        var baseAssertions = value.Should();
+        var continuation = baseAssertions.BeNull();
+
+        Assert.Same(baseAssertions, continuation.And);
+    }
+
+    [Fact]
+    public void NotBeNull_ReturnsContinuation_AndPointsBackToSameAssertions()
+    {
+        int? value = 42;
+
+        var baseAssertions = value.Should();
+        var continuation = baseAssertions.NotBeNull();
+
+        Assert.Same(baseAssertions, continuation.And);
+    }
+
+    [Fact]
+    public void NullabilityChain_CanBeComposed()
+    {
+        int? value = 42;
+
+        value.Should().NotBeNull().And.Be(42);
     }
 }

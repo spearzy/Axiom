@@ -78,6 +78,40 @@ public sealed class ValueAssertions<T>(T subject, string? subjectExpression)
         configure(options);
         return BeEquivalentToInternal(expected, options, because, callerFilePath, callerLineNumber);
     }
+    
+    public AndContinuation<ValueAssertions<T>> BeNull(
+        string? because = null,
+        [CallerFilePath] string? callerFilePath = null,
+        [CallerLineNumber] int callerLineNumber = 0)
+    {
+        if (Subject is not null)
+        {
+            var failure = new Failure(SubjectLabel(),
+                new Expectation("to be null", IncludeExpectedValue: false), Subject, because);
+
+            Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
+        }
+
+        AssertionOutputWriter.ReportPass(nameof(BeNull), SubjectLabel(), callerFilePath, callerLineNumber);
+        return new AndContinuation<ValueAssertions<T>>(this);
+    }
+    
+    public AndContinuation<ValueAssertions<T>> NotBeNull(
+        string? because = null,
+        [CallerFilePath] string? callerFilePath = null,
+        [CallerLineNumber] int callerLineNumber = 0)
+    {
+        if (Subject is null)
+        {
+            var failure = new Failure(SubjectLabel(),
+                new Expectation("to not be null", IncludeExpectedValue: false), Subject, because);
+
+            Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
+        }
+
+        AssertionOutputWriter.ReportPass(nameof(NotBeNull), SubjectLabel(), callerFilePath, callerLineNumber);
+        return new AndContinuation<ValueAssertions<T>>(this);
+    }
 
     private string SubjectLabel()
     {
