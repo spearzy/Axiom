@@ -252,4 +252,141 @@ public sealed class ValueBatchRoutingTests
         Assert.Contains("1) Expected first to not be same reference as Marker(one), but found Marker(one).", message);
         Assert.Contains("2) Expected second to not be same reference as Marker(two), but found Marker(two).", message);
     }
+
+    [Fact]
+    public void BeOfType_OutsideBatch_ThrowsImmediately()
+    {
+        object value = 42;
+
+        Assert.Throws<InvalidOperationException>(() => value.Should().BeOfType<string>());
+    }
+
+    [Fact]
+    public void BeOfType_InsideBatch_DoesNotThrowAtAssertionCallSite()
+    {
+        object value = 42;
+
+        using var batch = new Axiom.Core.Batch();
+        var callEx = Record.Exception(() => value.Should().BeOfType<string>());
+
+        Assert.Null(callEx);
+        Assert.Throws<InvalidOperationException>(() => batch.Dispose());
+    }
+
+    [Fact]
+    public void BeOfType_InsideBatch_DoesNotThrowOnDispose_WhenTypesMatch()
+    {
+        object value = "hello";
+
+        using var batch = new Axiom.Core.Batch();
+        var callEx = Record.Exception(() => value.Should().BeOfType<string>());
+        var disposeEx = Record.Exception(() => batch.Dispose());
+
+        Assert.Null(callEx);
+        Assert.Null(disposeEx);
+    }
+
+    [Fact]
+    public void Batch_Dispose_ThrowsCombinedFailures_FromTypeAssertions()
+    {
+        object first = 42;
+        object second = 7d;
+
+        var ex = Assert.Throws<InvalidOperationException>(() =>
+        {
+            using var batch = new Axiom.Core.Batch("types");
+            first.Should().BeOfType<string>();
+            second.Should().BeOfType<int>();
+        });
+
+        var message = ex.Message.Replace("\r\n", "\n", StringComparison.Ordinal);
+        Assert.Contains("Batch 'types' failed with 2 assertion failure(s):", message);
+        Assert.Contains("1) Expected first to be of type System.String, but found 42.", message);
+        Assert.Contains("2) Expected second to be of type System.Int32, but found 7.", message);
+    }
+
+    [Fact]
+    public void BeAssignableTo_OutsideBatch_ThrowsImmediately()
+    {
+        object value = 42;
+
+        Assert.Throws<InvalidOperationException>(() => value.Should().BeAssignableTo<string>());
+    }
+
+    [Fact]
+    public void BeAssignableTo_InsideBatch_DoesNotThrowAtAssertionCallSite()
+    {
+        object value = 42;
+
+        using var batch = new Axiom.Core.Batch();
+        var callEx = Record.Exception(() => value.Should().BeAssignableTo<string>());
+
+        Assert.Null(callEx);
+        Assert.Throws<InvalidOperationException>(() => batch.Dispose());
+    }
+
+    [Fact]
+    public void BeAssignableTo_InsideBatch_DoesNotThrowOnDispose_WhenAssignable()
+    {
+        object value = "hello";
+
+        using var batch = new Axiom.Core.Batch();
+        var callEx = Record.Exception(() => value.Should().BeAssignableTo<object>());
+        var disposeEx = Record.Exception(() => batch.Dispose());
+
+        Assert.Null(callEx);
+        Assert.Null(disposeEx);
+    }
+
+    [Fact]
+    public void NotBeAssignableTo_OutsideBatch_ThrowsImmediately()
+    {
+        object value = "hello";
+
+        Assert.Throws<InvalidOperationException>(() => value.Should().NotBeAssignableTo<string>());
+    }
+
+    [Fact]
+    public void NotBeAssignableTo_InsideBatch_DoesNotThrowAtAssertionCallSite()
+    {
+        object value = "hello";
+
+        using var batch = new Axiom.Core.Batch();
+        var callEx = Record.Exception(() => value.Should().NotBeAssignableTo<string>());
+
+        Assert.Null(callEx);
+        Assert.Throws<InvalidOperationException>(() => batch.Dispose());
+    }
+
+    [Fact]
+    public void NotBeAssignableTo_InsideBatch_DoesNotThrowOnDispose_WhenNotAssignable()
+    {
+        object value = 42;
+
+        using var batch = new Axiom.Core.Batch();
+        var callEx = Record.Exception(() => value.Should().NotBeAssignableTo<string>());
+        var disposeEx = Record.Exception(() => batch.Dispose());
+
+        Assert.Null(callEx);
+        Assert.Null(disposeEx);
+    }
+
+    [Fact]
+    public void Batch_Dispose_ThrowsCombinedFailures_FromAssignableTypeAssertions()
+    {
+        object first = 42;
+        object second = "hello";
+
+        var ex = Assert.Throws<InvalidOperationException>(() =>
+        {
+            using var batch = new Axiom.Core.Batch("assignable-types");
+            first.Should().BeAssignableTo<string>();
+            second.Should().NotBeAssignableTo<object>();
+        });
+
+        var message = ex.Message.Replace("\r\n", "\n", StringComparison.Ordinal);
+        Assert.Contains("Batch 'assignable-types' failed with 2 assertion failure(s):", message);
+        Assert.Contains("1) Expected first to be assignable to System.String, but found 42.", message);
+        Assert.Contains("2) Expected second to not be assignable to System.Object, but found \"hello\".", message);
+    }
 }

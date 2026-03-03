@@ -152,6 +152,58 @@ public sealed class ValueAssertions<T>(T subject, string? subjectExpression)
         AssertionOutputWriter.ReportPass(nameof(NotBeNull), SubjectLabel(), callerFilePath, callerLineNumber);
         return new AndContinuation<ValueAssertions<T>>(this);
     }
+    
+    public AndContinuation<ValueAssertions<T>> BeOfType<TExpected>(
+        string? because = null,
+        [CallerFilePath] string? callerFilePath = null,
+        [CallerLineNumber] int callerLineNumber = 0)
+    {
+        if (Subject is null || Subject.GetType() != typeof(TExpected))
+        {
+            var failure = new Failure(SubjectLabel(),
+                new Expectation("to be of type", typeof(TExpected)), Subject, because);
+
+            Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
+        }
+
+        AssertionOutputWriter.ReportPass(nameof(BeOfType), SubjectLabel(), callerFilePath, callerLineNumber);
+        return new AndContinuation<ValueAssertions<T>>(this);
+    }
+
+    public AndContinuation<ValueAssertions<T>> BeAssignableTo<TExpected>(
+        string? because = null,
+        [CallerFilePath] string? callerFilePath = null,
+        [CallerLineNumber] int callerLineNumber = 0)
+    {
+        // Runtime assignability check (includes inheritance/interface implementations).
+        if (Subject is not TExpected)
+        {
+            var failure = new Failure(SubjectLabel(),
+                new Expectation("to be assignable to", typeof(TExpected)), Subject, because);
+
+            Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
+        }
+
+        AssertionOutputWriter.ReportPass(nameof(BeAssignableTo), SubjectLabel(), callerFilePath, callerLineNumber);
+        return new AndContinuation<ValueAssertions<T>>(this);
+    }
+
+    public AndContinuation<ValueAssertions<T>> NotBeAssignableTo<TExpected>(
+        string? because = null,
+        [CallerFilePath] string? callerFilePath = null,
+        [CallerLineNumber] int callerLineNumber = 0)
+    {
+        if (Subject is TExpected)
+        {
+            var failure = new Failure(SubjectLabel(),
+                new Expectation("to not be assignable to", typeof(TExpected)), Subject, because);
+
+            Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
+        }
+
+        AssertionOutputWriter.ReportPass(nameof(NotBeAssignableTo), SubjectLabel(), callerFilePath, callerLineNumber);
+        return new AndContinuation<ValueAssertions<T>>(this);
+    }
 
     private string SubjectLabel()
     {

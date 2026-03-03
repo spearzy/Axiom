@@ -147,4 +147,53 @@ public sealed class ValueChainingTests
 
         value.Should().NotBeSameAs(other).And.NotBeNull();
     }
+
+    [Fact]
+    public void BeOfType_ReturnsContinuation_AndPointsBackToSameAssertions()
+    {
+        object value = "hello";
+
+        var baseAssertions = value.Should();
+        var continuation = baseAssertions.BeOfType<string>();
+
+        Assert.Same(baseAssertions, continuation.And);
+    }
+
+    [Fact]
+    public void TypeChain_CanBeComposed()
+    {
+        object value = "hello";
+
+        value.Should().BeOfType<string>().And.NotBeNull();
+    }
+
+    [Fact]
+    public void BeAssignableTo_ReturnsContinuation_AndPointsBackToSameAssertions()
+    {
+        object value = "hello";
+
+        var baseAssertions = value.Should();
+        var continuation = baseAssertions.BeAssignableTo<object>();
+
+        Assert.Same(baseAssertions, continuation.And);
+    }
+
+    [Fact]
+    public void NotBeAssignableTo_ReturnsContinuation_AndPointsBackToSameAssertions()
+    {
+        object value = 42;
+
+        var baseAssertions = value.Should();
+        var continuation = baseAssertions.NotBeAssignableTo<string>();
+
+        Assert.Same(baseAssertions, continuation.And);
+    }
+
+    [Fact]
+    public void AssignableTypeChain_CanBeComposed()
+    {
+        object value = "hello";
+
+        value.Should().BeAssignableTo<object>().And.NotBeAssignableTo<int>();
+    }
 }
