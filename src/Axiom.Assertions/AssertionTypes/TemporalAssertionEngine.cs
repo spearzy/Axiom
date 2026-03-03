@@ -151,7 +151,7 @@ internal static class TemporalAssertionEngine
     {
         if (tolerance == TimeSpan.MinValue)
         {
-            return TimeSpan.MaxValue;
+            throw new ArgumentOutOfRangeException(nameof(tolerance), "Tolerance must not be TimeSpan.MinValue.");
         }
 
         return tolerance.Duration();

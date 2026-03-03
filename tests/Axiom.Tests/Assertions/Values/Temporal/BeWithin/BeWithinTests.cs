@@ -52,4 +52,28 @@ public sealed class BeWithinTests
 
         Assert.Null(ex);
     }
+
+    [Fact]
+    public void BeWithin_ThrowsArgumentOutOfRangeException_WhenDateTimeToleranceIsTimeSpanMinValue()
+    {
+        var actual = new DateTime(2026, 03, 03, 10, 00, 00, DateTimeKind.Utc);
+        var expected = actual;
+
+        var ex = Assert.Throws<ArgumentOutOfRangeException>(() =>
+            actual.Should().BeWithin(expected, TimeSpan.MinValue));
+
+        Assert.Equal("tolerance", ex.ParamName);
+    }
+
+    [Fact]
+    public void BeWithin_ThrowsArgumentOutOfRangeException_WhenDateTimeOffsetToleranceIsTimeSpanMinValue()
+    {
+        var actual = new DateTimeOffset(2026, 03, 03, 10, 00, 00, TimeSpan.Zero);
+        var expected = actual;
+
+        var ex = Assert.Throws<ArgumentOutOfRangeException>(() =>
+            actual.Should().BeWithin(expected, TimeSpan.MinValue));
+
+        Assert.Equal("tolerance", ex.ParamName);
+    }
 }

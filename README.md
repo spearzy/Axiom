@@ -80,6 +80,8 @@ When a tolerance is configured for `float`, `double`, or `Half`, Axiom applies e
 
 This keeps equivalency behaviour predictable for edge-case numeric inputs.
 
+For time-based tolerances (`DateOnly`, `DateTime`, `DateTimeOffset`, `TimeOnly`, `TimeSpan`), negative values are normalised to absolute duration. `TimeSpan.MinValue` is rejected and throws `ArgumentOutOfRangeException`.
+
 ### Optional Global Equivalency Defaults
 
 You only need this if you want project-wide defaults.  

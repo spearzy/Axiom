@@ -383,4 +383,64 @@ public sealed class BeEquivalentToToleranceTests : IDisposable
 
         Assert.Null(ex);
     }
+
+    [Fact]
+    public void GivenDateOnlyToleranceIsTimeSpanMinValue_WhenComparing_ThenThrowsArgumentOutOfRangeException()
+    {
+        var actual = new DateOnly(2026, 03, 03);
+        var expected = actual;
+
+        var ex = Assert.Throws<ArgumentOutOfRangeException>(() =>
+            actual.Should().BeEquivalentTo(expected, options => options.DateOnlyTolerance = TimeSpan.MinValue));
+
+        Assert.Equal("DateOnlyTolerance", ex.ParamName);
+    }
+
+    [Fact]
+    public void GivenDateTimeToleranceIsTimeSpanMinValue_WhenComparing_ThenThrowsArgumentOutOfRangeException()
+    {
+        var actual = new DateTime(2026, 03, 03, 10, 00, 00, DateTimeKind.Utc);
+        var expected = actual;
+
+        var ex = Assert.Throws<ArgumentOutOfRangeException>(() =>
+            actual.Should().BeEquivalentTo(expected, options => options.DateTimeTolerance = TimeSpan.MinValue));
+
+        Assert.Equal("DateTimeTolerance", ex.ParamName);
+    }
+
+    [Fact]
+    public void GivenDateTimeOffsetToleranceIsTimeSpanMinValue_WhenComparing_ThenThrowsArgumentOutOfRangeException()
+    {
+        var actual = new DateTimeOffset(2026, 03, 03, 10, 00, 00, TimeSpan.Zero);
+        var expected = actual;
+
+        var ex = Assert.Throws<ArgumentOutOfRangeException>(() =>
+            actual.Should().BeEquivalentTo(expected, options => options.DateTimeOffsetTolerance = TimeSpan.MinValue));
+
+        Assert.Equal("DateTimeOffsetTolerance", ex.ParamName);
+    }
+
+    [Fact]
+    public void GivenTimeOnlyToleranceIsTimeSpanMinValue_WhenComparing_ThenThrowsArgumentOutOfRangeException()
+    {
+        var actual = new TimeOnly(10, 15, 00);
+        var expected = actual;
+
+        var ex = Assert.Throws<ArgumentOutOfRangeException>(() =>
+            actual.Should().BeEquivalentTo(expected, options => options.TimeOnlyTolerance = TimeSpan.MinValue));
+
+        Assert.Equal("TimeOnlyTolerance", ex.ParamName);
+    }
+
+    [Fact]
+    public void GivenTimeSpanToleranceIsTimeSpanMinValue_WhenComparing_ThenThrowsArgumentOutOfRangeException()
+    {
+        var actual = TimeSpan.FromMinutes(10);
+        var expected = actual;
+
+        var ex = Assert.Throws<ArgumentOutOfRangeException>(() =>
+            actual.Should().BeEquivalentTo(expected, options => options.TimeSpanTolerance = TimeSpan.MinValue));
+
+        Assert.Equal("TimeSpanTolerance", ex.ParamName);
+    }
 }

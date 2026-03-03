@@ -337,27 +337,32 @@ internal static class EquivalencyEngine
 
             // DateOnly has day precision, so compare day gap against the configured window.
             case DateOnly actualDateOnly when expected is DateOnly expectedDateOnly && options.DateOnlyTolerance.HasValue:
-                areEquivalent = TimeSpan.FromDays(Math.Abs(actualDateOnly.DayNumber - expectedDateOnly.DayNumber)) <= options.DateOnlyTolerance.Value.Duration();
+                areEquivalent = TimeSpan.FromDays(Math.Abs(actualDateOnly.DayNumber - expectedDateOnly.DayNumber)) <=
+                                NormaliseTemporalTolerance(options.DateOnlyTolerance.Value, nameof(EquivalencyOptions.DateOnlyTolerance));
                 return true;
 
             // Compare clock instants by permitted time window.
             case DateTime actualDateTime when expected is DateTime expectedDateTime && options.DateTimeTolerance.HasValue:
-                areEquivalent = (actualDateTime - expectedDateTime).Duration() <= options.DateTimeTolerance.Value.Duration();
+                areEquivalent = (actualDateTime - expectedDateTime).Duration() <=
+                                NormaliseTemporalTolerance(options.DateTimeTolerance.Value, nameof(EquivalencyOptions.DateTimeTolerance));
                 return true;
 
             // Compare offset-aware instants by permitted time window.
             case DateTimeOffset actualDateTimeOffset when expected is DateTimeOffset expectedDateTimeOffset && options.DateTimeOffsetTolerance.HasValue:
-                areEquivalent = (actualDateTimeOffset - expectedDateTimeOffset).Duration() <= options.DateTimeOffsetTolerance.Value.Duration();
+                areEquivalent = (actualDateTimeOffset - expectedDateTimeOffset).Duration() <=
+                                NormaliseTemporalTolerance(options.DateTimeOffsetTolerance.Value, nameof(EquivalencyOptions.DateTimeOffsetTolerance));
                 return true;
 
             // Compare time-of-day values by permitted time window.
             case TimeOnly actualTimeOnly when expected is TimeOnly expectedTimeOnly && options.TimeOnlyTolerance.HasValue:
-                areEquivalent = (actualTimeOnly - expectedTimeOnly).Duration() <= options.TimeOnlyTolerance.Value.Duration();
+                areEquivalent = (actualTimeOnly - expectedTimeOnly).Duration() <=
+                                NormaliseTemporalTolerance(options.TimeOnlyTolerance.Value, nameof(EquivalencyOptions.TimeOnlyTolerance));
                 return true;
 
             // Compare durations by permitted time window.
             case TimeSpan actualTimeSpan when expected is TimeSpan expectedTimeSpan && options.TimeSpanTolerance.HasValue:
-                areEquivalent = (actualTimeSpan - expectedTimeSpan).Duration() <= options.TimeSpanTolerance.Value.Duration();
+                areEquivalent = (actualTimeSpan - expectedTimeSpan).Duration() <=
+                                NormaliseTemporalTolerance(options.TimeSpanTolerance.Value, nameof(EquivalencyOptions.TimeSpanTolerance));
                 return true;
         }
 
@@ -393,6 +398,16 @@ internal static class EquivalencyEngine
         }
 
         return Math.Abs(actual - expected) <= tolerance;
+    }
+
+    private static TimeSpan NormaliseTemporalTolerance(TimeSpan tolerance, string optionName)
+    {
+        if (tolerance == TimeSpan.MinValue)
+        {
+            throw new ArgumentOutOfRangeException(optionName, "Tolerance must not be TimeSpan.MinValue.");
+        }
+
+        return tolerance.Duration();
     }
 
     private static bool TryCompareWithConfiguredComparer(
