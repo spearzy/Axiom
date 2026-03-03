@@ -6,16 +6,10 @@ using Axiom.Core.Output;
 
 namespace Axiom.Assertions.AssertionTypes;
 
-public sealed class StringAssertions
+public sealed class StringAssertions(string? subject, string? subjectExpression)
 {
-    public string? Subject { get; }
-    public string? SubjectExpression { get; }
-
-    public StringAssertions(string? subject, string? subjectExpression)
-    {
-        Subject = subject;
-        SubjectExpression = subjectExpression;
-    }
+    public string? Subject { get; } = subject;
+    public string? SubjectExpression { get; } = subjectExpression;
 
     public AndContinuation<StringAssertions> NotBeNull(
         string? because = null,

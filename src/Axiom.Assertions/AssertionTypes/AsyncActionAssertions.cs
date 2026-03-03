@@ -6,16 +6,10 @@ using Axiom.Core.Output;
 
 namespace Axiom.Assertions.AssertionTypes;
 
-public sealed class AsyncActionAssertions
+public sealed class AsyncActionAssertions(Func<ValueTask> subject, string? subjectExpression)
 {
-    public AsyncActionAssertions(Func<ValueTask> subject, string? subjectExpression)
-    {
-        Subject = subject;
-        SubjectExpression = subjectExpression;
-    }
-
-    public Func<ValueTask> Subject { get; }
-    public string? SubjectExpression { get; }
+    public Func<ValueTask> Subject { get; } = subject;
+    public string? SubjectExpression { get; } = subjectExpression;
 
     public async ValueTask<AndContinuation<AsyncActionAssertions>> ThrowAsync<TException>(
         string? because = null,

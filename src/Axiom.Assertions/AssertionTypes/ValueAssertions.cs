@@ -8,16 +8,10 @@ using Axiom.Core.Output;
 
 namespace Axiom.Assertions.AssertionTypes;
 
-public sealed class ValueAssertions<T>
+public sealed class ValueAssertions<T>(T subject, string? subjectExpression)
 {
-    public ValueAssertions(T subject, string? subjectExpression)
-    {
-        Subject = subject;
-        SubjectExpression = subjectExpression;
-    }
-
-    public T Subject { get; }
-    public string? SubjectExpression { get; }
+    public T Subject { get; } = subject;
+    public string? SubjectExpression { get; } = subjectExpression;
 
     public AndContinuation<ValueAssertions<T>> Be(
         T expected,
