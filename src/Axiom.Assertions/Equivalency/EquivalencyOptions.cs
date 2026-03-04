@@ -88,7 +88,17 @@ public sealed class EquivalencyOptions
         ArgumentNullException.ThrowIfNull(comparer);
 
         // Supports both absolute paths (e.g. "actual.Address.Postcode") and relative paths ("Address.Postcode").
-        _pathComparers[path.Trim()] = comparer;
+        AddPathComparer(path, comparer);
+        return this;
+    }
+
+    public EquivalencyOptions UseComparerForMember(string memberPath, IEqualityComparer comparer)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(memberPath);
+        ArgumentNullException.ThrowIfNull(comparer);
+
+        // Member alias for UseComparerForPath to keep call sites intention-revealing.
+        AddPathComparer(memberPath, comparer);
         return this;
     }
 
@@ -121,6 +131,11 @@ public sealed class EquivalencyOptions
     {
         // Nullable<T> values are boxed as their underlying T when they have a value.
         return Nullable.GetUnderlyingType(type) ?? type;
+    }
+
+    private void AddPathComparer(string path, IEqualityComparer comparer)
+    {
+        _pathComparers[path.Trim()] = comparer;
     }
 
     // Snapshot copy for deterministic comparison settings during one assertion run.
