@@ -4,6 +4,12 @@ namespace Axiom.Tests.Assertions.Values.BeEquivalentTo;
 
 public sealed class BeEquivalentToBatchRoutingTests
 {
+    private sealed class Person
+    {
+        public string? Name { get; init; }
+        public int Age { get; init; }
+    }
+
     [Fact]
     public void GivenNoBatch_WhenNotEquivalent_ThenThrowsImmediately()
     {
@@ -45,5 +51,36 @@ public sealed class BeEquivalentToBatchRoutingTests
 
         Assert.Contains("Batch 'equivalency' failed with 1 assertion failure(s):", ex.Message, StringComparison.Ordinal);
         Assert.Contains("Expected actual to be equivalent to", ex.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void GivenBatch_WhenOnlyComparedMemberDiffers_ThenDisposeThrowsCombinedFailure()
+    {
+        var actual = new Person { Name = "Alice", Age = 30 };
+        var expected = new Person { Name = "Bob", Age = 99 };
+
+        var ex = Assert.Throws<InvalidOperationException>(() =>
+        {
+            using var batch = new Axiom.Core.Batch("equivalency-only-member");
+            actual.Should().BeEquivalentTo(expected, options => options.OnlyCompareMember(nameof(Person.Name)));
+        });
+
+        Assert.Contains("Batch 'equivalency-only-member' failed with 1 assertion failure(s):", ex.Message, StringComparison.Ordinal);
+        Assert.Contains("actual.Name", ex.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void GivenBatch_WhenOnlyComparedMemberMatches_ThenDisposeDoesNotThrow()
+    {
+        var actual = new Person { Name = "Alice", Age = 30 };
+        var expected = new Person { Name = "Alice", Age = 99 };
+
+        var ex = Record.Exception(() =>
+        {
+            using var batch = new Axiom.Core.Batch("equivalency-only-member-pass");
+            actual.Should().BeEquivalentTo(expected, options => options.OnlyCompareMember(nameof(Person.Name)));
+        });
+
+        Assert.Null(ex);
     }
 }

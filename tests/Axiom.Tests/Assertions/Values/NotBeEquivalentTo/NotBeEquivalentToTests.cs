@@ -4,6 +4,12 @@ namespace Axiom.Tests.Assertions.Values.NotBeEquivalentTo;
 
 public sealed class NotBeEquivalentToTests
 {
+    private sealed class Person
+    {
+        public string? Name { get; init; }
+        public int Age { get; init; }
+    }
+
     [Fact]
     public void GivenLeafValues_WhenEquivalent_ThenThrowsDeterministicMessage()
     {
@@ -67,5 +73,29 @@ public sealed class NotBeEquivalentToTests
         var ex = Assert.Throws<ArgumentNullException>(() => value.Should().NotBeEquivalentTo(7, configure!));
 
         Assert.Equal("configure", ex.ParamName);
+    }
+
+    [Fact]
+    public void GivenOnlyComparedMember_WhenSelectedMemberMatches_ThenThrowsEvenIfOtherMembersDiffer()
+    {
+        var actual = new Person { Name = "Alice", Age = 30 };
+        var expected = new Person { Name = "Alice", Age = 99 };
+
+        var ex = Assert.Throws<InvalidOperationException>(() =>
+            actual.Should().NotBeEquivalentTo(expected, options => options.OnlyCompareMember(nameof(Person.Name))));
+
+        Assert.Contains("to not be equivalent to", ex.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void GivenOnlyComparedMember_WhenSelectedMemberDiffers_ThenDoesNotThrow()
+    {
+        var actual = new Person { Name = "Alice", Age = 30 };
+        var expected = new Person { Name = "Bob", Age = 30 };
+
+        var ex = Record.Exception(() =>
+            actual.Should().NotBeEquivalentTo(expected, options => options.OnlyCompareMember(nameof(Person.Name))));
+
+        Assert.Null(ex);
     }
 }

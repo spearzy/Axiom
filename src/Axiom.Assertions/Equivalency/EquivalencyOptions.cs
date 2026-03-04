@@ -10,6 +10,7 @@ public sealed class EquivalencyOptions
 {
     private readonly HashSet<string> _ignoredMemberNames = new(StringComparer.Ordinal);
     private readonly HashSet<string> _ignoredPaths = new(StringComparer.Ordinal);
+    private readonly HashSet<string> _onlyComparedMembers = new(StringComparer.Ordinal);
 
     public EquivalencyCollectionOrder CollectionOrder { get; set; } = EquivalencyCollectionOrder.Strict;
     public bool RequireStrictRuntimeTypes { get; set; } = true;
@@ -31,6 +32,7 @@ public sealed class EquivalencyOptions
 
     public IReadOnlySet<string> IgnoredMemberNames => _ignoredMemberNames;
     public IReadOnlySet<string> IgnoredPaths => _ignoredPaths;
+    internal IReadOnlySet<string> OnlyComparedMembers => _onlyComparedMembers;
 
     public EquivalencyOptions IgnoreMember(string memberName)
     {
@@ -43,6 +45,25 @@ public sealed class EquivalencyOptions
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(path);
         _ignoredPaths.Add(path);
+        return this;
+    }
+
+    // Restrict equivalency to one member branch, e.g. "Name" or "Address.Postcode".
+    public EquivalencyOptions OnlyCompareMember(string memberPath)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(memberPath);
+        _onlyComparedMembers.Add(memberPath.Trim());
+        return this;
+    }
+
+    public EquivalencyOptions OnlyCompareMembers(params string[] memberPaths)
+    {
+        ArgumentNullException.ThrowIfNull(memberPaths);
+        foreach (var memberPath in memberPaths)
+        {
+            OnlyCompareMember(memberPath);
+        }
+
         return this;
     }
 
@@ -78,6 +99,11 @@ public sealed class EquivalencyOptions
         foreach (var path in _ignoredPaths)
         {
             clone._ignoredPaths.Add(path);
+        }
+
+        foreach (var memberPath in _onlyComparedMembers)
+        {
+            clone._onlyComparedMembers.Add(memberPath);
         }
 
         return clone;
