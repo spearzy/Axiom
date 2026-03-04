@@ -11,6 +11,7 @@ public sealed class EquivalencyOptions
     private readonly HashSet<string> _ignoredMemberNames = new(StringComparer.Ordinal);
     private readonly HashSet<string> _ignoredPaths = new(StringComparer.Ordinal);
     private readonly HashSet<string> _onlyComparedMembers = new(StringComparer.Ordinal);
+    private readonly Dictionary<Type, Func<object, object, bool>> _typeComparers = new();
 
     public EquivalencyCollectionOrder CollectionOrder { get; set; } = EquivalencyCollectionOrder.Strict;
     public bool RequireStrictRuntimeTypes { get; set; } = true;
@@ -67,6 +68,35 @@ public sealed class EquivalencyOptions
         return this;
     }
 
+    public EquivalencyOptions UseComparerForType<T>(IEqualityComparer<T> comparer)
+    {
+        ArgumentNullException.ThrowIfNull(comparer);
+
+        // Store once per configured type so each equivalency comparison can invoke directly.
+        var key = NormaliseComparerType(typeof(T));
+        _typeComparers[key] = (actual, expected) => comparer.Equals((T)actual, (T)expected);
+        return this;
+    }
+
+    internal bool TryCompareWithTypeComparer(Type comparisonType, object actual, object expected, out bool areEquivalent)
+    {
+        var key = NormaliseComparerType(comparisonType);
+        if (_typeComparers.TryGetValue(key, out var compare))
+        {
+            areEquivalent = compare(actual, expected);
+            return true;
+        }
+
+        areEquivalent = false;
+        return false;
+    }
+
+    private static Type NormaliseComparerType(Type type)
+    {
+        // Nullable<T> values are boxed as their underlying T when they have a value.
+        return Nullable.GetUnderlyingType(type) ?? type;
+    }
+
     // Snapshot copy for deterministic comparison settings during one assertion run.
     internal EquivalencyOptions Clone()
     {
@@ -104,6 +134,11 @@ public sealed class EquivalencyOptions
         foreach (var memberPath in _onlyComparedMembers)
         {
             clone._onlyComparedMembers.Add(memberPath);
+        }
+
+        foreach (var typeComparer in _typeComparers)
+        {
+            clone._typeComparers[typeComparer.Key] = typeComparer.Value;
         }
 
         return clone;

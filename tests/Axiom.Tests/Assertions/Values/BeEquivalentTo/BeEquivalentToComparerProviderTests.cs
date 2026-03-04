@@ -12,7 +12,7 @@ public sealed class BeEquivalentToComparerProviderTests : IDisposable
     [Fact]
     public void GivenConfiguredComparerProvider_WhenComparingTopLevelLeaf_ThenUsesConfiguredComparer()
     {
-        AxiomServices.Configure(c => c.ComparerProvider = new SameParityIntComparerProvider());
+        AxiomServices.Configure(c => c.ComparerProvider = new OddEvenMatchIntComparerProvider());
 
         var actual = 3;
         var ex = Record.Exception(() => actual.Should().BeEquivalentTo(5));
@@ -23,7 +23,7 @@ public sealed class BeEquivalentToComparerProviderTests : IDisposable
     [Fact]
     public void GivenConfiguredComparerProvider_WhenComparingNestedLeafMember_ThenUsesConfiguredComparer()
     {
-        AxiomServices.Configure(c => c.ComparerProvider = new SameParityIntComparerProvider());
+        AxiomServices.Configure(c => c.ComparerProvider = new OddEvenMatchIntComparerProvider());
 
         var actual = new NumberWrapper { Number = 3 };
         var expected = new NumberWrapper { Number = 5 };
@@ -49,13 +49,13 @@ public sealed class BeEquivalentToComparerProviderTests : IDisposable
         public int Number { get; init; }
     }
 
-    private sealed class SameParityIntComparerProvider : IComparerProvider
+    private sealed class OddEvenMatchIntComparerProvider : IComparerProvider
     {
         public bool TryGetEqualityComparer<T>(out IEqualityComparer<T>? comparer)
         {
             if (typeof(T) == typeof(int))
             {
-                comparer = (IEqualityComparer<T>)(object)new SameParityIntComparer();
+                comparer = (IEqualityComparer<T>)(object)new OddEvenMatchIntComparer();
                 return true;
             }
 
@@ -64,10 +64,11 @@ public sealed class BeEquivalentToComparerProviderTests : IDisposable
         }
     }
 
-    private sealed class SameParityIntComparer : IEqualityComparer<int>
+    private sealed class OddEvenMatchIntComparer : IEqualityComparer<int>
     {
         public bool Equals(int x, int y)
         {
+            // Treat numbers as equivalent when they are both odd or both even.
             return x % 2 == y % 2;
         }
 

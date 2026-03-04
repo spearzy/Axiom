@@ -245,6 +245,46 @@ AxiomServices.Configure(c =>
 });
 ```
 
+### Per-Assertion Type Comparers (Equivalency)
+
+Use `UseComparerForType<T>(...)` when you want a comparer for one assertion call only.
+
+This is useful when:
+- one test needs a different rule than your project default,
+- you want to avoid changing global comparer behaviour for other tests.
+
+```csharp
+var actual = new { Score = 3 };
+var expected = new { Score = 5 };
+
+actual.Should().BeEquivalentTo(expected, options =>
+    options.UseComparerForType<int>(new OddEvenMatchIntComparer()));
+```
+
+`NotBeEquivalentTo(...)` respects the same per-call comparer:
+
+```csharp
+var actual = 3;
+
+actual.Should().NotBeEquivalentTo(8, options =>
+    options.UseComparerForType<int>(new OddEvenMatchIntComparer()));
+```
+
+For strings in `BeEquivalentTo(...)`, `UseComparerForType<string>(...)` is not used; configure `EquivalencyOptions.StringComparison` instead.
+
+```csharp
+object actual = "ABC";
+
+actual.Should().BeEquivalentTo("abc", options =>
+    options.StringComparison = StringComparison.OrdinalIgnoreCase);
+```
+
+Precedence for leaf value equality in equivalency is:
+- tolerance option for that type (if configured),
+- per-call type comparer (`UseComparerForType<T>`),
+- global comparer provider (`AxiomServices.Configure(...)`),
+- default equality.
+
 ### Exception Assertions
 
 ```csharp

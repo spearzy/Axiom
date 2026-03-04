@@ -12,7 +12,7 @@ public sealed class ValueAssertionComparerProviderTests : IDisposable
     [Fact]
     public void Be_UsesConfiguredComparerProvider()
     {
-        AxiomServices.Configure(c => c.ComparerProvider = new SameParityIntComparerProvider());
+        AxiomServices.Configure(c => c.ComparerProvider = new OddEvenMatchIntComparerProvider());
 
         var value = 3;
         var ex = Record.Exception(() => value.Should().Be(5));
@@ -23,7 +23,7 @@ public sealed class ValueAssertionComparerProviderTests : IDisposable
     [Fact]
     public void NotBe_UsesConfiguredComparerProvider()
     {
-        AxiomServices.Configure(c => c.ComparerProvider = new SameParityIntComparerProvider());
+        AxiomServices.Configure(c => c.ComparerProvider = new OddEvenMatchIntComparerProvider());
 
         var value = 3;
         var ex = Assert.Throws<InvalidOperationException>(() => value.Should().NotBe(7));
@@ -43,7 +43,7 @@ public sealed class ValueAssertionComparerProviderTests : IDisposable
         Assert.Null(ex);
     }
 
-    private sealed class SameParityIntComparerProvider : IComparerProvider
+    private sealed class OddEvenMatchIntComparerProvider : IComparerProvider
     {
         public bool TryGetEqualityComparer<T>(out IEqualityComparer<T>? comparer)
         {
@@ -52,7 +52,7 @@ public sealed class ValueAssertionComparerProviderTests : IDisposable
             {
                 // The interface is generic, so we cast the int comparer to IEqualityComparer<T>
                 // after proving T is int.
-                comparer = (IEqualityComparer<T>)(object)new SameParityIntComparer();
+                comparer = (IEqualityComparer<T>)(object)new OddEvenMatchIntComparer();
                 return true;
             }
 
@@ -62,7 +62,7 @@ public sealed class ValueAssertionComparerProviderTests : IDisposable
         }
     }
 
-    private sealed class SameParityIntComparer : IEqualityComparer<int>
+    private sealed class OddEvenMatchIntComparer : IEqualityComparer<int>
     {
         public bool Equals(int x, int y)
         {

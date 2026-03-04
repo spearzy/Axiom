@@ -310,7 +310,7 @@ internal static class EquivalencyEngine
             return toleranceResult;
         }
 
-        if (TryCompareWithConfiguredComparer(actual, expected, actualType, expectedType, out var comparerResult))
+        if (TryCompareWithConfiguredComparer(actual, expected, actualType, expectedType, options, out var comparerResult))
         {
             return comparerResult;
         }
@@ -433,6 +433,7 @@ internal static class EquivalencyEngine
         object expected,
         Type actualType,
         Type expectedType,
+        EquivalencyOptions options,
         out bool areEquivalent)
     {
         areEquivalent = false;
@@ -442,6 +443,13 @@ internal static class EquivalencyEngine
         if (comparisonType is null)
         {
             return false;
+        }
+
+        // Per-assertion type comparer should win over global provider behaviour.
+        if (options.TryCompareWithTypeComparer(comparisonType, actual, expected, out var localComparerResult))
+        {
+            areEquivalent = localComparerResult;
+            return true;
         }
 
         var provider = AxiomServices.Configuration.ComparerProvider;
