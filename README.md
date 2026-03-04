@@ -90,6 +90,13 @@ Expected value to start with "ab", but found "test".
 - `HaveLength(expectedLength)`
 - `BeEmpty()`
 - `NotBeEmpty()`
+- `BeNullOrEmpty()`
+- `NotBeNullOrEmpty()`
+- `BeNullOrWhiteSpace()`
+- `NotBeNullOrWhiteSpace()`
+- `BeEquivalentTo(expected, comparison)`
+- `Match(pattern)` / `Match(pattern, timeout)`
+- `NotMatch(pattern)` / `NotMatch(pattern, timeout)`
 
 ### Exception assertions
 - `Throw<TException>()`

@@ -227,6 +227,68 @@ public sealed class StringAssertions(string? subject, string? subjectExpression)
         return new AndContinuation<StringAssertions>(this);
     }
 
+    public AndContinuation<StringAssertions> BeNullOrEmpty(
+        string? because = null,
+        [CallerFilePath] string? callerFilePath = null,
+        [CallerLineNumber] int callerLineNumber = 0)
+    {
+        var subject = Subject;
+        if (!string.IsNullOrEmpty(subject))
+        {
+            var failure = new Failure(
+                SubjectLabel(),
+                new Expectation("to be null or empty", IncludeExpectedValue: false),
+                subject,
+                because);
+            Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
+        }
+
+        AssertionOutputWriter.ReportPass(nameof(BeNullOrEmpty), SubjectLabel(), callerFilePath, callerLineNumber);
+        return new AndContinuation<StringAssertions>(this);
+    }
+
+    public AndContinuation<StringAssertions> NotBeNullOrEmpty(
+        string? because = null,
+        [CallerFilePath] string? callerFilePath = null,
+        [CallerLineNumber] int callerLineNumber = 0)
+    {
+        var subject = Subject;
+        if (string.IsNullOrEmpty(subject))
+        {
+            var failure = new Failure(
+                SubjectLabel(),
+                new Expectation("to not be null or empty", IncludeExpectedValue: false),
+                subject,
+                because);
+            Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
+        }
+
+        AssertionOutputWriter.ReportPass(nameof(NotBeNullOrEmpty), SubjectLabel(), callerFilePath, callerLineNumber);
+        return new AndContinuation<StringAssertions>(this);
+    }
+
+    public AndContinuation<StringAssertions> BeEquivalentTo(
+        string expected,
+        StringComparison comparison,
+        string? because = null,
+        [CallerFilePath] string? callerFilePath = null,
+        [CallerLineNumber] int callerLineNumber = 0)
+    {
+        var subject = Subject;
+        if (!string.Equals(subject, expected, comparison))
+        {
+            var failure = new Failure(
+                SubjectLabel(),
+                new Expectation("to be equivalent to", expected),
+                subject,
+                because);
+            Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
+        }
+
+        AssertionOutputWriter.ReportPass(nameof(BeEquivalentTo), SubjectLabel(), callerFilePath, callerLineNumber);
+        return new AndContinuation<StringAssertions>(this);
+    }
+
     public AndContinuation<StringAssertions> BeNullOrWhiteSpace(
         string? because = null,
         [CallerFilePath] string? callerFilePath = null,
