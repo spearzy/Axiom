@@ -191,6 +191,11 @@ internal static class EquivalencyEngine
                 }
 
                 var expectedValue = expectedGetter!(expected);
+                if (options.IgnoreExpectedNullMemberValues && expectedValue is null)
+                {
+                    continue;
+                }
+
                 differences.Add(new EquivalencyDifference(memberPath, expectedValue, null, "Member missing on actual type."));
                 continue;
             }
@@ -209,6 +214,11 @@ internal static class EquivalencyEngine
 
             var actualValueAtMember = actualGetter!(actual);
             var expectedValueAtMember = expectedGetter!(expected);
+            if (options.IgnoreExpectedNullMemberValues && expectedValueAtMember is null)
+            {
+                continue;
+            }
+
             CompareNode(actualValueAtMember, expectedValueAtMember, memberPath, rootPath, options, differences, visitedPairs);
         }
     }
