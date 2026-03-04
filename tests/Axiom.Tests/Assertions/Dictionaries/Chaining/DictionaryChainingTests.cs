@@ -19,6 +19,7 @@ public sealed class DictionaryChainingTests
             .ContainKey("alpha").And
             .ContainValue(2).And
             .ContainEntry("gamma", 3).And
+            .NotContainEntry("alpha", 2).And
             .NotContainKey("delta").And
             .NotContainValue(9);
     }

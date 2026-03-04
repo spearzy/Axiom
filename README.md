@@ -98,6 +98,7 @@ Expected value to start with "ab", but found "test".
 - `ContainValue(value)`
 - `NotContainValue(value)`
 - `ContainEntry(key, value)`
+- `NotContainEntry(key, value)`
 
 ### Temporal assertions
 - `BeBefore(expected)`

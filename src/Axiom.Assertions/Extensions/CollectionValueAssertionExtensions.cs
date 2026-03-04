@@ -531,6 +531,65 @@ public static class CollectionValueAssertionExtensions
             callerLineNumber);
     }
 
+    public static AndContinuation<ValueAssertions<TDictionary>> NotContainEntry<TDictionary, TKey, TValue>(
+        this ValueAssertions<TDictionary> assertions,
+        TKey unexpectedKey,
+        TValue unexpectedValue,
+        string? because = null,
+        [CallerFilePath] string? callerFilePath = null,
+        [CallerLineNumber] int callerLineNumber = 0)
+        where TDictionary : IReadOnlyDictionary<TKey, TValue>
+    {
+        ArgumentNullException.ThrowIfNull(assertions);
+
+        CollectionAssertionEngine.AssertNotContainEntry(
+            assertions.Subject,
+            assertions.SubjectExpression,
+            unexpectedKey,
+            unexpectedValue,
+            because,
+            callerFilePath,
+            callerLineNumber);
+
+        return new AndContinuation<ValueAssertions<TDictionary>>(assertions);
+    }
+
+    public static AndContinuation<ValueAssertions<Dictionary<TKey, TValue>>> NotContainEntry<TKey, TValue>(
+        this ValueAssertions<Dictionary<TKey, TValue>> assertions,
+        TKey unexpectedKey,
+        TValue unexpectedValue,
+        string? because = null,
+        [CallerFilePath] string? callerFilePath = null,
+        [CallerLineNumber] int callerLineNumber = 0)
+        where TKey : notnull
+    {
+        return NotContainEntry<Dictionary<TKey, TValue>, TKey, TValue>(
+            assertions,
+            unexpectedKey,
+            unexpectedValue,
+            because,
+            callerFilePath,
+            callerLineNumber);
+    }
+
+    public static AndContinuation<ValueAssertions<IReadOnlyDictionary<TKey, TValue>>> NotContainEntry<TKey, TValue>(
+        this ValueAssertions<IReadOnlyDictionary<TKey, TValue>> assertions,
+        TKey unexpectedKey,
+        TValue unexpectedValue,
+        string? because = null,
+        [CallerFilePath] string? callerFilePath = null,
+        [CallerLineNumber] int callerLineNumber = 0)
+        where TKey : notnull
+    {
+        return NotContainEntry<IReadOnlyDictionary<TKey, TValue>, TKey, TValue>(
+            assertions,
+            unexpectedKey,
+            unexpectedValue,
+            because,
+            callerFilePath,
+            callerLineNumber);
+    }
+
     public static AndContinuation<ValueAssertions<TCollection>> ContainInOrder<TCollection, TItem>(
         this ValueAssertions<TCollection> assertions,
         IEnumerable<TItem> expectedSequence,

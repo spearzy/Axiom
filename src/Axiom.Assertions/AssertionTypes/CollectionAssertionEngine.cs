@@ -704,6 +704,51 @@ internal static class CollectionAssertionEngine
         Fail(FailureMessageRenderer.Render(valueMismatchFailure), callerFilePath, callerLineNumber);
     }
 
+    public static void AssertNotContainEntry<TKey, TValue>(
+        IReadOnlyDictionary<TKey, TValue>? subject,
+        string? subjectExpression,
+        TKey unexpectedKey,
+        TValue unexpectedValue,
+        string? because,
+        string? callerFilePath,
+        int callerLineNumber)
+    {
+        var subjectLabel = SubjectLabel(subjectExpression);
+        // Keep pass-path work minimal: only format entry text when we know we are failing.
+        if (subject is null)
+        {
+            var unexpectedEntry = new RenderedText(FormatEntry(unexpectedKey, unexpectedValue));
+            var nullFailure = new Failure(
+                subjectLabel,
+                new Expectation("to not contain entry", unexpectedEntry),
+                subject,
+                because);
+            Fail(FailureMessageRenderer.Render(nullFailure), callerFilePath, callerLineNumber);
+            return;
+        }
+
+        if (!subject.TryGetValue(unexpectedKey, out var actualValue))
+        {
+            AssertionOutputWriter.ReportPass("NotContainEntry", subjectLabel, callerFilePath, callerLineNumber);
+            return;
+        }
+
+        var valueComparer = GetComparer<TValue>();
+        if (!valueComparer.Equals(actualValue, unexpectedValue))
+        {
+            AssertionOutputWriter.ReportPass("NotContainEntry", subjectLabel, callerFilePath, callerLineNumber);
+            return;
+        }
+
+        var unexpectedEntryText = new RenderedText(FormatEntry(unexpectedKey, unexpectedValue));
+        var presentEntryFailure = new Failure(
+            subjectLabel,
+            new Expectation("to not contain entry", unexpectedEntryText),
+            new RenderedText($"matching entry was present: {FormatEntry(unexpectedKey, actualValue)}"),
+            because);
+        Fail(FailureMessageRenderer.Render(presentEntryFailure), callerFilePath, callerLineNumber);
+    }
+
     public static void AssertContainInOrder<T>(
         IEnumerable<T>? subject,
         string? subjectExpression,
