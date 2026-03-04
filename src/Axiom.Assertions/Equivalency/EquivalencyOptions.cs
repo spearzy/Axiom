@@ -1,3 +1,5 @@
+using System.Collections;
+
 namespace Axiom.Assertions.Equivalency;
 
 public enum EquivalencyCollectionOrder
@@ -11,6 +13,7 @@ public sealed class EquivalencyOptions
     private readonly HashSet<string> _ignoredMemberNames = new(StringComparer.Ordinal);
     private readonly HashSet<string> _ignoredPaths = new(StringComparer.Ordinal);
     private readonly HashSet<string> _onlyComparedMembers = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, IEqualityComparer> _pathComparers = new(StringComparer.Ordinal);
     private readonly Dictionary<Type, Func<object, object, bool>> _typeComparers = new();
 
     public EquivalencyCollectionOrder CollectionOrder { get; set; } = EquivalencyCollectionOrder.Strict;
@@ -34,6 +37,7 @@ public sealed class EquivalencyOptions
     public IReadOnlySet<string> IgnoredMemberNames => _ignoredMemberNames;
     public IReadOnlySet<string> IgnoredPaths => _ignoredPaths;
     internal IReadOnlySet<string> OnlyComparedMembers => _onlyComparedMembers;
+    internal bool HasPathComparers => _pathComparers.Count > 0;
 
     public EquivalencyOptions IgnoreMember(string memberName)
     {
@@ -76,6 +80,28 @@ public sealed class EquivalencyOptions
         var key = NormaliseComparerType(typeof(T));
         _typeComparers[key] = (actual, expected) => comparer.Equals((T)actual, (T)expected);
         return this;
+    }
+
+    public EquivalencyOptions UseComparerForPath(string path, IEqualityComparer comparer)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(path);
+        ArgumentNullException.ThrowIfNull(comparer);
+
+        // Supports both absolute paths (e.g. "actual.Address.Postcode") and relative paths ("Address.Postcode").
+        _pathComparers[path.Trim()] = comparer;
+        return this;
+    }
+
+    internal bool TryCompareWithPathComparer(string path, object actual, object expected, out bool areEquivalent)
+    {
+        if (_pathComparers.TryGetValue(path, out var comparer))
+        {
+            areEquivalent = comparer.Equals(actual, expected);
+            return true;
+        }
+
+        areEquivalent = false;
+        return false;
     }
 
     internal bool TryCompareWithTypeComparer(Type comparisonType, object actual, object expected, out bool areEquivalent)
@@ -139,6 +165,11 @@ public sealed class EquivalencyOptions
         foreach (var typeComparer in _typeComparers)
         {
             clone._typeComparers[typeComparer.Key] = typeComparer.Value;
+        }
+
+        foreach (var pathComparer in _pathComparers)
+        {
+            clone._pathComparers[pathComparer.Key] = pathComparer.Value;
         }
 
         return clone;

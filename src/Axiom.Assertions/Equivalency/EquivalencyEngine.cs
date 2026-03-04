@@ -47,7 +47,8 @@ internal static class EquivalencyEngine
             return;
         }
 
-        if (ReferenceEquals(actual, expected))
+        // Preserve the fastest path when no per-path comparers are configured.
+        if (!options.HasPathComparers && ReferenceEquals(actual, expected))
         {
             return;
         }
@@ -70,6 +71,36 @@ internal static class EquivalencyEngine
             return;
         }
 
+        var hasPathComparers = options.HasPathComparers;
+        var isLeafComparison = IsLeafType(actualType) || IsLeafType(expectedType);
+        if (hasPathComparers &&
+            isLeafComparison &&
+            TryCompareWithTolerance(actual, expected, options, out var toleranceResult))
+        {
+            if (!toleranceResult)
+            {
+                differences.Add(new EquivalencyDifference(path, expected, actual, "Values differ."));
+            }
+
+            return;
+        }
+
+        if (hasPathComparers &&
+            TryCompareWithConfiguredPathComparer(actual, expected, path, rootPath, options, out var pathComparerResult))
+        {
+            if (!pathComparerResult)
+            {
+                differences.Add(new EquivalencyDifference(path, expected, actual, "Values differ."));
+            }
+
+            return;
+        }
+
+        if (ReferenceEquals(actual, expected))
+        {
+            return;
+        }
+
         if (actual is string actualString && expected is string expectedString)
         {
             if (!string.Equals(actualString, expectedString, options.StringComparison))
@@ -89,9 +120,13 @@ internal static class EquivalencyEngine
             return;
         }
 
-        if (IsLeafType(actualType) || IsLeafType(expectedType))
+        if (isLeafComparison)
         {
-            if (!LeafValuesEquivalent(actual, expected, actualType, expectedType, options))
+            var areEquivalent = hasPathComparers
+                ? LeafValuesEquivalentWithoutTolerance(actual, expected, actualType, expectedType, options)
+                : LeafValuesEquivalent(actual, expected, actualType, expectedType, options);
+
+            if (!areEquivalent)
             {
                 differences.Add(new EquivalencyDifference(path, expected, actual, "Values differ."));
             }
@@ -318,6 +353,21 @@ internal static class EquivalencyEngine
         return Equals(actual, expected);
     }
 
+    private static bool LeafValuesEquivalentWithoutTolerance(
+        object actual,
+        object expected,
+        Type actualType,
+        Type expectedType,
+        EquivalencyOptions options)
+    {
+        if (TryCompareWithConfiguredComparer(actual, expected, actualType, expectedType, options, out var comparerResult))
+        {
+            return comparerResult;
+        }
+
+        return Equals(actual, expected);
+    }
+
     private static bool TryCompareWithTolerance(
         object actual,
         object expected,
@@ -463,6 +513,30 @@ internal static class EquivalencyEngine
 
         areEquivalent = comparerResult.Value;
         return true;
+    }
+
+    private static bool TryCompareWithConfiguredPathComparer(
+        object actual,
+        object expected,
+        string path,
+        string rootPath,
+        EquivalencyOptions options,
+        out bool areEquivalent)
+    {
+        if (options.TryCompareWithPathComparer(path, actual, expected, out areEquivalent))
+        {
+            return true;
+        }
+
+        var relativePath = ToRelativePath(path, rootPath);
+        if (relativePath.Length > 0 &&
+            options.TryCompareWithPathComparer(relativePath, actual, expected, out areEquivalent))
+        {
+            return true;
+        }
+
+        areEquivalent = false;
+        return false;
     }
 
     private static Type? GetSharedComparisonType(Type actualType, Type expectedType)

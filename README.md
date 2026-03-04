@@ -270,6 +270,19 @@ actual.Should().NotBeEquivalentTo(8, options =>
     options.UseComparerForType<int>(new OddEvenMatchIntComparer()));
 ```
 
+For path-specific rules, use `UseComparerForPath(...)`:
+
+```csharp
+var actual = new { Name = "ABC", Age = 30 };
+var expected = new { Name = "abc", Age = 30 };
+
+actual.Should().BeEquivalentTo(expected, options =>
+{
+    options.StringComparison = StringComparison.Ordinal;
+    options.UseComparerForPath("actual.Name", StringComparer.OrdinalIgnoreCase);
+});
+```
+
 For strings in `BeEquivalentTo(...)`, `UseComparerForType<string>(...)` is not used; configure `EquivalencyOptions.StringComparison` instead.
 
 ```csharp
@@ -281,6 +294,7 @@ actual.Should().BeEquivalentTo("abc", options =>
 
 Precedence for leaf value equality in equivalency is:
 - tolerance option for that type (if configured),
+- per-path comparer (`UseComparerForPath(...)`),
 - per-call type comparer (`UseComparerForType<T>`),
 - global comparer provider (`AxiomServices.Configure(...)`),
 - default equality.
