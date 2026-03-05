@@ -14,6 +14,9 @@ public sealed class EquivalencyOptions
     private readonly HashSet<string> _ignoredPaths = new(StringComparer.Ordinal);
     private readonly HashSet<string> _onlyComparedMembers = new(StringComparer.Ordinal);
     private readonly Dictionary<string, IEqualityComparer> _pathComparers = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, IEqualityComparer> _collectionItemComparers = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, string> _actualToExpectedMemberNames = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, string> _expectedToActualMemberNames = new(StringComparer.Ordinal);
     private readonly Dictionary<Type, Func<object, object, bool>> _typeComparers = new();
 
     public EquivalencyCollectionOrder CollectionOrder { get; set; } = EquivalencyCollectionOrder.Strict;
@@ -40,6 +43,8 @@ public sealed class EquivalencyOptions
     public IReadOnlySet<string> IgnoredPaths => _ignoredPaths;
     internal IReadOnlySet<string> OnlyComparedMembers => _onlyComparedMembers;
     internal bool HasPathComparers => _pathComparers.Count > 0;
+    internal bool HasCollectionItemComparers => _collectionItemComparers.Count > 0;
+    internal bool HasMemberNameMappings => _actualToExpectedMemberNames.Count > 0;
 
     public EquivalencyOptions IgnoreMember(string memberName)
     {
@@ -104,6 +109,24 @@ public sealed class EquivalencyOptions
         return this;
     }
 
+    public EquivalencyOptions UseCollectionItemComparerForPath(string path, IEqualityComparer comparer)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(path);
+        ArgumentNullException.ThrowIfNull(comparer);
+
+        _collectionItemComparers[path.Trim()] = comparer;
+        return this;
+    }
+
+    public EquivalencyOptions MatchMemberName(string actualMember, string expectedMember)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(actualMember);
+        ArgumentException.ThrowIfNullOrWhiteSpace(expectedMember);
+
+        AddMemberNameMapping(actualMember.Trim(), expectedMember.Trim());
+        return this;
+    }
+
     public EquivalencyOptions IgnoreExpectedNullMembers()
     {
         IgnoreExpectedNullMemberValues = true;
@@ -128,6 +151,11 @@ public sealed class EquivalencyOptions
         return false;
     }
 
+    internal bool TryGetCollectionItemComparer(string path, out IEqualityComparer comparer)
+    {
+        return _collectionItemComparers.TryGetValue(path, out comparer!);
+    }
+
     internal bool TryCompareWithTypeComparer(Type comparisonType, object actual, object expected, out bool areEquivalent)
     {
         var key = NormaliseComparerType(comparisonType);
@@ -141,6 +169,16 @@ public sealed class EquivalencyOptions
         return false;
     }
 
+    internal bool TryGetMappedExpectedMemberName(string actualMember, out string expectedMember)
+    {
+        return _actualToExpectedMemberNames.TryGetValue(actualMember, out expectedMember!);
+    }
+
+    internal bool TryGetMappedActualMemberName(string expectedMember, out string actualMember)
+    {
+        return _expectedToActualMemberNames.TryGetValue(expectedMember, out actualMember!);
+    }
+
     private static Type NormaliseComparerType(Type type)
     {
         // Nullable<T> values are boxed as their underlying T when they have a value.
@@ -150,6 +188,23 @@ public sealed class EquivalencyOptions
     private void AddPathComparer(string path, IEqualityComparer comparer)
     {
         _pathComparers[path.Trim()] = comparer;
+    }
+
+    private void AddMemberNameMapping(string actualMember, string expectedMember)
+    {
+        // Keep mappings one-to-one so comparisons stay deterministic.
+        if (_actualToExpectedMemberNames.TryGetValue(actualMember, out var existingExpected))
+        {
+            _expectedToActualMemberNames.Remove(existingExpected);
+        }
+
+        if (_expectedToActualMemberNames.TryGetValue(expectedMember, out var existingActual))
+        {
+            _actualToExpectedMemberNames.Remove(existingActual);
+        }
+
+        _actualToExpectedMemberNames[actualMember] = expectedMember;
+        _expectedToActualMemberNames[expectedMember] = actualMember;
     }
 
     // Snapshot copy for deterministic comparison settings during one assertion run.
@@ -201,6 +256,21 @@ public sealed class EquivalencyOptions
         foreach (var pathComparer in _pathComparers)
         {
             clone._pathComparers[pathComparer.Key] = pathComparer.Value;
+        }
+
+        foreach (var collectionItemComparer in _collectionItemComparers)
+        {
+            clone._collectionItemComparers[collectionItemComparer.Key] = collectionItemComparer.Value;
+        }
+
+        foreach (var memberNameMapping in _actualToExpectedMemberNames)
+        {
+            clone._actualToExpectedMemberNames[memberNameMapping.Key] = memberNameMapping.Value;
+        }
+
+        foreach (var reverseMapping in _expectedToActualMemberNames)
+        {
+            clone._expectedToActualMemberNames[reverseMapping.Key] = reverseMapping.Value;
         }
 
         return clone;

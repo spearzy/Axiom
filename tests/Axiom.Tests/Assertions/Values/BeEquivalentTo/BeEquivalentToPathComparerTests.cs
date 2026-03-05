@@ -84,6 +84,20 @@ public sealed class BeEquivalentToPathComparerTests : IDisposable
     }
 
     [Fact]
+    public void GivenSameRootReference_WhenChildPathComparerReturnsFalse_ThenBeEquivalentToThrows()
+    {
+        var actual = new Person { Name = "ABC", Age = 30 };
+
+        var ex = Assert.Throws<InvalidOperationException>(() =>
+            actual.Should().BeEquivalentTo(
+                actual,
+                options => options.UseComparerForPath("actual.Name", new AlwaysFalseObjectComparer())));
+
+        Assert.Contains("actual.Name", ex.Message, StringComparison.Ordinal);
+        Assert.Contains("Values differ.", ex.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void GivenNullPathComparer_WhenConfiguringOptions_ThenThrowsArgumentNullException()
     {
         var actual = new Person { Name = "ABC", Age = 30 };

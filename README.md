@@ -310,6 +310,44 @@ actual.Should().BeEquivalentTo(expected, options =>
 });
 ```
 
+For collection item rules on a specific path, use `UseCollectionItemComparerForPath(...)`:
+
+```csharp
+var actual = new Order
+{
+    Items =
+    [
+        new LineItem("A-1", 1),
+        new LineItem("B-2", 2)
+    ]
+};
+
+var expected = new Order
+{
+    Items =
+    [
+        new LineItem("A-1", 100),
+        new LineItem("B-2", 200)
+    ]
+};
+
+actual.Should().BeEquivalentTo(expected, options =>
+    options.UseCollectionItemComparerForPath("actual.Items", new LineItemSkuComparer()));
+```
+
+For member name mapping between different object shapes, use `MatchMemberName(...)`:
+
+```csharp
+var actual = new { GivenName = "Ada", Age = 36 };
+var expected = new { FirstName = "Ada", Age = 36 };
+
+actual.Should().BeEquivalentTo(expected, options =>
+{
+    options.RequireStrictRuntimeTypes = false;
+    options.MatchMemberName("GivenName", "FirstName");
+});
+```
+
 For strings in `BeEquivalentTo(...)`, `UseComparerForType<string>(...)` is not used; configure `EquivalencyOptions.StringComparison` instead.
 
 ```csharp
@@ -326,6 +364,8 @@ Precedence for leaf value equality in `BeEquivalentTo(...)`/`NotBeEquivalentTo(.
 4. Per-call type comparer (`UseComparerForType<T>`, non-string leaves).
 5. Global comparer provider (`AxiomServices.Configure(...)`, non-string leaves).
 6. Default equality.
+
+For collection items, `UseCollectionItemComparerForPath(...)` takes precedence for the configured collection path.
 
 ### Exception Assertions
 
