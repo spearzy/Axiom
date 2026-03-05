@@ -4,16 +4,16 @@ Axiom is a .NET assertion library focused on fluent APIs, deterministic failure 
 
 ## Install
 
-Use an explicit version:
+Install:
 
 ```bash
-dotnet add package Axiom.Assertions --version 0.1.0-preview.1
+dotnet add package Axiom.Assertions
 ```
 
 If you only need core primitives directly:
 
 ```bash
-dotnet add package Axiom.Core --version 0.1.0-preview.1
+dotnet add package Axiom.Core
 ```
 
 ## Which Package?
