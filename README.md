@@ -465,7 +465,7 @@ dotnet add package Axiom.Core --version 0.1.0-preview.1
 Common namespaces when writing tests:
 
 ```csharp
-using Axiom.Assertions.EntryPoints; // Should()
+using Axiom.Assertions; // Should()
 using Axiom.Core; // Assert.Batch(...)
 ```
 

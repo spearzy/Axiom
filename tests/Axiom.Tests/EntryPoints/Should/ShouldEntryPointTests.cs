@@ -1,5 +1,5 @@
 
-using Axiom.Assertions.EntryPoints;
+using Axiom.Assertions;
 
 namespace Axiom.Tests.EntryPoints.Should;
 

@@ -26,7 +26,7 @@ dotnet add package Axiom.Core --version 0.1.0-preview.1
 ## Quick Start
 
 ```csharp
-using Axiom.Assertions.EntryPoints;
+using Axiom.Assertions;
 using Axiom.Core;
 
 "abc".Should().StartWith("a").And.EndWith("c");

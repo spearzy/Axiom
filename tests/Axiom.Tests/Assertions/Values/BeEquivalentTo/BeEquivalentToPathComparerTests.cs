@@ -1,5 +1,5 @@
 using System.Collections;
-using Axiom.Assertions.EntryPoints;
+using Axiom.Assertions;
 using Axiom.Assertions.Equivalency;
 
 namespace Axiom.Tests.Assertions.Values.BeEquivalentTo;

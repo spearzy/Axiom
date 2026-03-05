@@ -1,4 +1,4 @@
-using Axiom.Assertions.EntryPoints;
+using Axiom.Assertions;
 using Axiom.Assertions.Extensions;
 
 namespace Axiom.Tests.EntryPoints.Should;
