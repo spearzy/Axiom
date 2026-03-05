@@ -78,6 +78,8 @@ jobs:
     name: Publish to NuGet
     runs-on: ubuntu-latest
     needs: build-test-pack
+    environment:
+      name: nuget-publish
     permissions:
       contents: read
       id-token: write
@@ -89,7 +91,6 @@ jobs:
           name: nuget-packages
           path: artifacts/packages
 
-      # Requires a NuGet trusted publishing policy linked to this repository.
       - name: Authenticate to NuGet
         id: login
         uses: NuGet/login@v1

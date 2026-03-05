@@ -457,6 +457,13 @@ If you only need the core primitives:
 dotnet add package Axiom.Core --prerelease
 ```
 
+Common namespaces when writing tests:
+
+```csharp
+using Axiom.Assertions.EntryPoints; // Should()
+using Axiom.Core; // Assert.Batch(...)
+```
+
 ## Security
 
 Security reports should be submitted privately first via GitHub vulnerability reporting.
