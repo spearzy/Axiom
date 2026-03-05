@@ -15,7 +15,6 @@ This document captures the design direction for Axiom.
 - `Axiom.Assertions`: built-in assertion sets and chaining APIs.
 - `Axiom.Analyzers` (planned): Roslyn analysers/code fixes.
 - `Axiom.Vectors` (planned): vector-type adapters.
-- `Axiom.Benchmarks`: BenchmarkDotNet performance suite.
 
 ## Open Questions
 

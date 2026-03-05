@@ -1,6 +1,5 @@
 using Axiom.Core;
 using Axiom.Core.Failures;
-using Axiom.Core.Output;
 
 namespace Axiom.Assertions.AssertionTypes;
 
@@ -16,7 +15,6 @@ internal static class TemporalAssertionEngine
     {
         if (subject < expected)
         {
-            AssertionOutputWriter.ReportPass("BeBefore", SubjectLabel(subjectExpression), callerFilePath, callerLineNumber);
             return;
         }
 
@@ -38,7 +36,6 @@ internal static class TemporalAssertionEngine
     {
         if (subject > expected)
         {
-            AssertionOutputWriter.ReportPass("BeAfter", SubjectLabel(subjectExpression), callerFilePath, callerLineNumber);
             return;
         }
 
@@ -62,7 +59,6 @@ internal static class TemporalAssertionEngine
         var normalisedTolerance = NormaliseTolerance(tolerance);
         if ((subject - expected).Duration() <= normalisedTolerance)
         {
-            AssertionOutputWriter.ReportPass("BeWithin", SubjectLabel(subjectExpression), callerFilePath, callerLineNumber);
             return;
         }
 
@@ -84,7 +80,6 @@ internal static class TemporalAssertionEngine
     {
         if (subject < expected)
         {
-            AssertionOutputWriter.ReportPass("BeBefore", SubjectLabel(subjectExpression), callerFilePath, callerLineNumber);
             return;
         }
 
@@ -106,7 +101,6 @@ internal static class TemporalAssertionEngine
     {
         if (subject > expected)
         {
-            AssertionOutputWriter.ReportPass("BeAfter", SubjectLabel(subjectExpression), callerFilePath, callerLineNumber);
             return;
         }
 
@@ -130,7 +124,6 @@ internal static class TemporalAssertionEngine
         var normalisedTolerance = NormaliseTolerance(tolerance);
         if ((subject - expected).Duration() <= normalisedTolerance)
         {
-            AssertionOutputWriter.ReportPass("BeWithin", SubjectLabel(subjectExpression), callerFilePath, callerLineNumber);
             return;
         }
 
@@ -152,7 +145,6 @@ internal static class TemporalAssertionEngine
     {
         if (subject < expected)
         {
-            AssertionOutputWriter.ReportPass("BeBefore", SubjectLabel(subjectExpression), callerFilePath, callerLineNumber);
             return;
         }
 
@@ -174,7 +166,6 @@ internal static class TemporalAssertionEngine
     {
         if (subject > expected)
         {
-            AssertionOutputWriter.ReportPass("BeAfter", SubjectLabel(subjectExpression), callerFilePath, callerLineNumber);
             return;
         }
 
@@ -199,7 +190,6 @@ internal static class TemporalAssertionEngine
         var difference = TimeSpan.FromDays(Math.Abs(subject.DayNumber - expected.DayNumber));
         if (difference <= normalisedTolerance)
         {
-            AssertionOutputWriter.ReportPass("BeWithin", SubjectLabel(subjectExpression), callerFilePath, callerLineNumber);
             return;
         }
 
@@ -221,7 +211,6 @@ internal static class TemporalAssertionEngine
     {
         if (subject < expected)
         {
-            AssertionOutputWriter.ReportPass("BeBefore", SubjectLabel(subjectExpression), callerFilePath, callerLineNumber);
             return;
         }
 
@@ -243,7 +232,6 @@ internal static class TemporalAssertionEngine
     {
         if (subject > expected)
         {
-            AssertionOutputWriter.ReportPass("BeAfter", SubjectLabel(subjectExpression), callerFilePath, callerLineNumber);
             return;
         }
 
@@ -267,7 +255,6 @@ internal static class TemporalAssertionEngine
         var normalisedTolerance = NormaliseTolerance(tolerance);
         if (AbsoluteTimeOnlyDifference(subject, expected) <= normalisedTolerance)
         {
-            AssertionOutputWriter.ReportPass("BeWithin", SubjectLabel(subjectExpression), callerFilePath, callerLineNumber);
             return;
         }
 
@@ -303,7 +290,6 @@ internal static class TemporalAssertionEngine
 
     private static void Fail(string message, string? callerFilePath, int callerLineNumber)
     {
-        AssertionOutputWriter.ReportFailure(message, callerFilePath, callerLineNumber);
 
         var batch = Batch.Current;
         if (batch is not null)

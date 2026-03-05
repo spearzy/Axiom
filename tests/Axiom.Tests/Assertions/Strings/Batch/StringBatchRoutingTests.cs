@@ -113,6 +113,46 @@ public sealed class StringBatchRoutingTests
     }
 
     [Fact]
+    public void BeNullOrEmpty_OutsideBatch_ThrowsImmediately()
+    {
+        const string value = "test";
+
+        Assert.Throws<InvalidOperationException>(() => value.Should().BeNullOrEmpty());
+    }
+
+    [Fact]
+    public void BeNullOrEmpty_InsideBatch_DoesNotThrowAtAssertionCallSite()
+    {
+        const string value = "test";
+
+        using var batch = new Axiom.Core.Batch();
+        var callEx = Record.Exception(() => value.Should().BeNullOrEmpty());
+
+        Assert.Null(callEx);
+        Assert.Throws<InvalidOperationException>(() => batch.Dispose());
+    }
+
+    [Fact]
+    public void NotBeNullOrEmpty_OutsideBatch_ThrowsImmediately()
+    {
+        const string value = "";
+
+        Assert.Throws<InvalidOperationException>(() => value.Should().NotBeNullOrEmpty());
+    }
+
+    [Fact]
+    public void NotBeNullOrEmpty_InsideBatch_DoesNotThrowAtAssertionCallSite()
+    {
+        const string value = "";
+
+        using var batch = new Axiom.Core.Batch();
+        var callEx = Record.Exception(() => value.Should().NotBeNullOrEmpty());
+
+        Assert.Null(callEx);
+        Assert.Throws<InvalidOperationException>(() => batch.Dispose());
+    }
+
+    [Fact]
     public void BeNullOrWhiteSpace_OutsideBatch_ThrowsImmediately()
     {
         const string value = "test";
@@ -233,6 +273,26 @@ public sealed class StringBatchRoutingTests
     }
 
     [Fact]
+    public void BeEquivalentTo_OutsideBatch_ThrowsImmediately()
+    {
+        const string value = "ABC";
+
+        Assert.Throws<InvalidOperationException>(() => value.Should().BeEquivalentTo("abc", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void BeEquivalentTo_InsideBatch_DoesNotThrowAtAssertionCallSite()
+    {
+        const string value = "ABC";
+
+        using var batch = new Axiom.Core.Batch();
+        var callEx = Record.Exception(() => value.Should().BeEquivalentTo("abc", StringComparison.Ordinal));
+
+        Assert.Null(callEx);
+        Assert.Throws<InvalidOperationException>(() => batch.Dispose());
+    }
+
+    [Fact]
     public void Batch_Dispose_ThrowsCombinedFailures_FromStringAssertions()
     {
         const string valueA = "test";
@@ -258,6 +318,28 @@ public sealed class StringBatchRoutingTests
         Assert.Contains("3) Expected valueC to have length 3, but found 4.", message);
         Assert.Contains("4) Expected valueD to be empty, but found \"test\".", message);
         Assert.Contains("5) Expected valueE to not be empty, but found \"\".", message);
+    }
+
+    [Fact]
+    public void Batch_Dispose_ThrowsCombinedFailures_FromNullOrEmptyAndEquivalentAssertions()
+    {
+        const string valueA = "test";
+        const string valueB = "";
+        const string valueC = "ABC";
+
+        var ex = Assert.Throws<InvalidOperationException>(() =>
+        {
+            using var batch = new Axiom.Core.Batch("string-empty-equivalent");
+            valueA.Should().BeNullOrEmpty();
+            valueB.Should().NotBeNullOrEmpty();
+            valueC.Should().BeEquivalentTo("abc", StringComparison.Ordinal);
+        });
+
+        var message = ex.Message.Replace("\r\n", "\n", StringComparison.Ordinal);
+        Assert.Contains("Batch 'string-empty-equivalent' failed with 3 assertion failure(s):", message);
+        Assert.Contains("1) Expected valueA to be null or empty, but found \"test\".", message);
+        Assert.Contains("2) Expected valueB to not be null or empty, but found \"\".", message);
+        Assert.Contains("3) Expected valueC to be equivalent to \"abc\", but found \"ABC\".", message);
     }
 
     [Fact]

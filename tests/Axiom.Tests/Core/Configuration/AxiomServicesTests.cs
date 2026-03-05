@@ -32,24 +32,6 @@ public sealed class AxiomServicesTests : IDisposable
     }
 
     [Fact]
-    public void Configure_ClonesOutputOptions_InsteadOfReusingReference()
-    {
-        AxiomServices.Configure(c =>
-        {
-            c.Output.Enabled = true;
-            c.Output.ShowPasses = true;
-        });
-
-        var before = AxiomServices.Configuration.Output;
-        AxiomServices.Configure(c => c.ValueFormatter = new ConstantFormatter("fmt"));
-
-        var after = AxiomServices.Configuration.Output;
-        Assert.NotSame(before, after);
-        Assert.True(after.Enabled);
-        Assert.True(after.ShowPasses);
-    }
-
-    [Fact]
     public void Configure_PreservesRegexTimeout_WhenUpdatingOtherSettings()
     {
         var timeout = TimeSpan.FromSeconds(2);

@@ -1,5 +1,4 @@
 using Axiom.Core.Failures;
-using Axiom.Core.Output;
 
 namespace Axiom.Core;
 
@@ -43,7 +42,6 @@ public sealed class Batch : IDisposable
 
         if (_failures is null || _failures.Count == 0)
         {
-            AssertionOutputWriter.ReportPass("Batch", Name is { Length: > 0 } ? Name : "<batch>", null, 0);
             return;
         }
 
@@ -56,7 +54,6 @@ public sealed class Batch : IDisposable
         }
 
         var report = BatchReportRenderer.Render(Name, _failures);
-        AssertionOutputWriter.ReportFailure(report, null, 0);
         throw new InvalidOperationException(report);
     }
 

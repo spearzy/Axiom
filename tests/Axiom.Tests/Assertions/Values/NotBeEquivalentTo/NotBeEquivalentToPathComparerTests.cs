@@ -52,6 +52,19 @@ public sealed class NotBeEquivalentToPathComparerTests
     }
 
     [Fact]
+    public void GivenSameRootReference_WhenChildPathComparerReturnsFalse_ThenNotBeEquivalentToDoesNotThrow()
+    {
+        var actual = new Person { Name = "ABC", Age = 30 };
+
+        var ex = Record.Exception(() =>
+            actual.Should().NotBeEquivalentTo(
+                actual,
+                options => options.UseComparerForPath("actual.Name", new AlwaysFalseObjectComparer())));
+
+        Assert.Null(ex);
+    }
+
+    [Fact]
     public void GivenToleranceAndPathComparerOnSameLeaf_WhenValueIsWithinTolerance_ThenToleranceWinsForNotBeEquivalentTo()
     {
         var actual = new ScoreHolder { Score = 10.0 };

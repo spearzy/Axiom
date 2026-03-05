@@ -4,7 +4,6 @@ using Axiom.Assertions.Chaining;
 using Axiom.Core;
 using Axiom.Core.Configuration;
 using Axiom.Core.Failures;
-using Axiom.Core.Output;
 
 namespace Axiom.Assertions.AssertionTypes;
 
@@ -27,8 +26,6 @@ public sealed class StringAssertions(string? subject, string? subjectExpression)
                 because);
             Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
         }
-
-        AssertionOutputWriter.ReportPass(nameof(NotBeNull), SubjectLabel(), callerFilePath, callerLineNumber);
         return new AndContinuation<StringAssertions>(this);
     }
 
@@ -59,8 +56,6 @@ public sealed class StringAssertions(string? subject, string? subjectExpression)
                 because);
             Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
         }
-
-        AssertionOutputWriter.ReportPass(nameof(StartWith), SubjectLabel(), callerFilePath, callerLineNumber);
         return new AndContinuation<StringAssertions>(this);
     }
 
@@ -91,8 +86,6 @@ public sealed class StringAssertions(string? subject, string? subjectExpression)
                 because);
             Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
         }
-
-        AssertionOutputWriter.ReportPass(nameof(EndWith), SubjectLabel(), callerFilePath, callerLineNumber);
         return new AndContinuation<StringAssertions>(this);
     }
 
@@ -123,8 +116,6 @@ public sealed class StringAssertions(string? subject, string? subjectExpression)
                 because);
             Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
         }
-
-        AssertionOutputWriter.ReportPass(nameof(Contain), SubjectLabel(), callerFilePath, callerLineNumber);
         return new AndContinuation<StringAssertions>(this);
     }
 
@@ -155,8 +146,6 @@ public sealed class StringAssertions(string? subject, string? subjectExpression)
                 because);
             Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
         }
-
-        AssertionOutputWriter.ReportPass(nameof(NotContain), SubjectLabel(), callerFilePath, callerLineNumber);
         return new AndContinuation<StringAssertions>(this);
     }
 
@@ -182,8 +171,6 @@ public sealed class StringAssertions(string? subject, string? subjectExpression)
                 because);
             Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
         }
-
-        AssertionOutputWriter.ReportPass(nameof(HaveLength), SubjectLabel(), callerFilePath, callerLineNumber);
         return new AndContinuation<StringAssertions>(this);
     }
 
@@ -202,8 +189,6 @@ public sealed class StringAssertions(string? subject, string? subjectExpression)
                 because);
             Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
         }
-
-        AssertionOutputWriter.ReportPass(nameof(BeEmpty), SubjectLabel(), callerFilePath, callerLineNumber);
         return new AndContinuation<StringAssertions>(this);
     }
 
@@ -222,8 +207,62 @@ public sealed class StringAssertions(string? subject, string? subjectExpression)
                 because);
             Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
         }
+        return new AndContinuation<StringAssertions>(this);
+    }
 
-        AssertionOutputWriter.ReportPass(nameof(NotBeEmpty), SubjectLabel(), callerFilePath, callerLineNumber);
+    public AndContinuation<StringAssertions> BeNullOrEmpty(
+        string? because = null,
+        [CallerFilePath] string? callerFilePath = null,
+        [CallerLineNumber] int callerLineNumber = 0)
+    {
+        var subject = Subject;
+        if (!string.IsNullOrEmpty(subject))
+        {
+            var failure = new Failure(
+                SubjectLabel(),
+                new Expectation("to be null or empty", IncludeExpectedValue: false),
+                subject,
+                because);
+            Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
+        }
+        return new AndContinuation<StringAssertions>(this);
+    }
+
+    public AndContinuation<StringAssertions> NotBeNullOrEmpty(
+        string? because = null,
+        [CallerFilePath] string? callerFilePath = null,
+        [CallerLineNumber] int callerLineNumber = 0)
+    {
+        var subject = Subject;
+        if (string.IsNullOrEmpty(subject))
+        {
+            var failure = new Failure(
+                SubjectLabel(),
+                new Expectation("to not be null or empty", IncludeExpectedValue: false),
+                subject,
+                because);
+            Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
+        }
+        return new AndContinuation<StringAssertions>(this);
+    }
+
+    public AndContinuation<StringAssertions> BeEquivalentTo(
+        string expected,
+        StringComparison comparison,
+        string? because = null,
+        [CallerFilePath] string? callerFilePath = null,
+        [CallerLineNumber] int callerLineNumber = 0)
+    {
+        var subject = Subject;
+        if (!string.Equals(subject, expected, comparison))
+        {
+            var failure = new Failure(
+                SubjectLabel(),
+                new Expectation("to be equivalent to", expected),
+                subject,
+                because);
+            Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
+        }
         return new AndContinuation<StringAssertions>(this);
     }
 
@@ -243,8 +282,6 @@ public sealed class StringAssertions(string? subject, string? subjectExpression)
                 because);
             Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
         }
-
-        AssertionOutputWriter.ReportPass(nameof(BeNullOrWhiteSpace), SubjectLabel(), callerFilePath, callerLineNumber);
         return new AndContinuation<StringAssertions>(this);
     }
 
@@ -263,8 +300,6 @@ public sealed class StringAssertions(string? subject, string? subjectExpression)
                 because);
             Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
         }
-
-        AssertionOutputWriter.ReportPass(nameof(NotBeNullOrWhiteSpace), SubjectLabel(), callerFilePath, callerLineNumber);
         return new AndContinuation<StringAssertions>(this);
     }
 
@@ -329,8 +364,6 @@ public sealed class StringAssertions(string? subject, string? subjectExpression)
                 because);
             Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
         }
-
-        AssertionOutputWriter.ReportPass(nameof(Match), SubjectLabel(), callerFilePath, callerLineNumber);
         return new AndContinuation<StringAssertions>(this);
     }
 
@@ -395,8 +428,6 @@ public sealed class StringAssertions(string? subject, string? subjectExpression)
                 because);
             Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
         }
-
-        AssertionOutputWriter.ReportPass(nameof(NotMatch), SubjectLabel(), callerFilePath, callerLineNumber);
         return new AndContinuation<StringAssertions>(this);
     }
 
@@ -407,7 +438,6 @@ public sealed class StringAssertions(string? subject, string? subjectExpression)
 
     private void Fail(string message, string? callerFilePath, int callerLineNumber)
     {
-        AssertionOutputWriter.ReportFailure(message, callerFilePath, callerLineNumber);
 
         var batch = Batch.Current;
         if (batch is not null)

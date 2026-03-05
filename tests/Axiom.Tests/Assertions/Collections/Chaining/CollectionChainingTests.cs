@@ -65,6 +65,50 @@ public sealed class CollectionChainingTests
     }
 
     [Fact]
+    public void ContainAllChain_CanBeComposed()
+    {
+        int[] values = [1, 2, 3];
+
+        values.Should()
+            .ContainAll(1, 3).And
+            .NotContain(9).And
+            .HaveCount(3);
+    }
+
+    [Fact]
+    public void ContainAnyChain_CanBeComposed()
+    {
+        int[] values = [1, 2, 3];
+
+        values.Should()
+            .ContainAny(8, 2).And
+            .ContainAll(1, 2).And
+            .HaveCount(3);
+    }
+
+    [Fact]
+    public void NotContainAnyChain_CanBeComposed()
+    {
+        int[] values = [1, 2, 3];
+
+        values.Should()
+            .NotContainAny(8, 9).And
+            .ContainAny(3, 10).And
+            .HaveCount(3);
+    }
+
+    [Fact]
+    public void UniqueItemsChain_CanBeComposed()
+    {
+        int[] values = [1, 2, 3];
+
+        values.Should()
+            .HaveUniqueItems().And
+            .ContainAll(1, 3).And
+            .NotContainAny(8, 9);
+    }
+
+    [Fact]
     public void SubsetChain_CanBeComposed()
     {
         int[] values = [1, 2];

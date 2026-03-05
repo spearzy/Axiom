@@ -93,6 +93,28 @@ public sealed class StringChainingTests
     }
 
     [Fact]
+    public void BeNullOrEmpty_ReturnsContinuation_AndPointsBackToSameAssertions()
+    {
+        var value = string.Empty;
+
+        var baseAssertions = value.Should();
+        var continuation = baseAssertions.BeNullOrEmpty();
+
+        Assert.Same(baseAssertions, continuation.And);
+    }
+
+    [Fact]
+    public void NotBeNullOrEmpty_ReturnsContinuation_AndPointsBackToSameAssertions()
+    {
+        var value = "test";
+
+        var baseAssertions = value.Should();
+        var continuation = baseAssertions.NotBeNullOrEmpty();
+
+        Assert.Same(baseAssertions, continuation.And);
+    }
+
+    [Fact]
     public void BeNullOrWhiteSpace_ReturnsContinuation_AndPointsBackToSameAssertions()
     {
         var value = " ";
@@ -137,6 +159,17 @@ public sealed class StringChainingTests
     }
 
     [Fact]
+    public void BeEquivalentTo_ReturnsContinuation_AndPointsBackToSameAssertions()
+    {
+        var value = "ABC";
+
+        var baseAssertions = value.Should();
+        var continuation = baseAssertions.BeEquivalentTo("abc", StringComparison.OrdinalIgnoreCase);
+
+        Assert.Same(baseAssertions, continuation.And);
+    }
+
+    [Fact]
     public void FullChain_CanBeComposed()
     {
         var value = "test";
@@ -152,10 +185,12 @@ public sealed class StringChainingTests
         value.Should()
             .NotBeNull().And
             .NotBeNullOrWhiteSpace().And
+            .NotBeNullOrEmpty().And
             .StartWith("AB").And
             .Contain("-").And
             .HaveLength(6).And
             .NotContain(" ").And
+            .BeEquivalentTo("ab-123", StringComparison.OrdinalIgnoreCase).And
             .Match(@"^[A-Z]{2}-\d{3}$").And
             .NotMatch(@"^\d+$").And
             .EndWith("123").And

@@ -8,7 +8,7 @@
     <ContinuousIntegrationBuild Condition="'$(CI)' == 'true'">true</ContinuousIntegrationBuild>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(MSBuildProjectName)' != 'Axiom.Tests' and '$(MSBuildProjectName)' != 'Axiom.Benchmarks'">
+  <PropertyGroup Condition="'$(MSBuildProjectName)' != 'Axiom.Tests'">
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
 
@@ -18,7 +18,8 @@
     <PackageProjectUrl>https://github.com/spearzy/Axiom</PackageProjectUrl>
     <RepositoryUrl>https://github.com/spearzy/Axiom</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageReadmeFile>NUGET_README.md</PackageReadmeFile>
+    <PackageIcon>assets/images/axiom-icon-dark.png</PackageIcon>
     <PackageTags>assertions;testing;dotnet;unit-testing</PackageTags>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <IncludeSymbols>true</IncludeSymbols>
@@ -28,7 +29,10 @@
   </PropertyGroup>
 
   <ItemGroup Condition="'$(MSBuildProjectName)' == 'Axiom.Core' or '$(MSBuildProjectName)' == 'Axiom.Assertions'">
-    <None Include="$(MSBuildThisFileDirectory)README.md" Pack="true" PackagePath="\" />
+    <None Include="$(MSBuildThisFileDirectory)NUGET_README.md" Pack="true" PackagePath="\" />
+    <None Include="$(MSBuildThisFileDirectory)assets/images/axiom-logo.png" Pack="true" PackagePath="assets/images/" />
+    <None Include="$(MSBuildThisFileDirectory)assets/images/axiom-icon-dark.png" Pack="true" PackagePath="assets/images/" />
+    <None Include="$(MSBuildThisFileDirectory)assets/images/axiom-icon-light.png" Pack="true" PackagePath="assets/images/" />
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="8.0.0" PrivateAssets="All" />
   </ItemGroup>
 </Project>

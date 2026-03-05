@@ -47,8 +47,10 @@ internal static class EquivalencyEngine
             return;
         }
 
+        var hasConfiguredPathOrCollectionComparers = options.HasPathComparers || options.HasCollectionItemComparers;
+
         // Preserve the fastest path when no per-path comparers are configured.
-        if (!options.HasPathComparers && ReferenceEquals(actual, expected))
+        if (!hasConfiguredPathOrCollectionComparers && ReferenceEquals(actual, expected))
         {
             return;
         }
@@ -96,7 +98,7 @@ internal static class EquivalencyEngine
             return;
         }
 
-        if (ReferenceEquals(actual, expected))
+        if (ReferenceEquals(actual, expected) && !hasConfiguredPathOrCollectionComparers)
         {
             return;
         }
@@ -160,56 +162,96 @@ internal static class EquivalencyEngine
     {
         var actualMembers = GetComparableMembers(actualType, options);
         var expectedMembers = GetComparableMembers(expectedType, options);
+        var usedExpectedMembers = new HashSet<string>(StringComparer.Ordinal);
 
-        var memberNames = actualMembers.Keys
-            .Concat(expectedMembers.Keys)
-            .Distinct(StringComparer.Ordinal)
-            // Stable ordering keeps failure output deterministic across runtimes.
-            .OrderBy(static name => name, StringComparer.Ordinal);
-
-        foreach (var memberName in memberNames)
+        // Compare by actual members first so the rendered paths stay anchored to the actual object shape.
+        foreach (var actualMemberName in actualMembers.Keys.OrderBy(static name => name, StringComparer.Ordinal))
         {
-            if (options.IgnoredMemberNames.Contains(memberName))
+            var expectedMemberName = ResolveExpectedMemberName(actualMemberName, options);
+            if (options.IgnoredMemberNames.Contains(actualMemberName) ||
+                options.IgnoredMemberNames.Contains(expectedMemberName))
             {
                 continue;
             }
 
-            var memberPath = $"{path}.{memberName}";
+            var memberPath = $"{path}.{actualMemberName}";
             if (IsPathIgnored(memberPath, options))
             {
                 continue;
             }
 
-            var hasActual = actualMembers.TryGetValue(memberName, out var actualGetter);
-            var hasExpected = expectedMembers.TryGetValue(memberName, out var expectedGetter);
-
-            if (!hasActual && hasExpected)
+            var actualGetter = actualMembers[actualMemberName];
+            var hasExpected = expectedMembers.TryGetValue(expectedMemberName, out var expectedGetter);
+            if (hasExpected && !usedExpectedMembers.Add(expectedMemberName))
             {
-                if (!options.FailOnMissingMembers)
-                {
-                    continue;
-                }
-
-                var expectedValue = expectedGetter!(expected);
-                differences.Add(new EquivalencyDifference(memberPath, expectedValue, null, "Member missing on actual type."));
-                continue;
+                hasExpected = false;
             }
 
-            if (hasActual && !hasExpected)
+            if (!hasExpected)
             {
                 if (!options.FailOnExtraMembers)
                 {
                     continue;
                 }
 
-                var actualValue = actualGetter!(actual);
+                var actualValue = actualGetter(actual);
+                if (options.IgnoreActualNullMemberValues && actualValue is null)
+                {
+                    continue;
+                }
+
                 differences.Add(new EquivalencyDifference(memberPath, null, actualValue, "Member missing on expected type."));
                 continue;
             }
 
-            var actualValueAtMember = actualGetter!(actual);
+            var actualValueAtMember = actualGetter(actual);
             var expectedValueAtMember = expectedGetter!(expected);
+            if (options.IgnoreActualNullMemberValues && actualValueAtMember is null)
+            {
+                continue;
+            }
+
+            if (options.IgnoreExpectedNullMemberValues && expectedValueAtMember is null)
+            {
+                continue;
+            }
+
             CompareNode(actualValueAtMember, expectedValueAtMember, memberPath, rootPath, options, differences, visitedPairs);
+        }
+
+        // Then account for expected members that were never matched to an actual member.
+        foreach (var expectedMemberName in expectedMembers.Keys.OrderBy(static name => name, StringComparer.Ordinal))
+        {
+            if (usedExpectedMembers.Contains(expectedMemberName))
+            {
+                continue;
+            }
+
+            var actualMemberName = ResolveActualMemberName(expectedMemberName, options);
+            if (options.IgnoredMemberNames.Contains(expectedMemberName) ||
+                options.IgnoredMemberNames.Contains(actualMemberName))
+            {
+                continue;
+            }
+
+            var memberPath = $"{path}.{actualMemberName}";
+            if (IsPathIgnored(memberPath, options))
+            {
+                continue;
+            }
+
+            if (!options.FailOnMissingMembers)
+            {
+                continue;
+            }
+
+            var expectedValue = expectedMembers[expectedMemberName](expected);
+            if (options.IgnoreExpectedNullMemberValues && expectedValue is null)
+            {
+                continue;
+            }
+
+            differences.Add(new EquivalencyDifference(memberPath, expectedValue, null, "Member missing on actual type."));
         }
     }
 
@@ -224,17 +266,39 @@ internal static class EquivalencyEngine
     {
         var actualItems = actualEnumerable.Cast<object?>().ToList();
         var expectedItems = expectedEnumerable.Cast<object?>().ToList();
+        IEqualityComparer? collectionItemComparer = null;
+        var hasCollectionItemComparer =
+            options.HasCollectionItemComparers &&
+            TryGetConfiguredCollectionItemComparer(path, rootPath, options, out collectionItemComparer);
 
         if (options.CollectionOrder == EquivalencyCollectionOrder.Any)
         {
-            CompareEnumerableAnyOrder(actualItems, expectedItems, path, rootPath, options, differences);
+            CompareEnumerableAnyOrder(
+                actualItems,
+                expectedItems,
+                path,
+                rootPath,
+                options,
+                differences,
+                hasCollectionItemComparer ? collectionItemComparer : null);
             return;
         }
 
         var sharedCount = Math.Min(actualItems.Count, expectedItems.Count);
         for (var index = 0; index < sharedCount; index++)
         {
-            CompareNode(actualItems[index], expectedItems[index], $"{path}[{index}]", rootPath, options, differences, visitedPairs);
+            var itemPath = $"{path}[{index}]";
+            if (hasCollectionItemComparer)
+            {
+                if (!collectionItemComparer!.Equals(actualItems[index], expectedItems[index]))
+                {
+                    differences.Add(new EquivalencyDifference(itemPath, expectedItems[index], actualItems[index], "Values differ."));
+                }
+
+                continue;
+            }
+
+            CompareNode(actualItems[index], expectedItems[index], itemPath, rootPath, options, differences, visitedPairs);
         }
 
         for (var index = sharedCount; index < expectedItems.Count; index++)
@@ -262,7 +326,8 @@ internal static class EquivalencyEngine
         string path,
         string rootPath,
         EquivalencyOptions options,
-        List<EquivalencyDifference> differences)
+        List<EquivalencyDifference> differences,
+        IEqualityComparer? collectionItemComparer)
     {
         // Simple one-pass matching: each actual element can satisfy at most one expected element.
         var usedActualIndexes = new bool[actualItems.Count];
@@ -278,13 +343,16 @@ internal static class EquivalencyEngine
                     continue;
                 }
 
-                // In Any-order mode we still require deep equivalency for each candidate pair.
-                if (!ItemsEquivalentDeep(
+                var isEquivalent = collectionItemComparer is not null
+                    ? collectionItemComparer.Equals(actualItems[actualIndex], expectedItem)
+                    // In Any-order mode we still require deep equivalency for each candidate pair.
+                    : ItemsEquivalentDeep(
                         actualItems[actualIndex],
                         expectedItem,
                         $"{path}[{expectedIndex}]",
                         rootPath,
-                        options))
+                        options);
+                if (!isEquivalent)
                 {
                     continue;
                 }
@@ -539,6 +607,42 @@ internal static class EquivalencyEngine
         return false;
     }
 
+    private static bool TryGetConfiguredCollectionItemComparer(
+        string path,
+        string rootPath,
+        EquivalencyOptions options,
+        out IEqualityComparer comparer)
+    {
+        if (options.TryGetCollectionItemComparer(path, out comparer))
+        {
+            return true;
+        }
+
+        var relativePath = ToRelativePath(path, rootPath);
+        if (relativePath.Length > 0 &&
+            options.TryGetCollectionItemComparer(relativePath, out comparer))
+        {
+            return true;
+        }
+
+        comparer = null!;
+        return false;
+    }
+
+    private static string ResolveExpectedMemberName(string actualMemberName, EquivalencyOptions options)
+    {
+        return options.TryGetMappedExpectedMemberName(actualMemberName, out var expectedMemberName)
+            ? expectedMemberName
+            : actualMemberName;
+    }
+
+    private static string ResolveActualMemberName(string expectedMemberName, EquivalencyOptions options)
+    {
+        return options.TryGetMappedActualMemberName(expectedMemberName, out var actualMemberName)
+            ? actualMemberName
+            : expectedMemberName;
+    }
+
     private static Type? GetSharedComparisonType(Type actualType, Type expectedType)
     {
         if (actualType == expectedType)
@@ -710,7 +814,41 @@ internal static class EquivalencyEngine
             return actualType == expectedType;
         }
 
-        return actualType.IsAssignableFrom(expectedType) || expectedType.IsAssignableFrom(actualType);
+        if (actualType.IsAssignableFrom(expectedType) || expectedType.IsAssignableFrom(actualType))
+        {
+            return true;
+        }
+
+        return HasApplicableMemberNameMappingForTypes(actualType, expectedType, options);
+    }
+
+    private static bool HasApplicableMemberNameMappingForTypes(
+        Type actualType,
+        Type expectedType,
+        EquivalencyOptions options)
+    {
+        if (!options.HasMemberNameMappings)
+        {
+            return false;
+        }
+
+        var actualMembers = GetComparableMembers(actualType, options);
+        var expectedMembers = GetComparableMembers(expectedType, options);
+
+        foreach (var actualMemberName in actualMembers.Keys)
+        {
+            if (!options.TryGetMappedExpectedMemberName(actualMemberName, out var expectedMemberName))
+            {
+                continue;
+            }
+
+            if (expectedMembers.ContainsKey(expectedMemberName))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private static bool IsLeafType(Type type)

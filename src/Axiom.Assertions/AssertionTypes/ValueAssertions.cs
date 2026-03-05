@@ -4,7 +4,6 @@ using Axiom.Assertions.Equivalency;
 using Axiom.Core;
 using Axiom.Core.Configuration;
 using Axiom.Core.Failures;
-using Axiom.Core.Output;
 
 namespace Axiom.Assertions.AssertionTypes;
 
@@ -29,8 +28,6 @@ public sealed class ValueAssertions<T>(T subject, string? subjectExpression)
                 because);
             Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
         }
-
-        AssertionOutputWriter.ReportPass(nameof(Be), SubjectLabel(), callerFilePath, callerLineNumber);
         return new AndContinuation<ValueAssertions<T>>(this);
     }
 
@@ -50,8 +47,6 @@ public sealed class ValueAssertions<T>(T subject, string? subjectExpression)
                 because);
             Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
         }
-
-        AssertionOutputWriter.ReportPass(nameof(NotBe), SubjectLabel(), callerFilePath, callerLineNumber);
         return new AndContinuation<ValueAssertions<T>>(this);
     }
 
@@ -70,8 +65,6 @@ public sealed class ValueAssertions<T>(T subject, string? subjectExpression)
                 because);
             Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
         }
-
-        AssertionOutputWriter.ReportPass(nameof(BeSameAs), SubjectLabel(), callerFilePath, callerLineNumber);
         return new AndContinuation<ValueAssertions<T>>(this);
     }
 
@@ -90,8 +83,6 @@ public sealed class ValueAssertions<T>(T subject, string? subjectExpression)
                 because);
             Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
         }
-
-        AssertionOutputWriter.ReportPass(nameof(NotBeSameAs), SubjectLabel(), callerFilePath, callerLineNumber);
         return new AndContinuation<ValueAssertions<T>>(this);
     }
 
@@ -155,8 +146,6 @@ public sealed class ValueAssertions<T>(T subject, string? subjectExpression)
 
             Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
         }
-
-        AssertionOutputWriter.ReportPass(nameof(BeNull), SubjectLabel(), callerFilePath, callerLineNumber);
         return new AndContinuation<ValueAssertions<T>>(this);
     }
 
@@ -172,8 +161,6 @@ public sealed class ValueAssertions<T>(T subject, string? subjectExpression)
 
             Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
         }
-
-        AssertionOutputWriter.ReportPass(nameof(NotBeNull), SubjectLabel(), callerFilePath, callerLineNumber);
         return new AndContinuation<ValueAssertions<T>>(this);
     }
 
@@ -189,8 +176,6 @@ public sealed class ValueAssertions<T>(T subject, string? subjectExpression)
 
             Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
         }
-
-        AssertionOutputWriter.ReportPass(nameof(BeOfType), SubjectLabel(), callerFilePath, callerLineNumber);
         return new AndContinuation<ValueAssertions<T>>(this);
     }
 
@@ -207,8 +192,6 @@ public sealed class ValueAssertions<T>(T subject, string? subjectExpression)
 
             Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
         }
-
-        AssertionOutputWriter.ReportPass(nameof(BeAssignableTo), SubjectLabel(), callerFilePath, callerLineNumber);
         return new AndContinuation<ValueAssertions<T>>(this);
     }
 
@@ -224,8 +207,6 @@ public sealed class ValueAssertions<T>(T subject, string? subjectExpression)
 
             Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
         }
-
-        AssertionOutputWriter.ReportPass(nameof(NotBeAssignableTo), SubjectLabel(), callerFilePath, callerLineNumber);
         return new AndContinuation<ValueAssertions<T>>(this);
     }
 
@@ -242,8 +223,6 @@ public sealed class ValueAssertions<T>(T subject, string? subjectExpression)
 
             Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
         }
-
-        AssertionOutputWriter.ReportPass(nameof(BeGreaterThan), SubjectLabel(), callerFilePath, callerLineNumber);
         return new AndContinuation<ValueAssertions<T>>(this);
     }
 
@@ -260,8 +239,6 @@ public sealed class ValueAssertions<T>(T subject, string? subjectExpression)
 
             Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
         }
-
-        AssertionOutputWriter.ReportPass(nameof(BeGreaterThanOrEqualTo), SubjectLabel(), callerFilePath, callerLineNumber);
         return new AndContinuation<ValueAssertions<T>>(this);
     }
 
@@ -278,8 +255,6 @@ public sealed class ValueAssertions<T>(T subject, string? subjectExpression)
 
             Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
         }
-
-        AssertionOutputWriter.ReportPass(nameof(BeLessThan), SubjectLabel(), callerFilePath, callerLineNumber);
         return new AndContinuation<ValueAssertions<T>>(this);
     }
 
@@ -296,8 +271,6 @@ public sealed class ValueAssertions<T>(T subject, string? subjectExpression)
 
             Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
         }
-
-        AssertionOutputWriter.ReportPass(nameof(BeLessThanOrEqualTo), SubjectLabel(), callerFilePath, callerLineNumber);
         return new AndContinuation<ValueAssertions<T>>(this);
     }
 
@@ -327,8 +300,6 @@ public sealed class ValueAssertions<T>(T subject, string? subjectExpression)
 
             Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
         }
-
-        AssertionOutputWriter.ReportPass(nameof(BeInRange), SubjectLabel(), callerFilePath, callerLineNumber);
         return new AndContinuation<ValueAssertions<T>>(this);
     }
 
@@ -402,8 +373,6 @@ public sealed class ValueAssertions<T>(T subject, string? subjectExpression)
             Fail(message, callerFilePath, callerLineNumber);
             return new AndContinuation<ValueAssertions<T>>(this);
         }
-
-        AssertionOutputWriter.ReportPass(nameof(BeEquivalentTo), subjectLabel, callerFilePath, callerLineNumber);
         return new AndContinuation<ValueAssertions<T>>(this);
     }
 
@@ -428,14 +397,11 @@ public sealed class ValueAssertions<T>(T subject, string? subjectExpression)
             Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
             return new AndContinuation<ValueAssertions<T>>(this);
         }
-
-        AssertionOutputWriter.ReportPass(nameof(NotBeEquivalentTo), subjectLabel, callerFilePath, callerLineNumber);
         return new AndContinuation<ValueAssertions<T>>(this);
     }
 
     private static void Fail(string message, string? callerFilePath, int callerLineNumber)
     {
-        AssertionOutputWriter.ReportFailure(message, callerFilePath, callerLineNumber);
 
         var batch = Batch.Current;
         if (batch is not null)

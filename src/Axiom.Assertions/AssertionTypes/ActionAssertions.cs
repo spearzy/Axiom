@@ -2,7 +2,6 @@ using System.Runtime.CompilerServices;
 using Axiom.Assertions.Chaining;
 using Axiom.Core;
 using Axiom.Core.Failures;
-using Axiom.Core.Output;
 
 namespace Axiom.Assertions.AssertionTypes;
 
@@ -22,7 +21,6 @@ public sealed class ActionAssertions(Action subject, string? subjectExpression)
         // Accept the requested type or any subtype (common assertion-library expectation).
         if (capturedException is TException)
         {
-            AssertionOutputWriter.ReportPass(nameof(Throw), SubjectLabel(), callerFilePath, callerLineNumber);
             return new AndContinuation<ActionAssertions>(this);
         }
 
@@ -49,7 +47,6 @@ public sealed class ActionAssertions(Action subject, string? subjectExpression)
         var capturedException = CaptureException();
         if (capturedException?.GetType() == typeof(TException))
         {
-            AssertionOutputWriter.ReportPass(nameof(ThrowExactly), SubjectLabel(), callerFilePath, callerLineNumber);
             return new AndContinuation<ActionAssertions>(this);
         }
 
@@ -75,7 +72,6 @@ public sealed class ActionAssertions(Action subject, string? subjectExpression)
         var capturedException = CaptureException();
         if (capturedException is null)
         {
-            AssertionOutputWriter.ReportPass(nameof(NotThrow), SubjectLabel(), callerFilePath, callerLineNumber);
             return new AndContinuation<ActionAssertions>(this);
         }
 
@@ -110,7 +106,6 @@ public sealed class ActionAssertions(Action subject, string? subjectExpression)
 
     private static void Fail(string message, string? callerFilePath, int callerLineNumber)
     {
-        AssertionOutputWriter.ReportFailure(message, callerFilePath, callerLineNumber);
 
         var batch = Batch.Current;
         if (batch is not null)
