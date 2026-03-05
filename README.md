@@ -25,8 +25,6 @@ Axiom is an open-source assertion library for .NET tests. It helps you write flu
   - [Collection Assertions](#collection-assertions)
   - [Temporal Assertions](#temporal-assertions)
 - [Installation](#installation)
-- [Build](#build)
-- [Release Management](#release-management)
 - [Security](#security)
 - [Contributing](#contributing)
 - [License](#license)
@@ -458,30 +456,6 @@ Then reference the project(s) you need, for example:
 ```bash
 dotnet add <your-test-project>.csproj reference src/Axiom.Assertions/Axiom.Assertions.csproj
 ```
-
-## Build
-
-```bash
-dotnet restore Axiom.sln
-dotnet build Axiom.sln -c Release
-dotnet test Axiom.sln -c Release
-```
-
-## Release Management
-
-Versioning and package publishing are automated through GitHub Actions:
-
-- CI runs build, tests, formatting, and pack validation on Linux, Windows, and macOS.
-- Dependabot raises weekly updates for NuGet dependencies and GitHub Actions.
-- Publishing is triggered by a version tag in the format `v<semver>` (for example `v0.1.0-preview.1`).
-- The release workflow publishes `Axiom.Core` and `Axiom.Assertions` to NuGet with trusted publishing (requires a NuGet trusted publisher policy and the `NUGET_ORG_USERNAME` repository secret).
-
-Maintainer references:
-
-- [CI workflow](.github/workflows/ci.yml)
-- [Release workflow](.github/workflows/release.yml)
-- [Dependabot configuration](.github/dependabot.yml)
-- [Changelog](CHANGELOG.md)
 
 ## Security
 
