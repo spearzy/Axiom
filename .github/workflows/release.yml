@@ -67,6 +67,12 @@ jobs:
           --output artifacts/packages
           /p:PackageVersion=${{ steps.version.outputs.version }}
 
+      - name: Consumer smoke test (packaged Axiom.Assertions)
+        run: >
+          bash eng/ci/run-consumer-smoke.sh
+          "$GITHUB_WORKSPACE/artifacts/packages"
+          "${{ steps.version.outputs.version }}"
+
       - name: Upload package artefacts
         uses: actions/upload-artifact@v7
         with:
