@@ -74,6 +74,7 @@ Expected value to start with "ab", but found "test".
 - `BeLessThan(value)`
 - `BeLessThanOrEqualTo(value)`
 - `BeInRange(min, max)`
+- `BeApproximately(expected, tolerance)` for `double`, `float`, and `decimal`
 - `BeEquivalentTo(expected)`
 - `BeEquivalentTo(expected, configureOptions)`
 - `BeTrue()` / `BeFalse()` (extension methods on `ValueAssertions<bool>`)
@@ -179,6 +180,8 @@ Batch 'user profile' failed with 3 assertion failure(s):
     .NotBe(0).And
     .BeGreaterThan(10).And
     .BeInRange(40, 50);
+
+42.1d.Should().BeApproximately(42d, 0.2d);
 
 object value = "hello";
 value.Should().BeOfType<string>().And.BeAssignableTo<object>();

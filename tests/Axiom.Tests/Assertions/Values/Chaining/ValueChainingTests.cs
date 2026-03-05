@@ -272,6 +272,17 @@ public sealed class ValueChainingTests
     }
 
     [Fact]
+    public void BeApproximately_ReturnsContinuation_AndPointsBackToSameAssertions()
+    {
+        const double value = 10.05d;
+
+        var baseAssertions = value.Should();
+        var continuation = baseAssertions.BeApproximately(10d, 0.1d);
+
+        Assert.Same(baseAssertions, continuation.And);
+    }
+
+    [Fact]
     public void OrderedComparisonChain_CanBeComposed()
     {
         const int value = 5;
@@ -282,5 +293,15 @@ public sealed class ValueChainingTests
             .BeLessThan(10).And
             .BeLessThanOrEqualTo(5).And
             .BeInRange(1, 5);
+    }
+
+    [Fact]
+    public void ApproximateComparisonChain_CanBeComposed()
+    {
+        const double value = 10.05d;
+
+        value.Should()
+            .BeApproximately(10d, 0.1d).And
+            .BeGreaterThan(10d);
     }
 }
