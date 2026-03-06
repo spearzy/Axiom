@@ -47,4 +47,26 @@ public sealed class ContainTests
 
         Assert.Contains("because the generated key should include the shard prefix", ex.Message, StringComparison.Ordinal);
     }
+
+    [Fact]
+    public void Contain_DoesNotThrow_WhenComparisonIgnoresCase()
+    {
+        const string value = "TEST";
+
+        var ex = Record.Exception(() =>
+            value.Should().Contain("es", StringComparison.OrdinalIgnoreCase));
+
+        Assert.Null(ex);
+    }
+
+    [Fact]
+    public void Contain_Throws_WhenComparisonIsCaseSensitive()
+    {
+        const string value = "TEST";
+
+        var ex = Assert.Throws<InvalidOperationException>(() =>
+            value.Should().Contain("es", StringComparison.Ordinal));
+
+        Assert.Contains("Expected value to contain \"es\"", ex.Message, StringComparison.Ordinal);
+    }
 }

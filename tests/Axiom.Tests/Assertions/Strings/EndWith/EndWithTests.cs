@@ -27,4 +27,26 @@ public sealed class EndWithTests
         Assert.Contains("ab", ex.Message);
         Assert.Contains("test", ex.Message);
     }
+
+    [Fact]
+    public void EndWith_DoesNotThrow_WhenComparisonIgnoresCase()
+    {
+        const string value = "TEST";
+
+        var ex = Record.Exception(() =>
+            value.Should().EndWith("st", StringComparison.OrdinalIgnoreCase));
+
+        Assert.Null(ex);
+    }
+
+    [Fact]
+    public void EndWith_Throws_WhenComparisonIsCaseSensitive()
+    {
+        const string value = "TEST";
+
+        var ex = Assert.Throws<InvalidOperationException>(() =>
+            value.Should().EndWith("st", StringComparison.Ordinal));
+
+        Assert.Contains("Expected value to end with \"st\"", ex.Message, StringComparison.Ordinal);
+    }
 }

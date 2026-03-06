@@ -371,7 +371,6 @@ public sealed class ValueAssertions<T>(T subject, string? subjectExpression)
                 because);
 
             Fail(message, callerFilePath, callerLineNumber);
-            return new AndContinuation<ValueAssertions<T>>(this);
         }
         return new AndContinuation<ValueAssertions<T>>(this);
     }

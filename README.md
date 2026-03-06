@@ -81,10 +81,10 @@ Expected value to start with "ab", but found "test".
 
 ### String assertions
 - `NotBeNull()`
-- `StartWith(expectedPrefix)`
-- `EndWith(expectedSuffix)`
-- `Contain(expectedSubstring)`
-- `NotContain(unexpectedSubstring)`
+- `StartWith(expectedPrefix[, comparison])`
+- `EndWith(expectedSuffix[, comparison])`
+- `Contain(expectedSubstring[, comparison])`
+- `NotContain(unexpectedSubstring[, comparison])`
 - `HaveLength(expectedLength)`
 - `BeEmpty()`
 - `NotBeEmpty()`
@@ -170,6 +170,8 @@ Batch 'user profile' failed with 3 assertion failure(s):
     .EndWith("st").And
     .NotBeEmpty().And
     .NotBeNull();
+
+"ABC".Should().StartWith("ab", StringComparison.OrdinalIgnoreCase);
 ```
 
 ### Value Assertions

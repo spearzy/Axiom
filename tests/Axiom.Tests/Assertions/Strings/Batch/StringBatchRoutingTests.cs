@@ -25,6 +25,28 @@ public sealed class StringBatchRoutingTests
     }
 
     [Fact]
+    public void Contain_WithComparison_OutsideBatch_ThrowsImmediately()
+    {
+        const string value = "TEST";
+
+        Assert.Throws<InvalidOperationException>(() =>
+            value.Should().Contain("es", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void Contain_WithComparison_InsideBatch_DoesNotThrowAtAssertionCallSite()
+    {
+        const string value = "TEST";
+
+        using var batch = new Axiom.Core.Batch();
+        var callEx = Record.Exception(() =>
+            value.Should().Contain("es", StringComparison.Ordinal));
+
+        Assert.Null(callEx);
+        Assert.Throws<InvalidOperationException>(() => batch.Dispose());
+    }
+
+    [Fact]
     public void NotContain_OutsideBatch_ThrowsImmediately()
     {
         const string value = "test";

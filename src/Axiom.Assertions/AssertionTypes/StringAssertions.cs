@@ -35,6 +35,16 @@ public sealed class StringAssertions(string? subject, string? subjectExpression)
         [CallerFilePath] string? callerFilePath = null,
         [CallerLineNumber] int callerLineNumber = 0)
     {
+        return StartWith(expectedPrefix, StringComparison.Ordinal, because, callerFilePath, callerLineNumber);
+    }
+
+    public AndContinuation<StringAssertions> StartWith(
+        string expectedPrefix,
+        StringComparison comparison,
+        string? because = null,
+        [CallerFilePath] string? callerFilePath = null,
+        [CallerLineNumber] int callerLineNumber = 0)
+    {
         var subject = Subject;
         if (subject is null)
         {
@@ -47,7 +57,7 @@ public sealed class StringAssertions(string? subject, string? subjectExpression)
             return new AndContinuation<StringAssertions>(this);
         }
 
-        if (!subject.StartsWith(expectedPrefix, StringComparison.Ordinal))
+        if (!subject.StartsWith(expectedPrefix, comparison))
         {
             var failure = new Failure(
                 SubjectLabel(),
@@ -65,6 +75,16 @@ public sealed class StringAssertions(string? subject, string? subjectExpression)
         [CallerFilePath] string? callerFilePath = null,
         [CallerLineNumber] int callerLineNumber = 0)
     {
+        return EndWith(expectedSuffix, StringComparison.Ordinal, because, callerFilePath, callerLineNumber);
+    }
+
+    public AndContinuation<StringAssertions> EndWith(
+        string expectedSuffix,
+        StringComparison comparison,
+        string? because = null,
+        [CallerFilePath] string? callerFilePath = null,
+        [CallerLineNumber] int callerLineNumber = 0)
+    {
         var subject = Subject;
         if (subject is null)
         {
@@ -77,7 +97,7 @@ public sealed class StringAssertions(string? subject, string? subjectExpression)
             return new AndContinuation<StringAssertions>(this);
         }
 
-        if (!subject.EndsWith(expectedSuffix, StringComparison.Ordinal))
+        if (!subject.EndsWith(expectedSuffix, comparison))
         {
             var failure = new Failure(
                 SubjectLabel(),
@@ -95,6 +115,16 @@ public sealed class StringAssertions(string? subject, string? subjectExpression)
         [CallerFilePath] string? callerFilePath = null,
         [CallerLineNumber] int callerLineNumber = 0)
     {
+        return Contain(expectedSubstring, StringComparison.Ordinal, because, callerFilePath, callerLineNumber);
+    }
+
+    public AndContinuation<StringAssertions> Contain(
+        string expectedSubstring,
+        StringComparison comparison,
+        string? because = null,
+        [CallerFilePath] string? callerFilePath = null,
+        [CallerLineNumber] int callerLineNumber = 0)
+    {
         var subject = Subject;
         if (subject is null)
         {
@@ -107,7 +137,7 @@ public sealed class StringAssertions(string? subject, string? subjectExpression)
             return new AndContinuation<StringAssertions>(this);
         }
 
-        if (!subject.Contains(expectedSubstring, StringComparison.Ordinal))
+        if (!subject.Contains(expectedSubstring, comparison))
         {
             var failure = new Failure(
                 SubjectLabel(),
@@ -125,6 +155,16 @@ public sealed class StringAssertions(string? subject, string? subjectExpression)
         [CallerFilePath] string? callerFilePath = null,
         [CallerLineNumber] int callerLineNumber = 0)
     {
+        return NotContain(unexpectedSubstring, StringComparison.Ordinal, because, callerFilePath, callerLineNumber);
+    }
+
+    public AndContinuation<StringAssertions> NotContain(
+        string unexpectedSubstring,
+        StringComparison comparison,
+        string? because = null,
+        [CallerFilePath] string? callerFilePath = null,
+        [CallerLineNumber] int callerLineNumber = 0)
+    {
         var subject = Subject;
         if (subject is null)
         {
@@ -137,7 +177,7 @@ public sealed class StringAssertions(string? subject, string? subjectExpression)
             return new AndContinuation<StringAssertions>(this);
         }
 
-        if (subject.Contains(unexpectedSubstring, StringComparison.Ordinal))
+        if (subject.Contains(unexpectedSubstring, comparison))
         {
             var failure = new Failure(
                 SubjectLabel(),
