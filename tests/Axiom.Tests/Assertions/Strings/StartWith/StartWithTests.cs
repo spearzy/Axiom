@@ -38,4 +38,26 @@ public sealed class StartWithTests
 
         Assert.Contains("because the ID prefix is required", ex.Message);
     }
+
+    [Fact]
+    public void StartWith_DoesNotThrow_WhenComparisonIgnoresCase()
+    {
+        string? value = "TEST";
+
+        var ex = Record.Exception(() =>
+            value.Should().StartWith("te", StringComparison.OrdinalIgnoreCase));
+
+        Assert.Null(ex);
+    }
+
+    [Fact]
+    public void StartWith_Throws_WhenComparisonIsCaseSensitive()
+    {
+        string? value = "TEST";
+
+        var ex = Assert.Throws<InvalidOperationException>(() =>
+            value.Should().StartWith("te", StringComparison.Ordinal));
+
+        Assert.Contains("Expected value to start with \"te\"", ex.Message, StringComparison.Ordinal);
+    }
 }

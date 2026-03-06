@@ -47,4 +47,26 @@ public sealed class NotContainTests
 
         Assert.Contains("because reserved sequence must not appear", ex.Message, StringComparison.Ordinal);
     }
+
+    [Fact]
+    public void NotContain_Throws_WhenComparisonIgnoresCaseAndValueContainsSubstring()
+    {
+        const string value = "TEST";
+
+        var ex = Assert.Throws<InvalidOperationException>(() =>
+            value.Should().NotContain("es", StringComparison.OrdinalIgnoreCase));
+
+        Assert.Contains("Expected value to not contain \"es\"", ex.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void NotContain_DoesNotThrow_WhenComparisonIsCaseSensitive()
+    {
+        const string value = "TEST";
+
+        var ex = Record.Exception(() =>
+            value.Should().NotContain("es", StringComparison.Ordinal));
+
+        Assert.Null(ex);
+    }
 }

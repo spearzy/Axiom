@@ -49,6 +49,17 @@ public sealed class StringChainingTests
     }
 
     [Fact]
+    public void Contain_WithComparison_ReturnsContinuation_AndPointsBackToSameAssertions()
+    {
+        var value = "TEST";
+
+        var baseAssertions = value.Should();
+        var continuation = baseAssertions.Contain("es", StringComparison.OrdinalIgnoreCase);
+
+        Assert.Same(baseAssertions, continuation.And);
+    }
+
+    [Fact]
     public void NotContain_ReturnsContinuation_AndPointsBackToSameAssertions()
     {
         var value = "test";
@@ -195,5 +206,17 @@ public sealed class StringChainingTests
             .NotMatch(@"^\d+$").And
             .EndWith("123").And
             .NotBeEmpty();
+    }
+
+    [Fact]
+    public void ComparisonOverloadChain_CanBeComposed()
+    {
+        const string value = "ABC-123";
+
+        value.Should()
+            .StartWith("ab", StringComparison.OrdinalIgnoreCase).And
+            .Contain("-1", StringComparison.OrdinalIgnoreCase).And
+            .NotContain("zz", StringComparison.OrdinalIgnoreCase).And
+            .EndWith("123", StringComparison.OrdinalIgnoreCase);
     }
 }
