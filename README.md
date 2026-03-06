@@ -77,7 +77,27 @@ Expected value to start with "ab", but found "test".
 - `BeApproximately(expected, tolerance)` for `double`, `float`, and `decimal`
 - `BeEquivalentTo(expected)`
 - `BeEquivalentTo(expected, configureOptions)`
+- `NotBeEquivalentTo(expected)`
+- `NotBeEquivalentTo(expected, configureOptions)`
 - `BeTrue()` / `BeFalse()` (extension methods on `ValueAssertions<bool>`)
+
+### Equivalency configuration (`Action<EquivalencyOptions>`)
+- `IgnoreMember(memberName)`
+- `IgnorePath(path)`
+- `OnlyCompareMember(memberPath)`
+- `OnlyCompareMembers(params memberPaths)`
+- `UseComparerForType<T>(comparer)`
+- `UseComparerForPath(path, comparer)`
+- `UseComparerForMember(memberPath, comparer)`
+- `UseCollectionItemComparerForPath(path, comparer)`
+- `MatchMemberName(actualMember, expectedMember)`
+- `IgnoreExpectedNullMembers()`
+- `IgnoreActualNullMembers()`
+- `CollectionOrder`, `RequireStrictRuntimeTypes`, `StringComparison`
+- `FailOnMissingMembers`, `FailOnExtraMembers`, `MaxDifferences`
+- `IncludePublicProperties`, `IncludePublicFields`
+- `FloatTolerance`, `DoubleTolerance`, `HalfTolerance`, `DecimalTolerance`
+- `DateOnlyTolerance`, `DateTimeTolerance`, `DateTimeOffsetTolerance`, `TimeOnlyTolerance`, `TimeSpanTolerance`
 
 ### String assertions
 - `NotBeNull()`
@@ -108,12 +128,20 @@ Expected value to start with "ab", but found "test".
 
 ### Collection assertions
 - `Contain(item)`
+- `ContainAll(expectedItems)`
+- `ContainAny(expectedItems)`
+- `NotContainAny(unexpectedItems)`
+- `HaveUniqueItems()`
+- `ContainExactly(expectedSequence)`
+- `BeSubsetOf(expectedSuperset)`
+- `BeSupersetOf(expectedSubset)`
 - `HaveCount(expectedCount)`
 - `BeEmpty()`
 - `NotBeEmpty()`
 - `ContainSingle()`
 - `OnlyContain(predicate)`
-- `NotContain(predicate)`
+- `NotContain(item)` / `NotContain(predicate)`
+- `AllSatisfy(assertion)`
 - `ContainInOrder(expectedSequence, allowGaps = true)`
 - `ContainInOrder(expectedSequence, keySelector, allowGaps = true)`
 
@@ -336,6 +364,16 @@ actual.Should().BeEquivalentTo(expected, options =>
     options.StringComparison = StringComparison.Ordinal;
     options.UseComparerForPath("actual.Name", StringComparer.OrdinalIgnoreCase);
 });
+```
+
+Use `UseComparerForMember(...)` when you want to target a specific member name/path and keep the intent obvious.
+`UseComparerForPath(nameof(Address), comparer)` targets the whole `Address` branch.
+For a specific nested member, use a string path such as `"Address.Name"`.
+`UseComparerForMember(...)` behaves the same as `UseComparerForPath(...)`, but reads more clearly when the rule is about one member.
+
+```csharp
+actual.Should().BeEquivalentTo(expected, options =>
+    options.UseComparerForMember("Name", StringComparer.OrdinalIgnoreCase));
 ```
 
 For collection item rules on a specific path, use `UseCollectionItemComparerForPath(...)`:
