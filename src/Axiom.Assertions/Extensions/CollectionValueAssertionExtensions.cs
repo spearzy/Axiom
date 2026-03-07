@@ -368,6 +368,32 @@ public static class CollectionValueAssertionExtensions
             result.FailureMessage);
     }
 
+    public static ContainSingleContinuation<ValueAssertions<TCollection>> ContainSingle<TCollection, TItem>(
+        this ValueAssertions<TCollection> assertions,
+        Func<TItem, bool> predicate,
+        string? because = null,
+        [CallerFilePath] string? callerFilePath = null,
+        [CallerLineNumber] int callerLineNumber = 0)
+        where TCollection : IEnumerable<TItem>
+    {
+        ArgumentNullException.ThrowIfNull(assertions);
+        ArgumentNullException.ThrowIfNull(predicate);
+
+        var result = CollectionAssertionEngine.AssertContainSingleAndCaptureResult(
+            assertions.Subject,
+            assertions.SubjectExpression,
+            predicate,
+            because,
+            callerFilePath,
+            callerLineNumber);
+
+        return new ContainSingleContinuation<ValueAssertions<TCollection>>(
+            assertions,
+            result.HasSingleItem,
+            result.SingleItem,
+            result.FailureMessage);
+    }
+
     public static AndContinuation<ValueAssertions<TCollection>> OnlyContain<TCollection, TItem>(
         this ValueAssertions<TCollection> assertions,
         Func<TItem, bool> predicate,

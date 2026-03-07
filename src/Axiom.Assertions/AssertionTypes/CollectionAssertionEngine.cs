@@ -552,6 +552,23 @@ internal static class CollectionAssertionEngine
         return result;
     }
 
+    public static ContainSingleResult AssertContainSingleAndCaptureResult<T>(
+        IEnumerable<T>? subject,
+        string? subjectExpression,
+        Func<T, bool> predicate,
+        string? because,
+        string? callerFilePath,
+        int callerLineNumber)
+    {
+        var result = EvaluateContainSingle(subject, subjectExpression, predicate, because);
+        if (result.FailureMessage is not null)
+        {
+            Fail(result.FailureMessage, callerFilePath, callerLineNumber);
+        }
+
+        return result;
+    }
+
     public static void AssertOnlyContain<T>(
         IEnumerable<T>? subject,
         string? subjectExpression,
@@ -1312,11 +1329,64 @@ internal static class CollectionAssertionEngine
             FailureMessage: null);
     }
 
+    private static ContainSingleResult EvaluateContainSingle<T>(
+        IEnumerable<T>? subject,
+        string? subjectExpression,
+        Func<T, bool> predicate,
+        string? because)
+    {
+        var subjectLabel = SubjectLabel(subjectExpression);
+        const string expectationText = "to contain a single item matching predicate";
+        if (subject is null)
+        {
+            return new ContainSingleResult(
+                HasSingleItem: false,
+                SingleItem: null,
+                FailureMessage: RenderContainSingleFailure(subjectLabel, expectationText, subject, because));
+        }
+
+        var count = 0;
+        object? singleItem = null;
+
+        foreach (var item in subject)
+        {
+            if (!predicate(item))
+            {
+                continue;
+            }
+
+            if (count == 0)
+            {
+                singleItem = item;
+            }
+
+            count++;
+        }
+
+        if (count != 1)
+        {
+            return new ContainSingleResult(
+                HasSingleItem: false,
+                SingleItem: null,
+                FailureMessage: RenderContainSingleFailure(subjectLabel, expectationText, count, because));
+        }
+
+        return new ContainSingleResult(
+            HasSingleItem: true,
+            SingleItem: singleItem,
+            FailureMessage: null);
+    }
+
     private static string RenderContainSingleFailure(string subjectLabel, object? actual, string? because)
+    {
+        return RenderContainSingleFailure(subjectLabel, "to contain a single item", actual, because);
+    }
+
+    private static string RenderContainSingleFailure(string subjectLabel, string expectationText, object? actual, string? because)
     {
         var failure = new Failure(
             subjectLabel,
-            new Expectation("to contain a single item", IncludeExpectedValue: false),
+            new Expectation(expectationText, IncludeExpectedValue: false),
             actual,
             because);
         return FailureMessageRenderer.Render(failure);

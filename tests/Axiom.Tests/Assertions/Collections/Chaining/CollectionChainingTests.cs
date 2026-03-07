@@ -25,6 +25,14 @@ public sealed class CollectionChainingTests
     }
 
     [Fact]
+    public void PredicateSingleItemChain_CanBeComposed()
+    {
+        int[] values = [1, 2, 3];
+
+        values.Should().NotBeEmpty().And.ContainSingle((int item) => item == 2).And.Contain(2).And.HaveCount(3);
+    }
+
+    [Fact]
     public void EmptyChain_CanBeComposed()
     {
         int[] values = [];

@@ -152,6 +152,7 @@ Expected value to start with "ab", but found "test".
 - `BeEmpty()`
 - `NotBeEmpty()`
 - `ContainSingle()`
+- `ContainSingle(predicate)`
 - `ContainSingle().SingleItem`
 - `OnlyContain(predicate)`
 - `NotContain(item)` / `NotContain(predicate)`
@@ -514,6 +515,7 @@ values.Should()
 Order[] orders = [new(42, 19.99m)];
 var onlyOrder = (Order)orders.Should().ContainSingle().SingleItem!;
 onlyOrder.Total.Should().Be(19.99m);
+orders.Should().ContainSingle((Order order) => order.Id == 42);
 
 Dictionary<string, int> scores = new()
 {
