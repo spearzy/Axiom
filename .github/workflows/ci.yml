@@ -100,5 +100,11 @@ jobs:
       - name: Pack
         run: dotnet pack Axiom.sln -c Release --no-build --output artifacts/packages
 
-      - name: Consumer smoke test (packaged Axiom.Assertions)
-        run: bash eng/ci/run-consumer-smoke.sh "$GITHUB_WORKSPACE/artifacts/packages"
+      - name: Consumer smoke test (xUnit)
+        run: bash eng/ci/run-consumer-smoke.sh "$GITHUB_WORKSPACE/artifacts/packages" xunit
+
+      - name: Consumer smoke test (NUnit)
+        run: bash eng/ci/run-consumer-smoke.sh "$GITHUB_WORKSPACE/artifacts/packages" nunit
+
+      - name: Consumer smoke test (MSTest)
+        run: bash eng/ci/run-consumer-smoke.sh "$GITHUB_WORKSPACE/artifacts/packages" mstest

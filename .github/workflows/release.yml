@@ -67,11 +67,26 @@ jobs:
           --output artifacts/packages
           /p:PackageVersion=${{ steps.version.outputs.version }}
 
-      - name: Consumer smoke test (packaged Axiom.Assertions)
+      - name: Consumer smoke test (xUnit)
         run: >
           bash eng/ci/run-consumer-smoke.sh
           "$GITHUB_WORKSPACE/artifacts/packages"
           "${{ steps.version.outputs.version }}"
+          xunit
+
+      - name: Consumer smoke test (NUnit)
+        run: >
+          bash eng/ci/run-consumer-smoke.sh
+          "$GITHUB_WORKSPACE/artifacts/packages"
+          "${{ steps.version.outputs.version }}"
+          nunit
+
+      - name: Consumer smoke test (MSTest)
+        run: >
+          bash eng/ci/run-consumer-smoke.sh
+          "$GITHUB_WORKSPACE/artifacts/packages"
+          "${{ steps.version.outputs.version }}"
+          mstest
 
       - name: Upload package artefacts
         uses: actions/upload-artifact@v7
