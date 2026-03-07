@@ -193,7 +193,7 @@ EOF
 }
 
 create_mstest_smoke_tests() {
-  rm -f UnitTest1.cs
+  rm -f UnitTest1.cs Test1.cs
   cat > ConsumerSmokeTests.cs <<'EOF'
 using Axiom.Assertions;
 using Axiom.Assertions.Extensions;
@@ -250,7 +250,7 @@ public sealed class ConsumerSmokeTests
         }
 
         Assert.IsNotNull(ex);
-        Assert.IsTrue(ex.Message.Contains("Batch 'smoke' failed with 2 assertion failure(s):"));
+        Assert.Contains(ex.Message, "Batch 'smoke' failed with 2 assertion failure(s):");
     }
 
     private sealed record UserSnapshot(string Name, int Level);
