@@ -3,6 +3,7 @@ namespace Axiom.Assertions.Chaining;
 public readonly struct ContainSingleContinuation<TAssertions>
 {
     private readonly bool _hasSingleItem;
+    private readonly object? _singleItem;
     private readonly string? _containSingleFailureMessage;
 
     public ContainSingleContinuation(
@@ -13,7 +14,7 @@ public readonly struct ContainSingleContinuation<TAssertions>
     {
         And = assertions;
         _hasSingleItem = hasSingleItem;
-        SingleItem = singleItem;
+        _singleItem = singleItem;
         _containSingleFailureMessage = containSingleFailureMessage;
     }
 
@@ -25,7 +26,7 @@ public readonly struct ContainSingleContinuation<TAssertions>
         {
             if (_hasSingleItem)
             {
-                return field;
+                return _singleItem;
             }
 
             var message = _containSingleFailureMessage is null
@@ -33,6 +34,5 @@ public readonly struct ContainSingleContinuation<TAssertions>
                 : $"SingleItem is unavailable because ContainSingle failed with error: {_containSingleFailureMessage}";
             throw new InvalidOperationException(message);
         }
-        private init;
     }
 }
