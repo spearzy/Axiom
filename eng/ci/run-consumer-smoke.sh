@@ -250,7 +250,7 @@ public sealed class ConsumerSmokeTests
         }
 
         Assert.IsNotNull(ex);
-        Assert.Contains(ex.Message, "Batch 'smoke' failed with 2 assertion failure(s):");
+        Assert.Contains("Batch 'smoke' failed with 2 assertion failure(s):", ex.Message);
     }
 
     private sealed record UserSnapshot(string Name, int Level);
