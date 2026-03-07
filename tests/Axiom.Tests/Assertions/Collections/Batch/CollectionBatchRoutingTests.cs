@@ -250,6 +250,32 @@ public sealed class CollectionBatchRoutingTests
     }
 
     [Fact]
+    public void SatisfyRespectively_OutsideBatch_ThrowsImmediately()
+    {
+        int[] values = [1, 2];
+
+        Assert.Throws<InvalidOperationException>(() =>
+            values.Should().SatisfyRespectively(
+                (int item) => item.Should().BeGreaterThan(0),
+                (int item) => item.Should().BeGreaterThan(5)));
+    }
+
+    [Fact]
+    public void SatisfyRespectively_InsideBatch_DoesNotThrowAtAssertionCallSite()
+    {
+        int[] values = [1, 2];
+
+        using var batch = new Axiom.Core.Batch();
+        var callEx = Record.Exception(() =>
+            values.Should().SatisfyRespectively(
+                (int item) => item.Should().BeGreaterThan(0),
+                (int item) => item.Should().BeGreaterThan(5)));
+
+        Assert.Null(callEx);
+        Assert.Throws<InvalidOperationException>(() => batch.Dispose());
+    }
+
+    [Fact]
     public void Batch_Dispose_ThrowsCombinedFailures_FromCollectionAssertions()
     {
         int[] values = [1, 2, 3];

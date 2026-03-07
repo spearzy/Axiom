@@ -407,6 +407,42 @@ public static class CollectionValueAssertionExtensions
         return new AndContinuation<ValueAssertions<TCollection>>(assertions);
     }
 
+    public static AndContinuation<ValueAssertions<TCollection>> SatisfyRespectively<TCollection, TItem>(
+        this ValueAssertions<TCollection> assertions,
+        params Action<TItem>[] assertionsForItems)
+        where TCollection : IEnumerable<TItem>
+    {
+        return SatisfyRespectively(assertions, because: null, assertionsForItems);
+    }
+
+    public static AndContinuation<ValueAssertions<TCollection>> SatisfyRespectively<TCollection, TItem>(
+        this ValueAssertions<TCollection> assertions,
+        string? because,
+        params Action<TItem>[] assertionsForItems)
+        where TCollection : IEnumerable<TItem>
+    {
+        ArgumentNullException.ThrowIfNull(assertions);
+        ArgumentNullException.ThrowIfNull(assertionsForItems);
+
+        for (var index = 0; index < assertionsForItems.Length; index++)
+        {
+            if (assertionsForItems[index] is null)
+            {
+                throw new ArgumentNullException(nameof(assertionsForItems), $"assertionsForItems[{index}] must not be null.");
+            }
+        }
+
+        CollectionAssertionEngine.AssertSatisfyRespectively(
+            assertions.Subject,
+            assertions.SubjectExpression,
+            assertionsForItems,
+            because,
+            callerFilePath: null,
+            callerLineNumber: 0);
+
+        return new AndContinuation<ValueAssertions<TCollection>>(assertions);
+    }
+
     public static ContainKeyContinuation<ValueAssertions<TDictionary>, TValue> ContainKey<TDictionary, TKey, TValue>(
         this ValueAssertions<TDictionary> assertions,
         TKey expectedKey,

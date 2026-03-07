@@ -54,6 +54,19 @@ public sealed class CollectionChainingTests
     }
 
     [Fact]
+    public void SatisfyRespectivelyChain_CanBeComposed()
+    {
+        int[] values = [2, 4, 6];
+
+        values.Should()
+            .SatisfyRespectively(
+                (int item) => item.Should().BeGreaterThan(0),
+                (int item) => item.Should().BeGreaterThan(3),
+                (int item) => item.Should().BeGreaterThan(5)).And
+            .ContainInOrder([2, 6]);
+    }
+
+    [Fact]
     public void ExactSequenceChain_CanBeComposed()
     {
         int[] values = [1, 2, 3];

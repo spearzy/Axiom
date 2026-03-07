@@ -661,6 +661,73 @@ internal static class CollectionAssertionEngine
         }
     }
 
+    public static void AssertSatisfyRespectively<T>(
+        IEnumerable<T>? subject,
+        string? subjectExpression,
+        IReadOnlyList<Action<T>> assertionsForItems,
+        string? because,
+        string? callerFilePath,
+        int callerLineNumber)
+    {
+        var subjectLabel = SubjectLabel(subjectExpression);
+        if (subject is null)
+        {
+            var nullFailure = new Failure(
+                subjectLabel,
+                new Expectation("to satisfy assertions respectively (same order and count)", IncludeExpectedValue: false),
+                subject,
+                because);
+            Fail(FailureMessageRenderer.Render(nullFailure), callerFilePath, callerLineNumber);
+            return;
+        }
+
+        using var enumerator = subject.GetEnumerator();
+        var expectedCount = assertionsForItems.Count;
+
+        for (var index = 0; index < expectedCount; index++)
+        {
+            if (!enumerator.MoveNext())
+            {
+                var fewerItemsFailure = new Failure(
+                    subjectLabel,
+                    new Expectation("to satisfy assertions respectively (same order and count)", IncludeExpectedValue: false),
+                    new RenderedText($"collection had fewer items than assertions (expected {expectedCount}, found {index})"),
+                    because);
+                Fail(FailureMessageRenderer.Render(fewerItemsFailure), callerFilePath, callerLineNumber);
+                return;
+            }
+
+            try
+            {
+                //For each assertions, compare against list sequentially
+                assertionsForItems[index](enumerator.Current);
+            }
+            catch (InvalidOperationException ex)
+            {
+                var failure = new Failure(
+                    subjectLabel,
+                    new Expectation($"to satisfy assertions respectively (failing index {index})", IncludeExpectedValue: false),
+                    new RenderedText(ex.Message),
+                    because);
+                Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
+                return;
+            }
+        }
+
+        if (!enumerator.MoveNext())
+        {
+            return;
+        }
+
+        var actualCount = expectedCount + CountRemainingIncludingCurrent(enumerator);
+        var moreItemsFailure = new Failure(
+            subjectLabel,
+            new Expectation("to satisfy assertions respectively (same order and count)", IncludeExpectedValue: false),
+            new RenderedText($"collection had more items than assertions (expected {expectedCount}, found {actualCount})"),
+            because);
+        Fail(FailureMessageRenderer.Render(moreItemsFailure), callerFilePath, callerLineNumber);
+    }
+
     public static ContainKeyResult<TValue> AssertContainKeyAndCaptureResult<TKey, TValue>(
         IReadOnlyDictionary<TKey, TValue>? subject,
         string? subjectExpression,
@@ -1214,6 +1281,17 @@ internal static class CollectionAssertionEngine
             actual,
             because);
         return FailureMessageRenderer.Render(failure);
+    }
+
+    private static int CountRemainingIncludingCurrent<T>(IEnumerator<T> enumerator)
+    {
+        var count = 1;
+        while (enumerator.MoveNext())
+        {
+            count++;
+        }
+
+        return count;
     }
 
     private static IEqualityComparer<T> GetComparer<T>()

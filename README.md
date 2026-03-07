@@ -154,11 +154,13 @@ Expected value to start with "ab", but found "test".
 - `OnlyContain(predicate)`
 - `NotContain(item)` / `NotContain(predicate)`
 - `AllSatisfy(assertion)`
+- `SatisfyRespectively(assertions...)`
 - `ContainInOrder(expectedSequence, allowGaps = true)`
 - `ContainInOrder(expectedSequence, keySelector, allowGaps = true)`
 
 ### Dictionary assertions
 - `ContainKey(key)`
+- `ContainKey(key).WhoseValue`
 - `NotContainKey(key)`
 - `ContainValue(value)`
 - `NotContainValue(value)`
@@ -499,6 +501,10 @@ completion.TrySetResult(null);
 int[] values = [1, 2, 3];
 values.Should()
     .Contain(2).And
+    .SatisfyRespectively(
+        (int item) => item.Should().BeGreaterThan(0),
+        (int item) => item.Should().BeGreaterThan(1),
+        (int item) => item.Should().BeGreaterThan(2)).And
     .ContainInOrder([1, 3], allowGaps: true).And
     .HaveCount(3).And
     .NotBeEmpty();
@@ -518,10 +524,13 @@ scores.Should()
     .ContainValue(2).And
     .ContainEntry("b", 2);
 
+var scoreA = scores.Should().ContainKey("a").WhoseValue;
+scoreA.Should().Be(1);
+
 public sealed record Order(int Id, decimal Total);
 ```
 
-### Extractor Behaviour (`Thrown` / `SingleItem`)
+### Extractor Behaviour (`Thrown` / `SingleItem` / `WhoseValue`)
 
 - If the base assertion succeeds, the extractor returns the matched value.
 - If the base assertion fails outside `Batch`, it throws immediately and the extractor is not reached.
