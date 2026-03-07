@@ -30,65 +30,117 @@ fi
 smoke_root="$(mktemp -d)"
 trap 'rm -rf "$smoke_root"' EXIT
 
-dotnet new xunit --framework net10.0 --output "$smoke_root/Axiom.ConsumerSmoke" --no-restore
-cd "$smoke_root/Axiom.ConsumerSmoke"
+consumer_project="$smoke_root/Axiom.ConsumerSmoke"
+local_packages_cache="$smoke_root/.nuget/packages"
+nuget_config="$smoke_root/NuGet.config"
 
-dotnet add package Axiom.Assertions --version "$package_version" --source "$package_source"
+dotnet new console --framework net10.0 --output "$consumer_project" --no-restore
+cd "$consumer_project"
 
-rm -f UnitTest1.cs
-cat > ConsumerSmokeTests.cs <<'EOF'
+cat > "$nuget_config" <<EOF
+<?xml version="1.0" encoding="utf-8"?>
+<configuration>
+  <packageSources>
+    <clear />
+    <add key="local" value="$package_source" />
+  </packageSources>
+</configuration>
+EOF
+
+dotnet add package Axiom.Assertions --version "$package_version" --source "$package_source" --no-restore
+
+cat > Program.cs <<'EOF'
 using Axiom.Assertions;
 using Axiom.Assertions.Extensions;
 using AAssert = Axiom.Core.Assert;
-using XAssert = Xunit.Assert;
 
-namespace Axiom.ConsumerSmoke;
+var failures = 0;
 
-public sealed class ConsumerSmokeTests
-{
-    [Fact]
-    public void StringChaining_Works()
-    {
-        "abc".Should().StartWith("a").And.EndWith("c");
-    }
+ExpectNoThrow(
+    "StringChaining_Works",
+    () => "abc".Should().StartWith("a").And.EndWith("c"));
 
-    [Fact]
-    public void ValueAssertions_Works()
+ExpectNoThrow(
+    "ValueAssertions_Works",
+    () =>
     {
         42.Should().BeGreaterThan(1).And.BeInRange(40, 50);
         42.1d.Should().BeApproximately(42d, 0.2d);
-    }
+    });
 
-    [Fact]
-    public void CollectionAssertions_Works()
-    {
-        new[] { 1, 2, 3 }.Should().Contain(2).And.NotContain(9);
-    }
+ExpectNoThrow(
+    "CollectionAssertions_Works",
+    () => new[] { 1, 2, 3 }.Should().Contain(2).And.NotContain(9));
 
-    [Fact]
-    public void EquivalencyAssertions_Works()
+ExpectNoThrow(
+    "EquivalencyAssertions_Works",
+    () =>
     {
         var actual = new UserSnapshot("ollie", 3);
         var expected = new UserSnapshot("ollie", 3);
-
         actual.Should().BeEquivalentTo(expected);
-    }
+    });
 
-    [Fact]
-    public void Batch_AggregatesFailures()
+ExpectThrows<InvalidOperationException>(
+    "Batch_AggregatesFailures",
+    () =>
     {
-        var ex = XAssert.Throws<InvalidOperationException>(() =>
-        {
-            using var batch = AAssert.Batch("smoke");
-            "abc".Should().StartWith("z");
-            1.Should().BeGreaterThan(5);
-        });
+        using var batch = AAssert.Batch("smoke");
+        "abc".Should().StartWith("z");
+        1.Should().BeGreaterThan(5);
+    },
+    "Batch 'smoke' failed with 2 assertion failure(s):");
 
-        XAssert.Contains("Batch 'smoke' failed with 2 assertion failure(s):", ex.Message, StringComparison.Ordinal);
-    }
-
-    private sealed record UserSnapshot(string Name, int Level);
+if (failures > 0)
+{
+    Console.Error.WriteLine($"Smoke test failed with {failures} failure(s).");
+    return 1;
 }
+
+Console.WriteLine("Axiom consumer smoke checks passed.");
+return 0;
+
+void ExpectNoThrow(string name, Action assertion)
+{
+    try
+    {
+        assertion();
+    }
+    catch (Exception ex)
+    {
+        failures++;
+        Console.Error.WriteLine($"[{name}] Expected no exception, but got {ex.GetType().Name}: {ex.Message}");
+    }
+}
+
+void ExpectThrows<TException>(string name, Action assertion, string expectedMessageFragment)
+    where TException : Exception
+{
+    try
+    {
+        assertion();
+        failures++;
+        Console.Error.WriteLine($"[{name}] Expected {typeof(TException).Name}, but no exception was thrown.");
+    }
+    catch (TException ex)
+    {
+        if (!ex.Message.Contains(expectedMessageFragment, StringComparison.Ordinal))
+        {
+            failures++;
+            Console.Error.WriteLine(
+                $"[{name}] Exception message mismatch. Expected fragment: '{expectedMessageFragment}'. Actual: '{ex.Message}'.");
+        }
+    }
+    catch (Exception ex)
+    {
+        failures++;
+        Console.Error.WriteLine(
+            $"[{name}] Expected {typeof(TException).Name}, but got {ex.GetType().Name}: {ex.Message}");
+    }
+}
+
+file sealed record UserSnapshot(string Name, int Level);
 EOF
 
-dotnet test --configuration Release
+dotnet restore --configfile "$nuget_config" --packages "$local_packages_cache"
+dotnet run --configuration Release --no-restore
