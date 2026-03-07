@@ -55,6 +55,28 @@ public sealed class ValueChainingTests
     }
 
     [Fact]
+    public void Satisfy_ReturnsContinuation_AndPointsBackToSameAssertions()
+    {
+        var value = 42;
+
+        var baseAssertions = value.Should();
+        var continuation = baseAssertions.Satisfy(static x => x > 40);
+
+        Assert.Same(baseAssertions, continuation.And);
+    }
+
+    [Fact]
+    public void NotSatisfy_ReturnsContinuation_AndPointsBackToSameAssertions()
+    {
+        var value = 42;
+
+        var baseAssertions = value.Should();
+        var continuation = baseAssertions.NotSatisfy(static x => x < 40);
+
+        Assert.Same(baseAssertions, continuation.And);
+    }
+
+    [Fact]
     public void FullChain_CanBeComposed()
     {
         var value = 42;
@@ -70,6 +92,17 @@ public sealed class ValueChainingTests
         value.Should()
             .BeOneOf([41, 42, 43]).And
             .NotBeOneOf([1, 2, 3]).And
+            .Be(42);
+    }
+
+    [Fact]
+    public void PredicateChain_CanBeComposed()
+    {
+        var value = 42;
+
+        value.Should()
+            .Satisfy(static x => x > 40).And
+            .NotSatisfy(static x => x < 40).And
             .Be(42);
     }
 

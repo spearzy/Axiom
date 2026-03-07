@@ -106,6 +106,48 @@ public sealed class ValueAssertions<T>(T subject, string? subjectExpression)
         return new AndContinuation<ValueAssertions<T>>(this);
     }
 
+    public AndContinuation<ValueAssertions<T>> Satisfy(
+        Func<T, bool> predicate,
+        string? because = null,
+        [CallerFilePath] string? callerFilePath = null,
+        [CallerLineNumber] int callerLineNumber = 0)
+    {
+        ArgumentNullException.ThrowIfNull(predicate);
+
+        if (!predicate(Subject))
+        {
+            var failure = new Failure(
+                SubjectLabel(),
+                new Expectation("to satisfy predicate", IncludeExpectedValue: false),
+                Subject,
+                because);
+            Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
+        }
+
+        return new AndContinuation<ValueAssertions<T>>(this);
+    }
+
+    public AndContinuation<ValueAssertions<T>> NotSatisfy(
+        Func<T, bool> predicate,
+        string? because = null,
+        [CallerFilePath] string? callerFilePath = null,
+        [CallerLineNumber] int callerLineNumber = 0)
+    {
+        ArgumentNullException.ThrowIfNull(predicate);
+
+        if (predicate(Subject))
+        {
+            var failure = new Failure(
+                SubjectLabel(),
+                new Expectation("to not satisfy predicate", IncludeExpectedValue: false),
+                Subject,
+                because);
+            Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
+        }
+
+        return new AndContinuation<ValueAssertions<T>>(this);
+    }
+
     public AndContinuation<ValueAssertions<T>> BeSameAs(
         T? expectedReference,
         string? because = null,

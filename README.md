@@ -64,6 +64,8 @@ Expected value to start with "ab", but found "test".
 - `NotBe(unexpected)`
 - `BeOneOf(expectedValues)`
 - `NotBeOneOf(unexpectedValues)`
+- `Satisfy(predicate)`
+- `NotSatisfy(predicate)`
 - `BeNull()`
 - `NotBeNull()`
 - `BeSameAs(expectedReference)`
@@ -212,6 +214,8 @@ Batch 'user profile' failed with 3 assertion failure(s):
     .BeOneOf([40, 41, 42]).And
     .NotBe(0).And
     .NotBeOneOf([100, 200]).And
+    .Satisfy(x => x % 2 == 0).And
+    .NotSatisfy(x => x < 0).And
     .BeGreaterThan(10).And
     .BeInRange(40, 50);
 

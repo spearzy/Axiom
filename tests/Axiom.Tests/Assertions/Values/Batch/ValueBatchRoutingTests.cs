@@ -114,6 +114,64 @@ public sealed class ValueBatchRoutingTests
     }
 
     [Fact]
+    public void Satisfy_OutsideBatch_ThrowsImmediately()
+    {
+        var value = 42;
+
+        Assert.Throws<InvalidOperationException>(() => value.Should().Satisfy(static x => x < 40));
+    }
+
+    [Fact]
+    public void Satisfy_InsideBatch_DoesNotThrowAtAssertionCallSite()
+    {
+        var value = 42;
+
+        using var batch = new Axiom.Core.Batch();
+        var callEx = Record.Exception(() => value.Should().Satisfy(static x => x < 40));
+
+        Assert.Null(callEx);
+        Assert.Throws<InvalidOperationException>(() => batch.Dispose());
+    }
+
+    [Fact]
+    public void NotSatisfy_OutsideBatch_ThrowsImmediately()
+    {
+        var value = 42;
+
+        Assert.Throws<InvalidOperationException>(() => value.Should().NotSatisfy(static x => x > 40));
+    }
+
+    [Fact]
+    public void NotSatisfy_InsideBatch_DoesNotThrowAtAssertionCallSite()
+    {
+        var value = 42;
+
+        using var batch = new Axiom.Core.Batch();
+        var callEx = Record.Exception(() => value.Should().NotSatisfy(static x => x > 40));
+
+        Assert.Null(callEx);
+        Assert.Throws<InvalidOperationException>(() => batch.Dispose());
+    }
+
+    [Fact]
+    public void Batch_Dispose_ThrowsCombinedFailures_FromPredicateAssertions()
+    {
+        var value = 42;
+
+        var ex = Assert.Throws<InvalidOperationException>(() =>
+        {
+            using var batch = new Axiom.Core.Batch("predicates");
+            value.Should().Satisfy(static x => x < 40);
+            value.Should().NotSatisfy(static x => x > 40);
+        });
+
+        var message = ex.Message.Replace("\r\n", "\n", StringComparison.Ordinal);
+        Assert.Contains("Batch 'predicates' failed with 2 assertion failure(s):", message);
+        Assert.Contains("1) Expected value to satisfy predicate, but found 42.", message);
+        Assert.Contains("2) Expected value to not satisfy predicate, but found 42.", message);
+    }
+
+    [Fact]
     public void BeFalse_OutsideBatch_ThrowsImmediately()
     {
         const bool value = true;
