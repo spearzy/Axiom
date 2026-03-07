@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Text;
+using System.Linq;
 using Axiom.Core;
 using Axiom.Core.Configuration;
 using Axiom.Core.Failures;
@@ -217,7 +218,9 @@ internal static class CollectionAssertionEngine
             return;
         }
 
-        var seen = new HashSet<object?>();
+        var seen = TryGetCount(subject, out var knownCount)
+            ? new HashSet<object?>(knownCount)
+            : new HashSet<object?>();
         var index = 0;
         foreach (var item in subject)
         {
@@ -233,6 +236,52 @@ internal static class CollectionAssertionEngine
                 new RenderedText($"first duplicate item at index {index}: {FormatSingleValue(item)}"),
                 because);
             Fail(FailureMessageRenderer.Render(duplicateItemFailure), callerFilePath, callerLineNumber);
+            return;
+        }
+    }
+
+    public static void AssertHaveUniqueItemsBy<TItem, TKey>(
+        IEnumerable<TItem>? subject,
+        string? subjectExpression,
+        Func<TItem, TKey> keySelector,
+        IEqualityComparer<TKey>? comparer,
+        string? because,
+        string? callerFilePath,
+        int callerLineNumber)
+    {
+        var subjectLabel = SubjectLabel(subjectExpression);
+        if (subject is null)
+        {
+            var nullFailure = new Failure(
+                subjectLabel,
+                new Expectation("to have unique items by selected key", IncludeExpectedValue: false),
+                subject,
+                because);
+            Fail(FailureMessageRenderer.Render(nullFailure), callerFilePath, callerLineNumber);
+            return;
+        }
+
+        var keyComparer = comparer ?? GetComparer<TKey>();
+        _ = subject.TryGetNonEnumeratedCount(out var initialCapacity);
+        var seen = initialCapacity > 0
+            ? new HashSet<TKey>(initialCapacity, keyComparer)
+            : new HashSet<TKey>(keyComparer);
+        var index = 0;
+        foreach (var item in subject)
+        {
+            var key = keySelector(item);
+            if (seen.Add(key))
+            {
+                index++;
+                continue;
+            }
+
+            var duplicateKeyFailure = new Failure(
+                subjectLabel,
+                new Expectation("to have unique items by selected key", IncludeExpectedValue: false),
+                new RenderedText($"first duplicate selected key at index {index}: {FormatSingleValue(key)}"),
+                because);
+            Fail(FailureMessageRenderer.Render(duplicateKeyFailure), callerFilePath, callerLineNumber);
             return;
         }
     }

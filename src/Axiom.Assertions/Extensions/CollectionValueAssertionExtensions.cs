@@ -172,6 +172,54 @@ public static class CollectionValueAssertionExtensions
         return new AndContinuation<ValueAssertions<TCollection>>(assertions);
     }
 
+    public static AndContinuation<ValueAssertions<TCollection>> HaveUniqueItemsBy<TCollection, TItem, TKey>(
+        this ValueAssertions<TCollection> assertions,
+        Func<TItem, TKey> keySelector,
+        string? because = null,
+        [CallerFilePath] string? callerFilePath = null,
+        [CallerLineNumber] int callerLineNumber = 0)
+        where TCollection : IEnumerable<TItem>
+    {
+        ArgumentNullException.ThrowIfNull(assertions);
+        ArgumentNullException.ThrowIfNull(keySelector);
+
+        CollectionAssertionEngine.AssertHaveUniqueItemsBy(
+            assertions.Subject,
+            assertions.SubjectExpression,
+            keySelector,
+            comparer: null,
+            because,
+            callerFilePath,
+            callerLineNumber);
+
+        return new AndContinuation<ValueAssertions<TCollection>>(assertions);
+    }
+
+    public static AndContinuation<ValueAssertions<TCollection>> HaveUniqueItemsBy<TCollection, TItem, TKey>(
+        this ValueAssertions<TCollection> assertions,
+        Func<TItem, TKey> keySelector,
+        IEqualityComparer<TKey> comparer,
+        string? because = null,
+        [CallerFilePath] string? callerFilePath = null,
+        [CallerLineNumber] int callerLineNumber = 0)
+        where TCollection : IEnumerable<TItem>
+    {
+        ArgumentNullException.ThrowIfNull(assertions);
+        ArgumentNullException.ThrowIfNull(keySelector);
+        ArgumentNullException.ThrowIfNull(comparer);
+
+        CollectionAssertionEngine.AssertHaveUniqueItemsBy(
+            assertions.Subject,
+            assertions.SubjectExpression,
+            keySelector,
+            comparer,
+            because,
+            callerFilePath,
+            callerLineNumber);
+
+        return new AndContinuation<ValueAssertions<TCollection>>(assertions);
+    }
+
     public static AndContinuation<ValueAssertions<TCollection>> ContainExactly<TCollection, TItem>(
         this ValueAssertions<TCollection> assertions,
         IEnumerable<TItem> expectedSequence,

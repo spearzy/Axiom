@@ -6,6 +6,7 @@ namespace Axiom.Tests.Assertions.Collections.Chaining;
 public sealed class CollectionChainingTests
 {
     private sealed record WorkflowStep(int Position, string Name);
+    private sealed record User(int Id, string Email);
 
     [Fact]
     public void FullChain_CanBeComposed()
@@ -119,6 +120,22 @@ public sealed class CollectionChainingTests
             .HaveUniqueItems().And
             .ContainAll(1, 3).And
             .NotContainAny(8, 9);
+    }
+
+    [Fact]
+    public void UniqueItemsByChain_CanBeComposed()
+    {
+        User[] values =
+        [
+            new(1, "a@example.com"),
+            new(2, "b@example.com"),
+            new(3, "c@example.com")
+        ];
+
+        values.Should()
+            .HaveUniqueItemsBy((User user) => user.Id).And
+            .HaveCount(3).And
+            .NotContain((User user) => user.Email == "missing@example.com");
     }
 
     [Fact]
