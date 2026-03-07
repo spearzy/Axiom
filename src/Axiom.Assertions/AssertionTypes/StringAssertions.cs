@@ -28,7 +28,7 @@ public sealed class StringAssertions(string? subject, string? subjectExpression)
         }
         return new AndContinuation<StringAssertions>(this);
     }
-    
+
     public AndContinuation<StringAssertions> BeNull(
         string? because = null,
         [CallerFilePath] string? callerFilePath = null,
