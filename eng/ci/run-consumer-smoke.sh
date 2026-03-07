@@ -236,14 +236,21 @@ public sealed class ConsumerSmokeTests
     [TestMethod]
     public void Batch_AggregatesFailures()
     {
-        var ex = Assert.ThrowsException<InvalidOperationException>(() =>
+        InvalidOperationException? ex = null;
+        try
         {
             using var batch = AAssert.Batch("smoke");
             "abc".Should().StartWith("z");
             1.Should().BeGreaterThan(5);
-        });
+            Assert.Fail("Expected InvalidOperationException, but no exception was thrown.");
+        }
+        catch (InvalidOperationException caught)
+        {
+            ex = caught;
+        }
 
-        StringAssert.Contains(ex.Message, "Batch 'smoke' failed with 2 assertion failure(s):");
+        Assert.IsNotNull(ex);
+        Assert.IsTrue(ex.Message.Contains("Batch 'smoke' failed with 2 assertion failure(s):"));
     }
 
     private sealed record UserSnapshot(string Name, int Level);
