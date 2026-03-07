@@ -136,6 +136,7 @@ Expected value to start with "ab", but found "test".
 - `NotThrowAsync()`
 - `CompleteWithin(timeout)`
 - `NotCompleteWithin(timeout)`
+- Async exception/completion assertions are supported on `Func<Task>`, `Func<ValueTask>`, `Task`, `Task<T>`, `ValueTask`, and `ValueTask<T>`
 
 ### Collection assertions
 - `Contain(item)`
@@ -500,6 +501,15 @@ var completion = new TaskCompletionSource<object?>(TaskCreationOptions.RunContin
 Func<Task> slowAction = () => completion.Task;
 await slowAction.Should().NotCompleteWithin(TimeSpan.FromMilliseconds(50));
 completion.TrySetResult(null);
+
+Task finishedTask = Task.CompletedTask;
+await finishedTask.Should().NotThrowAsync();
+
+Task<int> finishedResultTask = Task.FromResult(42);
+await finishedResultTask.Should().CompleteWithin(TimeSpan.FromMilliseconds(50));
+
+ValueTask failedValueTask = ValueTask.FromException(new InvalidOperationException("boom"));
+await failedValueTask.Should().ThrowAsync<InvalidOperationException>();
 ```
 
 ### Collection Assertions

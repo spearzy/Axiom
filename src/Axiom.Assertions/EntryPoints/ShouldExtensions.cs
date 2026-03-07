@@ -24,4 +24,31 @@ public static class ShouldExtensions
         this Func<ValueTask> subject,
         [CallerArgumentExpression("subject")] string? subjectExpression = null)
         => new(subject, subjectExpression);
+
+    public static AsyncActionAssertions Should(
+        this Task subject,
+        [CallerArgumentExpression("subject")] string? subjectExpression = null)
+        => new(() => new ValueTask(subject), subjectExpression);
+
+    public static AsyncActionAssertions Should<T>(
+        this Task<T> subject,
+        [CallerArgumentExpression("subject")] string? subjectExpression = null)
+        => new(() => new ValueTask(subject), subjectExpression);
+
+    public static AsyncActionAssertions Should(
+        this ValueTask subject,
+        [CallerArgumentExpression("subject")] string? subjectExpression = null)
+    {
+        // A raw ValueTask can be unsafe to await repeatedly; Task is safe for repeated checks/chaining.
+        var task = subject.AsTask();
+        return new(() => new ValueTask(task), subjectExpression);
+    }
+
+    public static AsyncActionAssertions Should<T>(
+        this ValueTask<T> subject,
+        [CallerArgumentExpression("subject")] string? subjectExpression = null)
+    {
+        var task = subject.AsTask();
+        return new(() => new ValueTask(task), subjectExpression);
+    }
 }
