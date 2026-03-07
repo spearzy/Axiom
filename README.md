@@ -143,6 +143,8 @@ Expected value to start with "ab", but found "test".
 - `ContainAny(expectedItems)`
 - `NotContainAny(unexpectedItems)`
 - `HaveUniqueItems()`
+- `HaveUniqueItemsBy(selector)`
+- `HaveUniqueItemsBy(selector, comparer)`
 - `ContainExactly(expectedSequence)`
 - `BeSubsetOf(expectedSuperset)`
 - `BeSupersetOf(expectedSubset)`
@@ -527,7 +529,15 @@ scores.Should()
 var scoreA = scores.Should().ContainKey("a").WhoseValue;
 scoreA.Should().Be(1);
 
+User[] users =
+[
+    new(1, "A@example.com"),
+    new(2, "b@example.com")
+];
+users.Should().HaveUniqueItemsBy((User user) => user.Email, StringComparer.OrdinalIgnoreCase);
+
 public sealed record Order(int Id, decimal Total);
+public sealed record User(int Id, string Email);
 ```
 
 ### Extractor Behaviour (`Thrown` / `SingleItem` / `WhoseValue`)

@@ -6,6 +6,7 @@ namespace Axiom.Tests.Assertions.Collections.Batch;
 public sealed class CollectionBatchRoutingTests
 {
     private sealed record WorkflowStep(int Position, string Name);
+    private sealed record User(int Id, string Email);
 
     [Fact]
     public void Contain_OutsideBatch_ThrowsImmediately()
@@ -222,6 +223,36 @@ public sealed class CollectionBatchRoutingTests
 
         using var batch = new Axiom.Core.Batch();
         var callEx = Record.Exception(() => values.Should().HaveUniqueItems());
+
+        Assert.Null(callEx);
+        Assert.Throws<InvalidOperationException>(() => batch.Dispose());
+    }
+
+    [Fact]
+    public void HaveUniqueItemsBy_OutsideBatch_ThrowsImmediately()
+    {
+        User[] values =
+        [
+            new(1, "a@example.com"),
+            new(2, "b@example.com"),
+            new(1, "c@example.com")
+        ];
+
+        Assert.Throws<InvalidOperationException>(() => values.Should().HaveUniqueItemsBy((User user) => user.Id));
+    }
+
+    [Fact]
+    public void HaveUniqueItemsBy_InsideBatch_DoesNotThrowAtAssertionCallSite()
+    {
+        User[] values =
+        [
+            new(1, "a@example.com"),
+            new(2, "b@example.com"),
+            new(1, "c@example.com")
+        ];
+
+        using var batch = new Axiom.Core.Batch();
+        var callEx = Record.Exception(() => values.Should().HaveUniqueItemsBy((User user) => user.Id));
 
         Assert.Null(callEx);
         Assert.Throws<InvalidOperationException>(() => batch.Dispose());
