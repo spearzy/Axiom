@@ -14,6 +14,11 @@ internal static class CollectionAssertionEngine
         object? SingleItem,
         string? FailureMessage);
 
+    public readonly record struct ContainKeyResult<TValue>(
+        bool HasValue,
+        TValue Value,
+        string? FailureMessage);
+
     public static void AssertContain<T>(
         IEnumerable<T>? subject,
         string? subjectExpression,
@@ -656,7 +661,7 @@ internal static class CollectionAssertionEngine
         }
     }
 
-    public static void AssertContainKey<TKey, TValue>(
+    public static ContainKeyResult<TValue> AssertContainKeyAndCaptureResult<TKey, TValue>(
         IReadOnlyDictionary<TKey, TValue>? subject,
         string? subjectExpression,
         TKey expectedKey,
@@ -667,26 +672,20 @@ internal static class CollectionAssertionEngine
         var subjectLabel = SubjectLabel(subjectExpression);
         if (subject is null)
         {
-            var nullFailure = new Failure(
-                subjectLabel,
-                new Expectation("to contain key", expectedKey),
-                subject,
-                because);
-            Fail(FailureMessageRenderer.Render(nullFailure), callerFilePath, callerLineNumber);
-            return;
+            var failureMessage = RenderContainKeyFailure(subjectLabel, expectedKey, subject, because);
+            Fail(failureMessage, callerFilePath, callerLineNumber);
+            return new ContainKeyResult<TValue>(HasValue: false, Value: default!, FailureMessage: failureMessage);
         }
 
-        if (subject.ContainsKey(expectedKey))
+        if (subject.TryGetValue(expectedKey, out var value))
         {
-            return;
+            return new ContainKeyResult<TValue>(HasValue: true, Value: value, FailureMessage: null);
         }
 
-        var failure = new Failure(
-            subjectLabel,
-            new Expectation("to contain key", expectedKey),
-            new RenderedText($"keys were {FormatSortedSequence(subject.Keys)}"),
-            because);
-        Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
+        var failureText = new RenderedText($"keys were {FormatSortedSequence(subject.Keys)}");
+        var failure = RenderContainKeyFailure(subjectLabel, expectedKey, failureText, because);
+        Fail(failure, callerFilePath, callerLineNumber);
+        return new ContainKeyResult<TValue>(HasValue: false, Value: default!, FailureMessage: failure);
     }
 
     public static void AssertNotContainKey<TKey, TValue>(
@@ -1202,6 +1201,16 @@ internal static class CollectionAssertionEngine
         var failure = new Failure(
             subjectLabel,
             new Expectation("to contain a single item", IncludeExpectedValue: false),
+            actual,
+            because);
+        return FailureMessageRenderer.Render(failure);
+    }
+
+    private static string RenderContainKeyFailure<TKey>(string subjectLabel, TKey expectedKey, object? actual, string? because)
+    {
+        var failure = new Failure(
+            subjectLabel,
+            new Expectation("to contain key", expectedKey),
             actual,
             because);
         return FailureMessageRenderer.Render(failure);

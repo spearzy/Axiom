@@ -34,6 +34,42 @@ public sealed class DictionaryBatchRoutingTests
     }
 
     [Fact]
+    public void WhoseValue_InsideBatch_ThrowsExplicitMessage_WhenContainKeyFailed()
+    {
+        Dictionary<string, int> values = new()
+        {
+            ["alpha"] = 1,
+            ["beta"] = 2,
+        };
+
+        var batch = new Axiom.Core.Batch();
+        var continuation = values.Should().ContainKey("gamma");
+        var ex = Assert.Throws<InvalidOperationException>(() => _ = continuation.WhoseValue);
+
+        const string failureMessage = "Expected values to contain key \"gamma\", but found keys were [\"alpha\", \"beta\"].";
+        var expected = $"WhoseValue is unavailable because ContainKey failed with error: {failureMessage}";
+        Assert.Equal(expected, ex.Message);
+        Assert.Throws<InvalidOperationException>(() => batch.Dispose());
+    }
+
+    [Fact]
+    public void WhoseValue_InsideBatch_ReturnsValue_WhenContainKeyPassed()
+    {
+        Dictionary<string, int> values = new()
+        {
+            ["alpha"] = 1,
+            ["beta"] = 2,
+        };
+
+        var batch = new Axiom.Core.Batch();
+        var continuation = values.Should().ContainKey("beta");
+
+        Assert.Equal(2, continuation.WhoseValue);
+        var disposeEx = Record.Exception(() => batch.Dispose());
+        Assert.Null(disposeEx);
+    }
+
+    [Fact]
     public void NotContainEntry_OutsideBatch_ThrowsImmediately()
     {
         Dictionary<string, int> values = new()

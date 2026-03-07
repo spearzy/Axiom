@@ -407,7 +407,7 @@ public static class CollectionValueAssertionExtensions
         return new AndContinuation<ValueAssertions<TCollection>>(assertions);
     }
 
-    public static AndContinuation<ValueAssertions<TDictionary>> ContainKey<TDictionary, TKey, TValue>(
+    public static ContainKeyContinuation<ValueAssertions<TDictionary>, TValue> ContainKey<TDictionary, TKey, TValue>(
         this ValueAssertions<TDictionary> assertions,
         TKey expectedKey,
         string? because = null,
@@ -417,7 +417,7 @@ public static class CollectionValueAssertionExtensions
     {
         ArgumentNullException.ThrowIfNull(assertions);
 
-        CollectionAssertionEngine.AssertContainKey(
+        var result = CollectionAssertionEngine.AssertContainKeyAndCaptureResult(
             assertions.Subject,
             assertions.SubjectExpression,
             expectedKey,
@@ -425,10 +425,14 @@ public static class CollectionValueAssertionExtensions
             callerFilePath,
             callerLineNumber);
 
-        return new AndContinuation<ValueAssertions<TDictionary>>(assertions);
+        return new ContainKeyContinuation<ValueAssertions<TDictionary>, TValue>(
+            assertions,
+            result.HasValue,
+            result.Value,
+            result.FailureMessage);
     }
 
-    public static AndContinuation<ValueAssertions<Dictionary<TKey, TValue>>> ContainKey<TKey, TValue>(
+    public static ContainKeyContinuation<ValueAssertions<Dictionary<TKey, TValue>>, TValue> ContainKey<TKey, TValue>(
         this ValueAssertions<Dictionary<TKey, TValue>> assertions,
         TKey expectedKey,
         string? because = null,
@@ -444,7 +448,7 @@ public static class CollectionValueAssertionExtensions
             callerLineNumber);
     }
 
-    public static AndContinuation<ValueAssertions<IReadOnlyDictionary<TKey, TValue>>> ContainKey<TKey, TValue>(
+    public static ContainKeyContinuation<ValueAssertions<IReadOnlyDictionary<TKey, TValue>>, TValue> ContainKey<TKey, TValue>(
         this ValueAssertions<IReadOnlyDictionary<TKey, TValue>> assertions,
         TKey expectedKey,
         string? because = null,

@@ -6,6 +6,20 @@ namespace Axiom.Tests.Assertions.Dictionaries.Chaining;
 public sealed class DictionaryChainingTests
 {
     [Fact]
+    public void ContainKey_WhoseValue_CanBeUsedToAssertExtractedValue()
+    {
+        Dictionary<string, int> values = new()
+        {
+            ["alpha"] = 1,
+            ["beta"] = 2,
+        };
+
+        var extracted = values.Should().ContainKey("alpha").WhoseValue;
+
+        Assert.Equal(1, extracted);
+    }
+
+    [Fact]
     public void DictionaryChain_CanBeComposed()
     {
         Dictionary<string, int> values = new()
