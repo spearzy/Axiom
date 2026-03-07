@@ -179,4 +179,29 @@ public sealed class AsyncActionBatchRoutingTests
         Assert.Contains("1) Expected slow to complete within 00:00:00.0100000, but found <not completed within timeout>.", message);
         Assert.Contains("2) Expected fast to not complete within 00:00:00.0100000, but found <completed within timeout>.", message);
     }
+
+    [Fact]
+    public async Task ExceptionDetailAssertions_OutsideBatch_ThrowImmediately()
+    {
+        Func<ValueTask> action = static () => ValueTask.FromException(new ArgumentNullException("value"));
+
+        await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+            (await action.Should().ThrowAsync<ArgumentException>()).WithMessage("different"));
+    }
+
+    [Fact]
+    public async Task ExceptionDetailAssertions_InsideBatch_DoNotThrowAtAssertionCallSite()
+    {
+        Func<ValueTask> action = static () => ValueTask.FromException(new ArgumentNullException("value"));
+
+        using var batch = new Axiom.Core.Batch();
+        var callEx = await Record.ExceptionAsync(async () =>
+            (await action.Should().ThrowAsync<ArgumentException>())
+                .WithMessage("different")
+                .WithParamName("other")
+                .WithInnerException<InvalidOperationException>());
+
+        Assert.Null(callEx);
+        Assert.Throws<InvalidOperationException>(() => batch.Dispose());
+    }
 }

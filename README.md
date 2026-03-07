@@ -123,6 +123,9 @@ Expected value to start with "ab", but found "test".
 ### Exception assertions
 - `Throw<TException>()`
 - `ThrowExactly<TException>()`
+- `WithMessage(expectedMessage[, comparison])`
+- `WithParamName(expectedParamName)`
+- `WithInnerException<TInnerException>()`
 - `NotThrow()`
 - `ThrowAsync<TException>()`
 - `ThrowExactlyAsync<TException>()`
@@ -447,12 +450,25 @@ For collection items, `UseCollectionItemComparerForPath(...)` takes precedence f
 Action strictThrow = () => throw new InvalidOperationException();
 strictThrow.Should().ThrowExactly<InvalidOperationException>();
 
+Action withDetails = () => throw new ArgumentNullException("value", "Value is required.");
+withDetails.Should()
+    .Throw<ArgumentException>()
+    .WithMessage("Value is required. (Parameter 'value')")
+    .WithParamName("value");
+
+Action wrapped = () => throw new InvalidOperationException("outer", new ArgumentException("inner"));
+wrapped.Should()
+    .ThrowExactly<InvalidOperationException>()
+    .WithInnerException<ArgumentException>();
+
 Action noThrow = () => { };
 noThrow.Should().NotThrow();
 
-Func<Task> asyncAction = () => Task.FromException(new InvalidOperationException());
+Func<Task> asyncAction = () => Task.FromException(new InvalidOperationException("boom"));
 await asyncAction.Should().ThrowAsync<Exception>();
 await asyncAction.Should().ThrowExactlyAsync<InvalidOperationException>();
+await (await asyncAction.Should().ThrowExactlyAsync<InvalidOperationException>())
+    .WithMessage("boom");
 
 Func<Task> asyncNoThrow = () => Task.CompletedTask;
 await asyncNoThrow.Should().NotThrowAsync();

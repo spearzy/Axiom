@@ -5,6 +5,17 @@ namespace Axiom.Tests.Assertions.Actions.Throw;
 public sealed class ThrowTests
 {
     [Fact]
+    public void Throw_ReturnsAssertions_AndPointsBackToSameAssertions()
+    {
+        Action action = static () => throw new InvalidOperationException("boom");
+
+        var baseAssertions = action.Should();
+        var continuation = baseAssertions.Throw<InvalidOperationException>();
+
+        Assert.Same(baseAssertions, continuation.And);
+    }
+
+    [Fact]
     public void Throw_Passes_WhenExpectedExceptionTypeIsThrown()
     {
         Action action = static () => throw new InvalidOperationException("boom");

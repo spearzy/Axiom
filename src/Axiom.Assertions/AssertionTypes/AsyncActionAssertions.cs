@@ -10,7 +10,7 @@ public sealed class AsyncActionAssertions(Func<ValueTask> subject, string? subje
     public Func<ValueTask> Subject { get; } = subject;
     public string? SubjectExpression { get; } = subjectExpression;
 
-    public async ValueTask<AndContinuation<AsyncActionAssertions>> ThrowAsync<TException>(
+    public async ValueTask<ThrownExceptionAssertions<AsyncActionAssertions>> ThrowAsync<TException>(
         string? because = null,
         [CallerFilePath] string? callerFilePath = null,
         [CallerLineNumber] int callerLineNumber = 0)
@@ -20,7 +20,13 @@ public sealed class AsyncActionAssertions(Func<ValueTask> subject, string? subje
 
         if (capturedException is TException)
         {
-            return new AndContinuation<AsyncActionAssertions>(this);
+            return new ThrownExceptionAssertions<AsyncActionAssertions>(
+                capturedException,
+                wasThrowAssertionSatisfied: true,
+                this,
+                SubjectLabel(),
+                because,
+                Fail);
         }
 
         object actual = capturedException is null
@@ -34,10 +40,16 @@ public sealed class AsyncActionAssertions(Func<ValueTask> subject, string? subje
             because);
         Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
 
-        return new AndContinuation<AsyncActionAssertions>(this);
+        return new ThrownExceptionAssertions<AsyncActionAssertions>(
+            capturedException,
+            wasThrowAssertionSatisfied: false,
+            this,
+            SubjectLabel(),
+            because,
+            Fail);
     }
 
-    public async ValueTask<AndContinuation<AsyncActionAssertions>> ThrowExactlyAsync<TException>(
+    public async ValueTask<ThrownExceptionAssertions<AsyncActionAssertions>> ThrowExactlyAsync<TException>(
         string? because = null,
         [CallerFilePath] string? callerFilePath = null,
         [CallerLineNumber] int callerLineNumber = 0)
@@ -46,7 +58,13 @@ public sealed class AsyncActionAssertions(Func<ValueTask> subject, string? subje
         var capturedException = await CaptureExceptionAsync().ConfigureAwait(false);
         if (capturedException?.GetType() == typeof(TException))
         {
-            return new AndContinuation<AsyncActionAssertions>(this);
+            return new ThrownExceptionAssertions<AsyncActionAssertions>(
+                capturedException,
+                wasThrowAssertionSatisfied: true,
+                this,
+                SubjectLabel(),
+                because,
+                Fail);
         }
 
         object actual = capturedException is null
@@ -60,7 +78,13 @@ public sealed class AsyncActionAssertions(Func<ValueTask> subject, string? subje
             because);
         Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
 
-        return new AndContinuation<AsyncActionAssertions>(this);
+        return new ThrownExceptionAssertions<AsyncActionAssertions>(
+            capturedException,
+            wasThrowAssertionSatisfied: false,
+            this,
+            SubjectLabel(),
+            because,
+            Fail);
     }
 
     public async ValueTask<AndContinuation<AsyncActionAssertions>> NotThrowAsync(

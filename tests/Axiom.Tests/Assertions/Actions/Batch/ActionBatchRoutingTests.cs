@@ -105,4 +105,30 @@ public sealed class ActionBatchRoutingTests
         Assert.Contains($"1) Expected noThrow to throw exactly {typeof(InvalidOperationException)}, but found <no exception>.", message);
         Assert.Contains("2) Expected hasThrow to not throw, but found System.ArgumentException.", message);
     }
+
+    [Fact]
+    public void ExceptionDetailAssertions_OutsideBatch_ThrowImmediately()
+    {
+        Action action = static () => throw new ArgumentNullException("value");
+
+        Assert.Throws<InvalidOperationException>(() =>
+            action.Should().Throw<ArgumentException>().WithMessage("different"));
+    }
+
+    [Fact]
+    public void ExceptionDetailAssertions_InsideBatch_DoNotThrowAtAssertionCallSite()
+    {
+        Action action = static () => throw new ArgumentNullException("value");
+
+        using var batch = new Axiom.Core.Batch();
+        var callEx = Record.Exception(() =>
+            action.Should()
+                .Throw<ArgumentException>()
+                .WithMessage("different")
+                .WithParamName("other")
+                .WithInnerException<InvalidOperationException>());
+
+        Assert.Null(callEx);
+        Assert.Throws<InvalidOperationException>(() => batch.Dispose());
+    }
 }

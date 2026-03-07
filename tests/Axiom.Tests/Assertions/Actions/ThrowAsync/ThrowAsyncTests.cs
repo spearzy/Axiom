@@ -5,6 +5,17 @@ namespace Axiom.Tests.Assertions.Actions.ThrowAsync;
 public sealed class ThrowAsyncTests
 {
     [Fact]
+    public async Task ThrowAsync_ReturnsAssertions_AndPointsBackToSameAssertions()
+    {
+        Func<Task> action = static () => Task.FromException(new InvalidOperationException("boom"));
+
+        var baseAssertions = action.Should();
+        var continuation = await baseAssertions.ThrowAsync<InvalidOperationException>();
+
+        Assert.Same(baseAssertions, continuation.And);
+    }
+
+    [Fact]
     public async Task ThrowAsync_Passes_WhenExpectedExceptionTypeIsThrown()
     {
         Func<Task> action = static () => Task.FromException(new InvalidOperationException("boom"));

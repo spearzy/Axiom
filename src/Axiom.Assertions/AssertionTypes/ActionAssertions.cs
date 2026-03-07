@@ -10,7 +10,7 @@ public sealed class ActionAssertions(Action subject, string? subjectExpression)
     public Action Subject { get; } = subject;
     public string? SubjectExpression { get; } = subjectExpression;
 
-    public AndContinuation<ActionAssertions> Throw<TException>(
+    public ThrownExceptionAssertions<ActionAssertions> Throw<TException>(
         string? because = null,
         [CallerFilePath] string? callerFilePath = null,
         [CallerLineNumber] int callerLineNumber = 0)
@@ -21,7 +21,13 @@ public sealed class ActionAssertions(Action subject, string? subjectExpression)
         // Accept the requested type or any subtype (common assertion-library expectation).
         if (capturedException is TException)
         {
-            return new AndContinuation<ActionAssertions>(this);
+            return new ThrownExceptionAssertions<ActionAssertions>(
+                capturedException,
+                wasThrowAssertionSatisfied: true,
+                this,
+                SubjectLabel(),
+                because,
+                Fail);
         }
 
         object actual = capturedException is null
@@ -35,10 +41,16 @@ public sealed class ActionAssertions(Action subject, string? subjectExpression)
             because);
         Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
 
-        return new AndContinuation<ActionAssertions>(this);
+        return new ThrownExceptionAssertions<ActionAssertions>(
+            capturedException,
+            wasThrowAssertionSatisfied: false,
+            this,
+            SubjectLabel(),
+            because,
+            Fail);
     }
 
-    public AndContinuation<ActionAssertions> ThrowExactly<TException>(
+    public ThrownExceptionAssertions<ActionAssertions> ThrowExactly<TException>(
         string? because = null,
         [CallerFilePath] string? callerFilePath = null,
         [CallerLineNumber] int callerLineNumber = 0)
@@ -47,7 +59,13 @@ public sealed class ActionAssertions(Action subject, string? subjectExpression)
         var capturedException = CaptureException();
         if (capturedException?.GetType() == typeof(TException))
         {
-            return new AndContinuation<ActionAssertions>(this);
+            return new ThrownExceptionAssertions<ActionAssertions>(
+                capturedException,
+                wasThrowAssertionSatisfied: true,
+                this,
+                SubjectLabel(),
+                because,
+                Fail);
         }
 
         object actual = capturedException is null
@@ -61,7 +79,13 @@ public sealed class ActionAssertions(Action subject, string? subjectExpression)
             because);
         Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
 
-        return new AndContinuation<ActionAssertions>(this);
+        return new ThrownExceptionAssertions<ActionAssertions>(
+            capturedException,
+            wasThrowAssertionSatisfied: false,
+            this,
+            SubjectLabel(),
+            because,
+            Fail);
     }
 
     public AndContinuation<ActionAssertions> NotThrow(
