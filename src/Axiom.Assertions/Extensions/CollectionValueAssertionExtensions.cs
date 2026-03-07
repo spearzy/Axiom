@@ -297,7 +297,7 @@ public static class CollectionValueAssertionExtensions
         return new AndContinuation<ValueAssertions<TCollection>>(assertions);
     }
 
-    public static AndContinuation<ValueAssertions<TCollection>> ContainSingle<TCollection>(
+    public static ContainSingleContinuation<ValueAssertions<TCollection>> ContainSingle<TCollection>(
         this ValueAssertions<TCollection> assertions,
         string? because = null,
         [CallerFilePath] string? callerFilePath = null,
@@ -306,14 +306,18 @@ public static class CollectionValueAssertionExtensions
     {
         ArgumentNullException.ThrowIfNull(assertions);
 
-        CollectionAssertionEngine.AssertContainSingle(
+        var result = CollectionAssertionEngine.AssertContainSingleAndCaptureResult(
             assertions.Subject,
             assertions.SubjectExpression,
             because,
             callerFilePath,
             callerLineNumber);
 
-        return new AndContinuation<ValueAssertions<TCollection>>(assertions);
+        return new ContainSingleContinuation<ValueAssertions<TCollection>>(
+            assertions,
+            result.HasSingleItem,
+            result.SingleItem,
+            result.FailureMessage);
     }
 
     public static AndContinuation<ValueAssertions<TCollection>> OnlyContain<TCollection, TItem>(

@@ -9,6 +9,11 @@ namespace Axiom.Assertions.AssertionTypes;
 // Shared collection assertion logic invoked by extension methods to avoid per-call wrapper allocations.
 internal static class CollectionAssertionEngine
 {
+    public readonly record struct ContainSingleResult(
+        bool HasSingleItem,
+        object? SingleItem,
+        string? FailureMessage);
+
     public static void AssertContain<T>(
         IEnumerable<T>? subject,
         string? subjectExpression,
@@ -477,36 +482,20 @@ internal static class CollectionAssertionEngine
         }
     }
 
-    public static void AssertContainSingle(
+    public static ContainSingleResult AssertContainSingleAndCaptureResult(
         IEnumerable? subject,
         string? subjectExpression,
         string? because,
         string? callerFilePath,
         int callerLineNumber)
     {
-        var subjectLabel = SubjectLabel(subjectExpression);
-        if (subject is null)
+        var result = EvaluateContainSingle(subject, subjectExpression, because);
+        if (result.FailureMessage is not null)
         {
-            var nullFailure = new Failure(
-                subjectLabel,
-                new Expectation("to contain a single item", IncludeExpectedValue: false),
-                subject,
-                because);
-            Fail(FailureMessageRenderer.Render(nullFailure), callerFilePath, callerLineNumber);
-            return;
+            Fail(result.FailureMessage, callerFilePath, callerLineNumber);
         }
 
-        var actualCount = GetCount(subject);
-        if (actualCount != 1)
-        {
-            var failure = new Failure(
-                subjectLabel,
-                new Expectation("to contain a single item", IncludeExpectedValue: false),
-                actualCount,
-                because);
-            Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
-            return;
-        }
+        return result;
     }
 
     public static void AssertOnlyContain<T>(
@@ -1157,6 +1146,65 @@ internal static class CollectionAssertionEngine
     private static string SubjectLabel(string? subjectExpression)
     {
         return string.IsNullOrWhiteSpace(subjectExpression) ? "<subject>" : subjectExpression;
+    }
+
+    private static ContainSingleResult EvaluateContainSingle(
+        IEnumerable? subject,
+        string? subjectExpression,
+        string? because)
+    {
+        var subjectLabel = SubjectLabel(subjectExpression);
+        if (subject is null)
+        {
+            return new ContainSingleResult(
+                HasSingleItem: false,
+                SingleItem: null,
+                FailureMessage: RenderContainSingleFailure(subjectLabel, subject, because));
+        }
+
+        var count = 0;
+        object? singleItem = null;
+
+        var enumerator = subject.GetEnumerator();
+        try
+        {
+            while (enumerator.MoveNext())
+            {
+                if (count == 0)
+                {
+                    singleItem = enumerator.Current;
+                }
+
+                count++;
+            }
+        }
+        finally
+        {
+            (enumerator as IDisposable)?.Dispose();
+        }
+
+        if (count != 1)
+        {
+            return new ContainSingleResult(
+                HasSingleItem: false,
+                SingleItem: null,
+                FailureMessage: RenderContainSingleFailure(subjectLabel, count, because));
+        }
+
+        return new ContainSingleResult(
+            HasSingleItem: true,
+            SingleItem: singleItem,
+            FailureMessage: null);
+    }
+
+    private static string RenderContainSingleFailure(string subjectLabel, object? actual, string? because)
+    {
+        var failure = new Failure(
+            subjectLabel,
+            new Expectation("to contain a single item", IncludeExpectedValue: false),
+            actual,
+            because);
+        return FailureMessageRenderer.Render(failure);
     }
 
     private static IEqualityComparer<T> GetComparer<T>()
