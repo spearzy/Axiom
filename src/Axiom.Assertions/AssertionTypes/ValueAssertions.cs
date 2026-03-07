@@ -50,6 +50,62 @@ public sealed class ValueAssertions<T>(T subject, string? subjectExpression)
         return new AndContinuation<ValueAssertions<T>>(this);
     }
 
+    public AndContinuation<ValueAssertions<T>> BeOneOf(
+        IEnumerable<T> expectedValues,
+        string? because = null,
+        [CallerFilePath] string? callerFilePath = null,
+        [CallerLineNumber] int callerLineNumber = 0)
+    {
+        ArgumentNullException.ThrowIfNull(expectedValues);
+
+        var replayableExpectedValues = EnsureReplayableExpectedValues(expectedValues);
+        var comparer = GetComparer();
+        var hasMatch = TryFindMatch(replayableExpectedValues, Subject, comparer, out var hasExpectedValues);
+        if (!hasExpectedValues)
+        {
+            throw new ArgumentException("expectedValues must contain at least one value.", nameof(expectedValues));
+        }
+
+        if (!hasMatch)
+        {
+            var failure = new Failure(
+                SubjectLabel(),
+                new Expectation("to be one of", RenderExpectedSet(replayableExpectedValues)),
+                Subject,
+                because);
+            Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
+        }
+        return new AndContinuation<ValueAssertions<T>>(this);
+    }
+
+    public AndContinuation<ValueAssertions<T>> NotBeOneOf(
+        IEnumerable<T> unexpectedValues,
+        string? because = null,
+        [CallerFilePath] string? callerFilePath = null,
+        [CallerLineNumber] int callerLineNumber = 0)
+    {
+        ArgumentNullException.ThrowIfNull(unexpectedValues);
+
+        var replayableUnexpectedValues = EnsureReplayableExpectedValues(unexpectedValues);
+        var comparer = GetComparer();
+        var hasMatch = TryFindMatch(replayableUnexpectedValues, Subject, comparer, out var hasUnexpectedValues);
+        if (!hasUnexpectedValues)
+        {
+            throw new ArgumentException("unexpectedValues must contain at least one value.", nameof(unexpectedValues));
+        }
+
+        if (hasMatch)
+        {
+            var failure = new Failure(
+                SubjectLabel(),
+                new Expectation("to not be one of", RenderExpectedSet(replayableUnexpectedValues)),
+                Subject,
+                because);
+            Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
+        }
+        return new AndContinuation<ValueAssertions<T>>(this);
+    }
+
     public AndContinuation<ValueAssertions<T>> BeSameAs(
         T? expectedReference,
         string? because = null,
@@ -352,6 +408,49 @@ public sealed class ValueAssertions<T>(T subject, string? subjectExpression)
         return false;
     }
 
+    private static IEnumerable<T> EnsureReplayableExpectedValues(IEnumerable<T> expectedValues)
+    {
+        if (expectedValues is T[] or List<T> or ICollection<T> or IReadOnlyCollection<T>)
+        {
+            return expectedValues;
+        }
+
+        return expectedValues.ToArray();
+    }
+
+    private static bool TryFindMatch(
+        IEnumerable<T> candidates,
+        T subject,
+        IEqualityComparer<T> comparer,
+        out bool hasCandidates)
+    {
+        hasCandidates = false;
+        foreach (var candidate in candidates)
+        {
+            hasCandidates = true;
+            if (comparer.Equals(subject, candidate))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private static RenderedText RenderExpectedSet(IEnumerable<T> expectedValues)
+    {
+        var formatter = AxiomServices.Configuration.ValueFormatter;
+        var formattedValues = new List<string>();
+        foreach (var expected in expectedValues)
+        {
+            formattedValues.Add(formatter.Format(expected));
+        }
+
+        // Keep output deterministic across collection types with unstable enumeration order.
+        formattedValues.Sort(StringComparer.Ordinal);
+        return new RenderedText($"[{string.Join(", ", formattedValues)}]");
+    }
+
     private AndContinuation<ValueAssertions<T>> BeEquivalentToInternal<TExpected>(
         TExpected expected,
         EquivalencyOptions options,
@@ -417,6 +516,14 @@ public sealed class ValueAssertions<T>(T subject, string? subjectExpression)
         public override string ToString()
         {
             return $"[{Minimum}, {Maximum}]";
+        }
+    }
+
+    private readonly record struct RenderedText(string Text)
+    {
+        public override string ToString()
+        {
+            return Text;
         }
     }
 }

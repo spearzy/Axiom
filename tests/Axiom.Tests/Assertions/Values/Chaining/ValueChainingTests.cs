@@ -33,11 +33,44 @@ public sealed class ValueChainingTests
     }
 
     [Fact]
+    public void BeOneOf_ReturnsContinuation_AndPointsBackToSameAssertions()
+    {
+        var value = 42;
+
+        var baseAssertions = value.Should();
+        var continuation = baseAssertions.BeOneOf([1, 42, 99]);
+
+        Assert.Same(baseAssertions, continuation.And);
+    }
+
+    [Fact]
+    public void NotBeOneOf_ReturnsContinuation_AndPointsBackToSameAssertions()
+    {
+        var value = 42;
+
+        var baseAssertions = value.Should();
+        var continuation = baseAssertions.NotBeOneOf([1, 2, 3]);
+
+        Assert.Same(baseAssertions, continuation.And);
+    }
+
+    [Fact]
     public void FullChain_CanBeComposed()
     {
         var value = 42;
 
         value.Should().Be(42).And.NotBe(0);
+    }
+
+    [Fact]
+    public void OneOfChain_CanBeComposed()
+    {
+        var value = 42;
+
+        value.Should()
+            .BeOneOf([41, 42, 43]).And
+            .NotBeOneOf([1, 2, 3]).And
+            .Be(42);
     }
 
     [Fact]

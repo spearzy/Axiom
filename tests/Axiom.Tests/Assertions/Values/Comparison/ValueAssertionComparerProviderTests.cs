@@ -33,6 +33,29 @@ public sealed class ValueAssertionComparerProviderTests : IDisposable
     }
 
     [Fact]
+    public void BeOneOf_UsesConfiguredComparerProvider()
+    {
+        AxiomServices.Configure(c => c.ComparerProvider = new OddEvenMatchIntComparerProvider());
+
+        var value = 3;
+        var ex = Record.Exception(() => value.Should().BeOneOf([2, 4, 5]));
+
+        Assert.Null(ex);
+    }
+
+    [Fact]
+    public void NotBeOneOf_UsesConfiguredComparerProvider()
+    {
+        AxiomServices.Configure(c => c.ComparerProvider = new OddEvenMatchIntComparerProvider());
+
+        var value = 3;
+        var ex = Assert.Throws<InvalidOperationException>(() => value.Should().NotBeOneOf([2, 4, 5]));
+
+        const string expected = "Expected value to not be one of [2, 4, 5], but found 3.";
+        Assert.Equal(expected, ex.Message);
+    }
+
+    [Fact]
     public void Be_FallsBackToDefaultComparer_WhenProviderDoesNotSupplyOne()
     {
         AxiomServices.Configure(c => c.ComparerProvider = new EmptyComparerProvider());

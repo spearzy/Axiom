@@ -56,6 +56,64 @@ public sealed class ValueBatchRoutingTests
     }
 
     [Fact]
+    public void BeOneOf_OutsideBatch_ThrowsImmediately()
+    {
+        var value = 42;
+
+        Assert.Throws<InvalidOperationException>(() => value.Should().BeOneOf([1, 2, 3]));
+    }
+
+    [Fact]
+    public void BeOneOf_InsideBatch_DoesNotThrowAtAssertionCallSite()
+    {
+        var value = 42;
+
+        using var batch = new Axiom.Core.Batch();
+        var callEx = Record.Exception(() => value.Should().BeOneOf([1, 2, 3]));
+
+        Assert.Null(callEx);
+        Assert.Throws<InvalidOperationException>(() => batch.Dispose());
+    }
+
+    [Fact]
+    public void NotBeOneOf_OutsideBatch_ThrowsImmediately()
+    {
+        var value = 42;
+
+        Assert.Throws<InvalidOperationException>(() => value.Should().NotBeOneOf([41, 42, 43]));
+    }
+
+    [Fact]
+    public void NotBeOneOf_InsideBatch_DoesNotThrowAtAssertionCallSite()
+    {
+        var value = 42;
+
+        using var batch = new Axiom.Core.Batch();
+        var callEx = Record.Exception(() => value.Should().NotBeOneOf([41, 42, 43]));
+
+        Assert.Null(callEx);
+        Assert.Throws<InvalidOperationException>(() => batch.Dispose());
+    }
+
+    [Fact]
+    public void Batch_Dispose_ThrowsCombinedFailures_FromOneOfAssertions()
+    {
+        var value = 42;
+
+        var ex = Assert.Throws<InvalidOperationException>(() =>
+        {
+            using var batch = new Axiom.Core.Batch("one-of");
+            value.Should().BeOneOf([1, 2, 3]);
+            value.Should().NotBeOneOf([41, 42, 43]);
+        });
+
+        var message = ex.Message.Replace("\r\n", "\n", StringComparison.Ordinal);
+        Assert.Contains("Batch 'one-of' failed with 2 assertion failure(s):", message);
+        Assert.Contains("1) Expected value to be one of [1, 2, 3], but found 42.", message);
+        Assert.Contains("2) Expected value to not be one of [41, 42, 43], but found 42.", message);
+    }
+
+    [Fact]
     public void BeFalse_OutsideBatch_ThrowsImmediately()
     {
         const bool value = true;

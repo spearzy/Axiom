@@ -62,6 +62,8 @@ Expected value to start with "ab", but found "test".
 ### Value assertions
 - `Be(expected)`
 - `NotBe(unexpected)`
+- `BeOneOf(expectedValues)`
+- `NotBeOneOf(unexpectedValues)`
 - `BeNull()`
 - `NotBeNull()`
 - `BeSameAs(expectedReference)`
@@ -207,7 +209,9 @@ Batch 'user profile' failed with 3 assertion failure(s):
 ```csharp
 42.Should()
     .Be(42).And
+    .BeOneOf([40, 41, 42]).And
     .NotBe(0).And
+    .NotBeOneOf([100, 200]).And
     .BeGreaterThan(10).And
     .BeInRange(40, 50);
 
