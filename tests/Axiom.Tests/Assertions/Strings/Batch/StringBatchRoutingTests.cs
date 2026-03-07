@@ -5,6 +5,46 @@ namespace Axiom.Tests.Assertions.Strings.Batch;
 public sealed class StringBatchRoutingTests
 {
     [Fact]
+    public void Be_OutsideBatch_ThrowsImmediately()
+    {
+        const string value = "test";
+
+        Assert.Throws<InvalidOperationException>(() => value.Should().Be("prod"));
+    }
+
+    [Fact]
+    public void Be_InsideBatch_DoesNotThrowAtAssertionCallSite()
+    {
+        const string value = "test";
+
+        using var batch = new Axiom.Core.Batch();
+        var callEx = Record.Exception(() => value.Should().Be("prod"));
+
+        Assert.Null(callEx);
+        Assert.Throws<InvalidOperationException>(() => batch.Dispose());
+    }
+
+    [Fact]
+    public void NotBe_OutsideBatch_ThrowsImmediately()
+    {
+        const string value = "test";
+
+        Assert.Throws<InvalidOperationException>(() => value.Should().NotBe("test"));
+    }
+
+    [Fact]
+    public void NotBe_InsideBatch_DoesNotThrowAtAssertionCallSite()
+    {
+        const string value = "test";
+
+        using var batch = new Axiom.Core.Batch();
+        var callEx = Record.Exception(() => value.Should().NotBe("test"));
+
+        Assert.Null(callEx);
+        Assert.Throws<InvalidOperationException>(() => batch.Dispose());
+    }
+
+    [Fact]
     public void Contain_OutsideBatch_ThrowsImmediately()
     {
         const string value = "test";

@@ -361,6 +361,43 @@ public sealed class StringAssertions(string? subject, string? subjectExpression)
     {
         return MatchCore(pattern, timeout, because, callerFilePath, callerLineNumber);
     }
+    
+    public AndContinuation<StringAssertions> Be(
+        string expected,
+        string? because = null,
+        [CallerFilePath] string? callerFilePath = null,
+        [CallerLineNumber] int callerLineNumber = 0)
+    {
+        if (!string.Equals(Subject, expected, StringComparison.Ordinal))
+        {
+            var failure = new Failure(
+                SubjectLabel(),
+                new Expectation("to be", expected),
+                Subject,
+                because);
+            Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
+        }
+        
+        return new AndContinuation<StringAssertions>(this);
+    }
+
+    public AndContinuation<StringAssertions> NotBe(
+        string unexpected,
+        string? because = null,
+        [CallerFilePath] string? callerFilePath = null,
+        [CallerLineNumber] int callerLineNumber = 0)
+    {
+        if (string.Equals(Subject, unexpected, StringComparison.Ordinal))
+        {
+            var failure = new Failure(
+                SubjectLabel(),
+                new Expectation("to not be", unexpected),
+                Subject,
+                because);
+            Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
+        }
+        return new AndContinuation<StringAssertions>(this);
+    }
 
     private AndContinuation<StringAssertions> MatchCore(
         string pattern,

@@ -5,6 +5,28 @@ namespace Axiom.Tests.Assertions.Strings.Chaining;
 public sealed class StringChainingTests
 {
     [Fact]
+    public void Be_ReturnsContinuation_AndPointsBackToSameAssertions()
+    {
+        var value = "test";
+
+        var baseAssertions = value.Should();
+        var continuation = baseAssertions.Be("test");
+
+        Assert.Same(baseAssertions, continuation.And);
+    }
+
+    [Fact]
+    public void NotBe_ReturnsContinuation_AndPointsBackToSameAssertions()
+    {
+        var value = "test";
+
+        var baseAssertions = value.Should();
+        var continuation = baseAssertions.NotBe("prod");
+
+        Assert.Same(baseAssertions, continuation.And);
+    }
+
+    [Fact]
     public void NotBeNull_ReturnsContinuation_AndPointsBackToSameAssertions()
     {
         var value = "test";
@@ -185,7 +207,7 @@ public sealed class StringChainingTests
     {
         var value = "test";
 
-        value.Should().StartWith("t").And.EndWith("t").And.NotBeNull();
+        value.Should().Be("test").And.StartWith("t").And.EndWith("t").And.NotBe("prod").And.NotBeNull();
     }
 
     [Fact]
@@ -194,6 +216,7 @@ public sealed class StringChainingTests
         var value = "AB-123";
 
         value.Should()
+            .Be("AB-123").And
             .NotBeNull().And
             .NotBeNullOrWhiteSpace().And
             .NotBeNullOrEmpty().And
@@ -205,6 +228,7 @@ public sealed class StringChainingTests
             .Match(@"^[A-Z]{2}-\d{3}$").And
             .NotMatch(@"^\d+$").And
             .EndWith("123").And
+            .NotBe("ZZ-999").And
             .NotBeEmpty();
     }
 
