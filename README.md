@@ -146,6 +146,7 @@ Expected value to start with "ab", but found "test".
 - `BeEmpty()`
 - `NotBeEmpty()`
 - `ContainSingle()`
+- `ContainSingle().SingleItem`
 - `OnlyContain(predicate)`
 - `NotContain(item)` / `NotContain(predicate)`
 - `AllSatisfy(assertion)`
@@ -495,6 +496,10 @@ values.Should()
     .HaveCount(3).And
     .NotBeEmpty();
 
+Order[] orders = [new(42, 19.99m)];
+var onlyOrder = (Order)orders.Should().ContainSingle().SingleItem!;
+onlyOrder.Total.Should().Be(19.99m);
+
 Dictionary<string, int> scores = new()
 {
     ["a"] = 1,
@@ -505,6 +510,12 @@ scores.Should()
     .ContainKey("a").And
     .ContainValue(2).And
     .ContainEntry("b", 2);
+
+// If ContainSingle fails outside Batch, it throws immediately.
+// Inside Batch, the failure is aggregated; accessing SingleItem then throws:
+// "SingleItem is unavailable because ContainSingle failed with error: <original failure>"
+
+public sealed record Order(int Id, decimal Total);
 ```
 
 ### Temporal Assertions
