@@ -1,7 +1,6 @@
 using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 using Axiom.Assertions.Chaining;
-using Axiom.Core;
 using Axiom.Core.Configuration;
 using Axiom.Core.Failures;
 
@@ -24,7 +23,7 @@ public sealed class StringAssertions(string? subject, string? subjectExpression)
                 new Expectation("to not be null", IncludeExpectedValue: false),
                 Subject,
                 because);
-            Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
+            AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
         }
         return new AndContinuation<StringAssertions>(this);
     }
@@ -41,7 +40,7 @@ public sealed class StringAssertions(string? subject, string? subjectExpression)
                 new Expectation("to be null", IncludeExpectedValue: false),
                 Subject,
                 because);
-            Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
+            AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
         }
         return new AndContinuation<StringAssertions>(this);
     }
@@ -70,7 +69,7 @@ public sealed class StringAssertions(string? subject, string? subjectExpression)
                 new Expectation("to start with", expectedPrefix),
                 subject,
                 because);
-            Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
+            AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
             return new AndContinuation<StringAssertions>(this);
         }
 
@@ -82,7 +81,7 @@ public sealed class StringAssertions(string? subject, string? subjectExpression)
                 new Expectation("to start with", expectedPrefix),
                 RenderStringActualWithDetail(subject, detail),
                 because);
-            Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
+            AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
         }
         return new AndContinuation<StringAssertions>(this);
     }
@@ -111,7 +110,7 @@ public sealed class StringAssertions(string? subject, string? subjectExpression)
                 new Expectation("to end with", expectedSuffix),
                 subject,
                 because);
-            Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
+            AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
             return new AndContinuation<StringAssertions>(this);
         }
 
@@ -123,7 +122,7 @@ public sealed class StringAssertions(string? subject, string? subjectExpression)
                 new Expectation("to end with", expectedSuffix),
                 RenderStringActualWithDetail(subject, detail),
                 because);
-            Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
+            AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
         }
         return new AndContinuation<StringAssertions>(this);
     }
@@ -152,7 +151,7 @@ public sealed class StringAssertions(string? subject, string? subjectExpression)
                 new Expectation("to contain", expectedSubstring),
                 subject,
                 because);
-            Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
+            AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
             return new AndContinuation<StringAssertions>(this);
         }
 
@@ -164,7 +163,7 @@ public sealed class StringAssertions(string? subject, string? subjectExpression)
                 new Expectation("to contain", expectedSubstring),
                 RenderStringActualWithDetail(subject, detail),
                 because);
-            Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
+            AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
         }
         return new AndContinuation<StringAssertions>(this);
     }
@@ -193,7 +192,7 @@ public sealed class StringAssertions(string? subject, string? subjectExpression)
                 new Expectation("to not contain", unexpectedSubstring),
                 subject,
                 because);
-            Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
+            AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
             return new AndContinuation<StringAssertions>(this);
         }
 
@@ -206,7 +205,7 @@ public sealed class StringAssertions(string? subject, string? subjectExpression)
                 new Expectation("to not contain", unexpectedSubstring),
                 RenderStringActualWithDetail(subject, detail),
                 because);
-            Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
+            AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
         }
         return new AndContinuation<StringAssertions>(this);
     }
@@ -231,7 +230,7 @@ public sealed class StringAssertions(string? subject, string? subjectExpression)
                 new Expectation("to have length", expectedLength),
                 actual,
                 because);
-            Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
+            AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
         }
         return new AndContinuation<StringAssertions>(this);
     }
@@ -249,7 +248,7 @@ public sealed class StringAssertions(string? subject, string? subjectExpression)
                 new Expectation("to be empty", IncludeExpectedValue: false),
                 subject,
                 because);
-            Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
+            AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
         }
         return new AndContinuation<StringAssertions>(this);
     }
@@ -267,7 +266,7 @@ public sealed class StringAssertions(string? subject, string? subjectExpression)
                 new Expectation("to not be empty", IncludeExpectedValue: false),
                 subject,
                 because);
-            Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
+            AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
         }
         return new AndContinuation<StringAssertions>(this);
     }
@@ -285,7 +284,7 @@ public sealed class StringAssertions(string? subject, string? subjectExpression)
                 new Expectation("to be null or empty", IncludeExpectedValue: false),
                 subject,
                 because);
-            Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
+            AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
         }
         return new AndContinuation<StringAssertions>(this);
     }
@@ -303,7 +302,7 @@ public sealed class StringAssertions(string? subject, string? subjectExpression)
                 new Expectation("to not be null or empty", IncludeExpectedValue: false),
                 subject,
                 because);
-            Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
+            AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
         }
         return new AndContinuation<StringAssertions>(this);
     }
@@ -323,7 +322,7 @@ public sealed class StringAssertions(string? subject, string? subjectExpression)
                 new Expectation("to be equivalent to", expected),
                 subject,
                 because);
-            Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
+            AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
         }
         return new AndContinuation<StringAssertions>(this);
     }
@@ -342,7 +341,7 @@ public sealed class StringAssertions(string? subject, string? subjectExpression)
                 new Expectation("to be null or white-space", IncludeExpectedValue: false),
                 subject,
                 because);
-            Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
+            AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
         }
         return new AndContinuation<StringAssertions>(this);
     }
@@ -360,7 +359,7 @@ public sealed class StringAssertions(string? subject, string? subjectExpression)
                 new Expectation("to not be null or white-space", IncludeExpectedValue: false),
                 subject,
                 because);
-            Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
+            AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
         }
         return new AndContinuation<StringAssertions>(this);
     }
@@ -415,7 +414,7 @@ public sealed class StringAssertions(string? subject, string? subjectExpression)
                 new Expectation("to be", expected),
                 actual,
                 because);
-            Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
+            AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
         }
 
         return new AndContinuation<StringAssertions>(this);
@@ -452,7 +451,7 @@ public sealed class StringAssertions(string? subject, string? subjectExpression)
                 new Expectation("to not be", unexpected),
                 actual,
                 because);
-            Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
+            AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
         }
         return new AndContinuation<StringAssertions>(this);
     }
@@ -475,7 +474,7 @@ public sealed class StringAssertions(string? subject, string? subjectExpression)
                 new Expectation("to match regex", pattern),
                 subject,
                 because);
-            Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
+            AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
             return new AndContinuation<StringAssertions>(this);
         }
 
@@ -486,7 +485,7 @@ public sealed class StringAssertions(string? subject, string? subjectExpression)
                 new Expectation("to match regex", pattern),
                 new RenderedText($"regex evaluation timed out after {regexTimeout.TotalMilliseconds:0} ms"),
                 because);
-            Fail(FailureMessageRenderer.Render(timeoutFailure), callerFilePath, callerLineNumber);
+            AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(timeoutFailure), callerFilePath, callerLineNumber);
             return new AndContinuation<StringAssertions>(this);
         }
 
@@ -497,7 +496,7 @@ public sealed class StringAssertions(string? subject, string? subjectExpression)
                 new Expectation("to match regex", pattern),
                 subject,
                 because);
-            Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
+            AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
         }
         return new AndContinuation<StringAssertions>(this);
     }
@@ -539,7 +538,7 @@ public sealed class StringAssertions(string? subject, string? subjectExpression)
                 new Expectation("to not match regex", pattern),
                 subject,
                 because);
-            Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
+            AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
             return new AndContinuation<StringAssertions>(this);
         }
 
@@ -550,7 +549,7 @@ public sealed class StringAssertions(string? subject, string? subjectExpression)
                 new Expectation("to not match regex", pattern),
                 new RenderedText($"regex evaluation timed out after {regexTimeout.TotalMilliseconds:0} ms"),
                 because);
-            Fail(FailureMessageRenderer.Render(timeoutFailure), callerFilePath, callerLineNumber);
+            AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(timeoutFailure), callerFilePath, callerLineNumber);
             return new AndContinuation<StringAssertions>(this);
         }
 
@@ -561,7 +560,7 @@ public sealed class StringAssertions(string? subject, string? subjectExpression)
                 new Expectation("to not match regex", pattern),
                 subject,
                 because);
-            Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
+            AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
         }
         return new AndContinuation<StringAssertions>(this);
     }
@@ -591,19 +590,6 @@ public sealed class StringAssertions(string? subject, string? subjectExpression)
         return value
             .Replace("\\", "\\\\", StringComparison.Ordinal)
             .Replace("\"", "\\\"", StringComparison.Ordinal);
-    }
-
-    private void Fail(string message, string? callerFilePath, int callerLineNumber)
-    {
-
-        var batch = Batch.Current;
-        if (batch is not null)
-        {
-            batch.AddFailure(message);
-            return;
-        }
-
-        throw new InvalidOperationException(message);
     }
 
     private static TimeSpan ResolveRegexTimeout(TimeSpan? timeoutOverride)

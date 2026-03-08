@@ -2,7 +2,6 @@ using System.Globalization;
 using System.Runtime.CompilerServices;
 using Axiom.Assertions.AssertionTypes;
 using Axiom.Assertions.Chaining;
-using Axiom.Core;
 using Axiom.Core.Failures;
 
 namespace Axiom.Assertions.Extensions;
@@ -28,7 +27,7 @@ public static class NumericValueAssertionExtensions
                 assertions.Subject,
                 because);
 
-            Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
+            AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
         }
 
         return new AndContinuation<ValueAssertions<double>>(assertions);
@@ -53,7 +52,7 @@ public static class NumericValueAssertionExtensions
                 assertions.Subject,
                 because);
 
-            Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
+            AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
         }
 
         return new AndContinuation<ValueAssertions<float>>(assertions);
@@ -78,7 +77,7 @@ public static class NumericValueAssertionExtensions
                 assertions.Subject,
                 because);
 
-            Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
+            AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
         }
 
         return new AndContinuation<ValueAssertions<decimal>>(assertions);
@@ -166,17 +165,5 @@ public static class NumericValueAssertionExtensions
                 nameof(tolerance),
                 "Tolerance must be greater than or equal to zero.");
         }
-    }
-
-    private static void Fail(string message, string? callerFilePath, int callerLineNumber)
-    {
-        var batch = Batch.Current;
-        if (batch is not null)
-        {
-            batch.AddFailure(message);
-            return;
-        }
-
-        throw new InvalidOperationException(message);
     }
 }

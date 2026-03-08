@@ -54,7 +54,7 @@ public sealed class Batch : IDisposable
         }
 
         var report = BatchReportRenderer.Render(Name, _failures);
-        throw new InvalidOperationException(report);
+        AssertionFailureDispatcher.Throw(report);
     }
 
     private void AddFailures(List<string> failures)

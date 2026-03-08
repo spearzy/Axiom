@@ -29,7 +29,8 @@ public sealed class ThrownExceptionAssertions<TParent, TException>(
             var message = throwFailureMessage is null
                 ? "Thrown is unavailable because Throw assertion failed."
                 : $"Thrown is unavailable because Throw assertion failed with error: {throwFailureMessage}";
-            throw new InvalidOperationException(message);
+            AssertionFailureDispatcher.Throw(message);
+            throw new InvalidOperationException("Failure strategy returned without throwing.");
         }
     }
 

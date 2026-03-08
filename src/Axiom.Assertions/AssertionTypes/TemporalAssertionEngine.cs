@@ -1,4 +1,3 @@
-using Axiom.Core;
 using Axiom.Core.Failures;
 
 namespace Axiom.Assertions.AssertionTypes;
@@ -23,7 +22,7 @@ internal static class TemporalAssertionEngine
             new Expectation("to be before", expected),
             subject,
             because);
-        Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
+        AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
     }
 
     public static void AssertBeAfter(
@@ -44,7 +43,7 @@ internal static class TemporalAssertionEngine
             new Expectation("to be after", expected),
             subject,
             because);
-        Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
+        AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
     }
 
     public static void AssertBeWithin(
@@ -67,7 +66,7 @@ internal static class TemporalAssertionEngine
             new Expectation($"to be within {normalisedTolerance} of", expected),
             subject,
             because);
-        Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
+        AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
     }
 
     public static void AssertBeBefore(
@@ -88,7 +87,7 @@ internal static class TemporalAssertionEngine
             new Expectation("to be before", expected),
             subject,
             because);
-        Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
+        AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
     }
 
     public static void AssertBeAfter(
@@ -109,7 +108,7 @@ internal static class TemporalAssertionEngine
             new Expectation("to be after", expected),
             subject,
             because);
-        Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
+        AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
     }
 
     public static void AssertBeWithin(
@@ -132,7 +131,7 @@ internal static class TemporalAssertionEngine
             new Expectation($"to be within {normalisedTolerance} of", expected),
             subject,
             because);
-        Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
+        AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
     }
 
     public static void AssertBeBefore(
@@ -153,7 +152,7 @@ internal static class TemporalAssertionEngine
             new Expectation("to be before", expected),
             subject,
             because);
-        Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
+        AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
     }
 
     public static void AssertBeAfter(
@@ -174,7 +173,7 @@ internal static class TemporalAssertionEngine
             new Expectation("to be after", expected),
             subject,
             because);
-        Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
+        AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
     }
 
     public static void AssertBeWithin(
@@ -198,7 +197,7 @@ internal static class TemporalAssertionEngine
             new Expectation($"to be within {normalisedTolerance} of", expected),
             subject,
             because);
-        Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
+        AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
     }
 
     public static void AssertBeBefore(
@@ -219,7 +218,7 @@ internal static class TemporalAssertionEngine
             new Expectation("to be before", expected),
             subject,
             because);
-        Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
+        AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
     }
 
     public static void AssertBeAfter(
@@ -240,7 +239,7 @@ internal static class TemporalAssertionEngine
             new Expectation("to be after", expected),
             subject,
             because);
-        Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
+        AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
     }
 
     public static void AssertBeWithin(
@@ -263,7 +262,7 @@ internal static class TemporalAssertionEngine
             new Expectation($"to be within {normalisedTolerance} of", expected),
             subject,
             because);
-        Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
+        AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
     }
 
     private static string SubjectLabel(string? subjectExpression)
@@ -286,18 +285,5 @@ internal static class TemporalAssertionEngine
         var directTicks = Math.Abs(left.Ticks - right.Ticks);
         var wrappedTicks = TimeSpan.TicksPerDay - directTicks;
         return TimeSpan.FromTicks(Math.Min(directTicks, wrappedTicks));
-    }
-
-    private static void Fail(string message, string? callerFilePath, int callerLineNumber)
-    {
-
-        var batch = Batch.Current;
-        if (batch is not null)
-        {
-            batch.AddFailure(message);
-            return;
-        }
-
-        throw new InvalidOperationException(message);
     }
 }

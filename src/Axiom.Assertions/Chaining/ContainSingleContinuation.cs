@@ -1,3 +1,5 @@
+using Axiom.Core.Failures;
+
 namespace Axiom.Assertions.Chaining;
 
 public readonly struct ContainSingleContinuation<TAssertions>
@@ -32,7 +34,8 @@ public readonly struct ContainSingleContinuation<TAssertions>
             var message = _containSingleFailureMessage is null
                 ? "SingleItem is unavailable because ContainSingle failed."
                 : $"SingleItem is unavailable because ContainSingle failed with error: {_containSingleFailureMessage}";
-            throw new InvalidOperationException(message);
+            AssertionFailureDispatcher.Throw(message);
+            throw new InvalidOperationException("Failure strategy returned without throwing.");
         }
     }
 }
@@ -69,7 +72,8 @@ public readonly struct ContainSingleContinuation<TAssertions, TItem>
             var message = _containSingleFailureMessage is null
                 ? "SingleItem is unavailable because ContainSingle failed."
                 : $"SingleItem is unavailable because ContainSingle failed with error: {_containSingleFailureMessage}";
-            throw new InvalidOperationException(message);
+            AssertionFailureDispatcher.Throw(message);
+            throw new InvalidOperationException("Failure strategy returned without throwing.");
         }
     }
 }
