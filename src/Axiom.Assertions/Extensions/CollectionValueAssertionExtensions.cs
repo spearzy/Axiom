@@ -398,6 +398,7 @@ public static class CollectionValueAssertionExtensions
         this ValueAssertions<TCollection> assertions,
         Func<TItem, bool> predicate,
         string? because = null,
+        [CallerArgumentExpression(nameof(predicate))] string? predicateExpression = null,
         [CallerFilePath] string? callerFilePath = null,
         [CallerLineNumber] int callerLineNumber = 0)
         where TCollection : IEnumerable<TItem>
@@ -409,6 +410,7 @@ public static class CollectionValueAssertionExtensions
             assertions.Subject,
             assertions.SubjectExpression,
             predicate,
+            predicateExpression,
             because,
             callerFilePath,
             callerLineNumber);
@@ -420,6 +422,7 @@ public static class CollectionValueAssertionExtensions
         this ValueAssertions<TCollection> assertions,
         Func<TItem, bool> predicate,
         string? because = null,
+        [CallerArgumentExpression(nameof(predicate))] string? predicateExpression = null,
         [CallerFilePath] string? callerFilePath = null,
         [CallerLineNumber] int callerLineNumber = 0)
         where TCollection : IEnumerable<TItem>
@@ -431,6 +434,7 @@ public static class CollectionValueAssertionExtensions
             assertions.Subject,
             assertions.SubjectExpression,
             predicate,
+            predicateExpression,
             because,
             callerFilePath,
             callerLineNumber);

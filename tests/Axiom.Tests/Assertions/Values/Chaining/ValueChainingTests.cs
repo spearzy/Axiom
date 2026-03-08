@@ -107,6 +107,19 @@ public sealed class ValueChainingTests
     }
 
     [Fact]
+    public void PredicateVariableChain_CanBeComposed()
+    {
+        var value = 42;
+        Func<int, bool> isLargeEnough = x => x > 40;
+        Func<int, bool> isNegative = x => x < 0;
+
+        value.Should()
+            .Satisfy(isLargeEnough).And
+            .NotSatisfy(isNegative).And
+            .Be(42);
+    }
+
+    [Fact]
     public void NotBeEquivalentTo_ReturnsContinuation_AndPointsBackToSameAssertions()
     {
         var value = 42;

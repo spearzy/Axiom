@@ -21,7 +21,7 @@ public sealed class SatisfyTests
 
         var ex = Assert.Throws<InvalidOperationException>(() => value.Should().Satisfy(static x => x < 40));
 
-        const string expected = "Expected value to satisfy predicate, but found 42.";
+        const string expected = "Expected value to satisfy predicate `x => x < 40`, but found 42.";
         Assert.Equal(expected, ex.Message);
     }
 
@@ -45,5 +45,16 @@ public sealed class SatisfyTests
         var ex = Assert.Throws<ArgumentNullException>(() => value.Should().Satisfy(predicate!));
 
         Assert.Equal("predicate", ex.ParamName);
+    }
+
+    [Fact]
+    public void Satisfy_UsesPredicateVariableName_InFailureMessage()
+    {
+        const int value = 41;
+        Func<int, bool> isEven = x => x % 2 == 0;
+
+        var ex = Assert.Throws<InvalidOperationException>(() => value.Should().Satisfy(isEven));
+
+        Assert.Contains("predicate `isEven`", ex.Message, StringComparison.Ordinal);
     }
 }

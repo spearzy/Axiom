@@ -109,6 +109,7 @@ public sealed class ValueAssertions<T>(T subject, string? subjectExpression)
     public AndContinuation<ValueAssertions<T>> Satisfy(
         Func<T, bool> predicate,
         string? because = null,
+        [CallerArgumentExpression(nameof(predicate))] string? predicateExpression = null,
         [CallerFilePath] string? callerFilePath = null,
         [CallerLineNumber] int callerLineNumber = 0)
     {
@@ -118,7 +119,7 @@ public sealed class ValueAssertions<T>(T subject, string? subjectExpression)
         {
             var failure = new Failure(
                 SubjectLabel(),
-                new Expectation("to satisfy predicate", IncludeExpectedValue: false),
+                new Expectation(AssertionMessageText.BuildPredicateExpectationText("to satisfy predicate", predicateExpression), IncludeExpectedValue: false),
                 Subject,
                 because);
             Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
@@ -130,6 +131,7 @@ public sealed class ValueAssertions<T>(T subject, string? subjectExpression)
     public AndContinuation<ValueAssertions<T>> NotSatisfy(
         Func<T, bool> predicate,
         string? because = null,
+        [CallerArgumentExpression(nameof(predicate))] string? predicateExpression = null,
         [CallerFilePath] string? callerFilePath = null,
         [CallerLineNumber] int callerLineNumber = 0)
     {
@@ -139,7 +141,7 @@ public sealed class ValueAssertions<T>(T subject, string? subjectExpression)
         {
             var failure = new Failure(
                 SubjectLabel(),
-                new Expectation("to not satisfy predicate", IncludeExpectedValue: false),
+                new Expectation(AssertionMessageText.BuildPredicateExpectationText("to not satisfy predicate", predicateExpression), IncludeExpectedValue: false),
                 Subject,
                 because);
             Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);

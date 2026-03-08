@@ -21,7 +21,7 @@ public sealed class NotSatisfyTests
 
         var ex = Assert.Throws<InvalidOperationException>(() => value.Should().NotSatisfy(static x => x > 40));
 
-        const string expected = "Expected value to not satisfy predicate, but found 42.";
+        const string expected = "Expected value to not satisfy predicate `x => x > 40`, but found 42.";
         Assert.Equal(expected, ex.Message);
     }
 
@@ -45,5 +45,16 @@ public sealed class NotSatisfyTests
         var ex = Assert.Throws<ArgumentNullException>(() => value.Should().NotSatisfy(predicate!));
 
         Assert.Equal("predicate", ex.ParamName);
+    }
+
+    [Fact]
+    public void NotSatisfy_UsesPredicateVariableName_InFailureMessage()
+    {
+        const int value = 42;
+        Func<int, bool> isPositive = x => x > 0;
+
+        var ex = Assert.Throws<InvalidOperationException>(() => value.Should().NotSatisfy(isPositive));
+
+        Assert.Contains("predicate `isPositive`", ex.Message, StringComparison.Ordinal);
     }
 }

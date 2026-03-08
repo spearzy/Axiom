@@ -167,8 +167,28 @@ public sealed class ValueBatchRoutingTests
 
         var message = ex.Message.Replace("\r\n", "\n", StringComparison.Ordinal);
         Assert.Contains("Batch 'predicates' failed with 2 assertion failure(s):", message);
-        Assert.Contains("1) Expected value to satisfy predicate, but found 42.", message);
-        Assert.Contains("2) Expected value to not satisfy predicate, but found 42.", message);
+        Assert.Contains("1) Expected value to satisfy predicate `x => x < 40`, but found 42.", message);
+        Assert.Contains("2) Expected value to not satisfy predicate `x => x > 40`, but found 42.", message);
+    }
+
+    [Fact]
+    public void Batch_Dispose_UsesPredicateVariableNames_InPredicateFailures()
+    {
+        var value = 42;
+        Func<int, bool> isNegative = x => x < 0;
+        Func<int, bool> isPositive = x => x > 0;
+
+        var ex = Assert.Throws<InvalidOperationException>(() =>
+        {
+            using var batch = new Axiom.Core.Batch("predicate-vars");
+            value.Should().Satisfy(isNegative);
+            value.Should().NotSatisfy(isPositive);
+        });
+
+        var message = ex.Message.Replace("\r\n", "\n", StringComparison.Ordinal);
+        Assert.Contains("Batch 'predicate-vars' failed with 2 assertion failure(s):", message);
+        Assert.Contains("1) Expected value to satisfy predicate `isNegative`, but found 42.", message);
+        Assert.Contains("2) Expected value to not satisfy predicate `isPositive`, but found 42.", message);
     }
 
     [Fact]

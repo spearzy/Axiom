@@ -52,6 +52,19 @@ public sealed class CollectionChainingTests
     }
 
     [Fact]
+    public void PredicateVariableChain_CanBeComposed()
+    {
+        int[] values = [1, 2, 3];
+        Func<int, bool> isNegative = x => x < 0;
+        Func<int, bool> isPositive = x => x > 0;
+
+        values.Should()
+            .NotContain(isNegative).And
+            .OnlyContain(isPositive).And
+            .ContainInOrder([1, 3]);
+    }
+
+    [Fact]
     public void ItemAndAllSatisfyChain_CanBeComposed()
     {
         int[] values = [1, 2, 3];
