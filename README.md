@@ -5,6 +5,16 @@
 [![CI](https://github.com/spearzy/Axiom/actions/workflows/ci.yml/badge.svg)](https://github.com/spearzy/Axiom/actions/workflows/ci.yml)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 
+**Packages**
+
+`Axiom.Assertions`  
+[![Version](https://img.shields.io/nuget/v/Axiom.Assertions?label=version)](https://www.nuget.org/packages/Axiom.Assertions)
+[![Downloads](https://img.shields.io/nuget/dt/Axiom.Assertions?label=downloads)](https://www.nuget.org/packages/Axiom.Assertions)
+
+`Axiom.Core`  
+[![Version](https://img.shields.io/nuget/v/Axiom.Core?label=version)](https://www.nuget.org/packages/Axiom.Core)
+[![Downloads](https://img.shields.io/nuget/dt/Axiom.Core?label=downloads)](https://www.nuget.org/packages/Axiom.Core)
+
 Axiom is an open-source assertion library for .NET tests. It helps you write fluent, readable assertions, get clear deterministic failure messages, and optionally collect multiple failures in one run with `Batch`.
 
 ## Table of Contents
