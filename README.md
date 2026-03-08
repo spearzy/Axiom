@@ -93,6 +93,8 @@ Batch 'user profile' failed with 2 assertion failure(s):
     .Satisfy(x => x % 2 == 0);
 
 "Admin".Should().Be("Admin");
+"Admin".Should().Be("admin", StringComparison.OrdinalIgnoreCase);
+"Admin".Should().NotBe("ops", StringComparison.OrdinalIgnoreCase);
 "ops@example.com".Should().Contain("@");
 "ABC".Should().StartWith("ab", StringComparison.OrdinalIgnoreCase);
 ```

@@ -27,12 +27,34 @@ public sealed class StringChainingTests
     }
 
     [Fact]
+    public void Be_WithComparison_ReturnsContinuation_AndPointsBackToSameAssertions()
+    {
+        var value = "ABC";
+
+        var baseAssertions = value.Should();
+        var continuation = baseAssertions.Be("abc", StringComparison.OrdinalIgnoreCase);
+
+        Assert.Same(baseAssertions, continuation.And);
+    }
+
+    [Fact]
     public void NotBe_ReturnsContinuation_AndPointsBackToSameAssertions()
     {
         var value = "test";
 
         var baseAssertions = value.Should();
         var continuation = baseAssertions.NotBe("prod");
+
+        Assert.Same(baseAssertions, continuation.And);
+    }
+
+    [Fact]
+    public void NotBe_WithComparison_ReturnsContinuation_AndPointsBackToSameAssertions()
+    {
+        var value = "ABC";
+
+        var baseAssertions = value.Should();
+        var continuation = baseAssertions.NotBe("abc", StringComparison.Ordinal);
 
         Assert.Same(baseAssertions, continuation.And);
     }
@@ -249,9 +271,11 @@ public sealed class StringChainingTests
         const string value = "ABC-123";
 
         value.Should()
+            .Be("abc-123", StringComparison.OrdinalIgnoreCase).And
             .StartWith("ab", StringComparison.OrdinalIgnoreCase).And
             .Contain("-1", StringComparison.OrdinalIgnoreCase).And
             .NotContain("zz", StringComparison.OrdinalIgnoreCase).And
-            .EndWith("123", StringComparison.OrdinalIgnoreCase);
+            .EndWith("123", StringComparison.OrdinalIgnoreCase).And
+            .NotBe("zzz", StringComparison.OrdinalIgnoreCase);
     }
 }

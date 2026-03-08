@@ -47,4 +47,27 @@ public sealed class BeTests
 
         Assert.Contains("because the environment marker must match", ex.Message, StringComparison.Ordinal);
     }
+
+    [Fact]
+    public void Be_DoesNotThrow_WhenComparisonIgnoresCase()
+    {
+        const string value = "ABC";
+
+        var ex = Record.Exception(() =>
+            value.Should().Be("abc", StringComparison.OrdinalIgnoreCase));
+
+        Assert.Null(ex);
+    }
+
+    [Fact]
+    public void Be_Throws_WhenComparisonIsCaseSensitive()
+    {
+        const string value = "ABC";
+
+        var ex = Assert.Throws<InvalidOperationException>(() =>
+            value.Should().Be("abc", StringComparison.Ordinal));
+
+        Assert.Contains("Expected value to be \"abc\"", ex.Message, StringComparison.Ordinal);
+        Assert.Contains("first string difference", ex.Message, StringComparison.Ordinal);
+    }
 }

@@ -390,14 +390,24 @@ public sealed class StringAssertions(string? subject, string? subjectExpression)
         [CallerFilePath] string? callerFilePath = null,
         [CallerLineNumber] int callerLineNumber = 0)
     {
+        return Be(expected, StringComparison.Ordinal, because, callerFilePath, callerLineNumber);
+    }
+
+    public AndContinuation<StringAssertions> Be(
+        string expected,
+        StringComparison comparison,
+        string? because = null,
+        [CallerFilePath] string? callerFilePath = null,
+        [CallerLineNumber] int callerLineNumber = 0)
+    {
         var subject = Subject;
-        if (!string.Equals(subject, expected, StringComparison.Ordinal))
+        if (!string.Equals(subject, expected, comparison))
         {
             object? actual = subject;
             if (subject is not null)
             {
                 var detail = StringDifferenceDiagnostics.BuildEqualityFailureDetail(expected, subject);
-                actual = RenderStringActualWithDetail(subject, detail);
+                actual = RenderStringActualWithDetail(subject, IncludeComparisonInDetail(detail, comparison));
             }
 
             var failure = new Failure(
@@ -417,14 +427,24 @@ public sealed class StringAssertions(string? subject, string? subjectExpression)
         [CallerFilePath] string? callerFilePath = null,
         [CallerLineNumber] int callerLineNumber = 0)
     {
+        return NotBe(unexpected, StringComparison.Ordinal, because, callerFilePath, callerLineNumber);
+    }
+
+    public AndContinuation<StringAssertions> NotBe(
+        string unexpected,
+        StringComparison comparison,
+        string? because = null,
+        [CallerFilePath] string? callerFilePath = null,
+        [CallerLineNumber] int callerLineNumber = 0)
+    {
         var subject = Subject;
-        if (string.Equals(subject, unexpected, StringComparison.Ordinal))
+        if (string.Equals(subject, unexpected, comparison))
         {
             object? actual = subject;
             if (subject is not null)
             {
                 var detail = StringDifferenceDiagnostics.BuildEqualityFailureDetail(unexpected, subject);
-                actual = RenderStringActualWithDetail(subject, detail);
+                actual = RenderStringActualWithDetail(subject, IncludeComparisonInDetail(detail, comparison));
             }
 
             var failure = new Failure(
@@ -554,6 +574,16 @@ public sealed class StringAssertions(string? subject, string? subjectExpression)
     private static RenderedText RenderStringActualWithDetail(string actual, string detail)
     {
         return new RenderedText($"\"{EscapeForMessage(actual)}\" ({detail})");
+    }
+
+    private static string IncludeComparisonInDetail(string detail, StringComparison comparison)
+    {
+        if (comparison == StringComparison.Ordinal)
+        {
+            return detail;
+        }
+
+        return $"comparison {comparison}; {detail}";
     }
 
     private static string EscapeForMessage(string value)

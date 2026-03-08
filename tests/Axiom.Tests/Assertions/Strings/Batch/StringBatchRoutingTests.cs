@@ -45,6 +45,28 @@ public sealed class StringBatchRoutingTests
     }
 
     [Fact]
+    public void Be_WithComparison_OutsideBatch_ThrowsImmediately()
+    {
+        const string value = "ABC";
+
+        Assert.Throws<InvalidOperationException>(() =>
+            value.Should().Be("abc", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void Be_WithComparison_InsideBatch_DoesNotThrowAtAssertionCallSite()
+    {
+        const string value = "ABC";
+
+        using var batch = new Axiom.Core.Batch();
+        var callEx = Record.Exception(() =>
+            value.Should().Be("abc", StringComparison.Ordinal));
+
+        Assert.Null(callEx);
+        Assert.Throws<InvalidOperationException>(() => batch.Dispose());
+    }
+
+    [Fact]
     public void NotBe_OutsideBatch_ThrowsImmediately()
     {
         const string value = "test";
@@ -59,6 +81,28 @@ public sealed class StringBatchRoutingTests
 
         using var batch = new Axiom.Core.Batch();
         var callEx = Record.Exception(() => value.Should().NotBe("test"));
+
+        Assert.Null(callEx);
+        Assert.Throws<InvalidOperationException>(() => batch.Dispose());
+    }
+
+    [Fact]
+    public void NotBe_WithComparison_OutsideBatch_ThrowsImmediately()
+    {
+        const string value = "ABC";
+
+        Assert.Throws<InvalidOperationException>(() =>
+            value.Should().NotBe("abc", StringComparison.OrdinalIgnoreCase));
+    }
+
+    [Fact]
+    public void NotBe_WithComparison_InsideBatch_DoesNotThrowAtAssertionCallSite()
+    {
+        const string value = "ABC";
+
+        using var batch = new Axiom.Core.Batch();
+        var callEx = Record.Exception(() =>
+            value.Should().NotBe("abc", StringComparison.OrdinalIgnoreCase));
 
         Assert.Null(callEx);
         Assert.Throws<InvalidOperationException>(() => batch.Dispose());
@@ -471,6 +515,25 @@ public sealed class StringBatchRoutingTests
         Assert.Contains("4) Expected endWithValue to end with \"ab\", but found \"test\" (end comparison; first difference at expected index 0, actual index 2; expected snippet \"ab\", actual snippet \"st\").", message);
         Assert.Contains("5) Expected containValue to contain \"ab\", but found \"test\" (closest subject segment starts at index 0; first difference at expected index 0, actual index 0; expected snippet \"ab\", actual snippet \"te\").", message);
         Assert.Contains("6) Expected notContainValue to not contain \"es\", but found \"test\" (unexpected match at index 1; strings are identical).", message);
+    }
+
+    [Fact]
+    public void Batch_Dispose_ThrowsCombinedFailures_FromBeComparisonOverloads()
+    {
+        const string valueA = "ABC";
+        const string valueB = "ABC";
+
+        var ex = Assert.Throws<InvalidOperationException>(() =>
+        {
+            using var batch = new Axiom.Core.Batch("string-be-comparison");
+            valueA.Should().Be("abc", StringComparison.Ordinal);
+            valueB.Should().NotBe("abc", StringComparison.OrdinalIgnoreCase);
+        });
+
+        var message = ex.Message.Replace("\r\n", "\n", StringComparison.Ordinal);
+        Assert.Contains("Batch 'string-be-comparison' failed with 2 assertion failure(s):", message);
+        Assert.Contains("1) Expected valueA to be \"abc\", but found \"ABC\" (first string difference; first difference at expected index 0, actual index 0; expected snippet \"abc\", actual snippet \"ABC\").", message);
+        Assert.Contains("2) Expected valueB to not be \"abc\", but found \"ABC\" (comparison OrdinalIgnoreCase; first string difference; first difference at expected index 0, actual index 0; expected snippet \"abc\", actual snippet \"ABC\").", message);
     }
 
     [Fact]
