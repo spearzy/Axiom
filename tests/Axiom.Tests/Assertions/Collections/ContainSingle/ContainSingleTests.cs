@@ -1,5 +1,6 @@
 using Axiom.Assertions;
 using Axiom.Assertions.Extensions;
+using System.Collections;
 
 namespace Axiom.Tests.Assertions.Collections.ContainSingle;
 
@@ -20,6 +21,17 @@ public sealed class ContainSingleTests
     public void ContainSingle_ExposesSingleItem_WhenCollectionHasOneItem()
     {
         int[] values = [42];
+
+        var continuation = values.Should().ContainSingle();
+        var singleItem = Assert.IsType<int>(continuation.SingleItem);
+
+        Assert.Equal(42, singleItem);
+    }
+
+    [Fact]
+    public void ContainSingle_FallsBackToObjectSingleItem_ForNonGenericCollections()
+    {
+        var values = new ArrayList { 42 };
 
         var continuation = values.Should().ContainSingle();
         var singleItem = Assert.IsType<int>(continuation.SingleItem);
