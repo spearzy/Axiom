@@ -40,8 +40,8 @@ public sealed class BatchAssertionRoutingTests
 
         var message = ex.Message.Replace("\r\n", "\n", StringComparison.Ordinal);
         Assert.Contains("Batch 'strings' failed with 2 assertion failure(s):", message);
-        Assert.Contains("1) Expected value to start with \"ab\", but found \"test\".", message);
-        Assert.Contains("2) Expected value to end with \"cd\", but found \"test\".", message);
+        Assert.Contains("1) Expected value to start with \"ab\", but found \"test\" (start comparison; first difference at expected index 0, actual index 0; expected snippet \"ab\", actual snippet \"te\").", message);
+        Assert.Contains("2) Expected value to end with \"cd\", but found \"test\" (end comparison; first difference at expected index 0, actual index 2; expected snippet \"cd\", actual snippet \"st\").", message);
     }
 
 }
