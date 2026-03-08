@@ -1,7 +1,6 @@
 using System.Collections;
 using System.Text;
 using System.Linq;
-using Axiom.Core;
 using Axiom.Core.Configuration;
 using Axiom.Core.Failures;
 
@@ -41,7 +40,7 @@ internal static class CollectionAssertionEngine
                 new Expectation("to contain", expected),
                 subject,
                 because);
-            Fail(FailureMessageRenderer.Render(nullFailure), callerFilePath, callerLineNumber);
+            AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(nullFailure), callerFilePath, callerLineNumber);
             return;
         }
 
@@ -59,7 +58,7 @@ internal static class CollectionAssertionEngine
             new Expectation("to contain", expected),
             subject,
             because);
-        Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
+        AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
     }
 
     public static void AssertContainAll<T>(
@@ -81,7 +80,7 @@ internal static class CollectionAssertionEngine
                 new Expectation("to contain all", expectedText ??= new RenderedText(FormatSequence(expected))),
                 subject,
                 because);
-            Fail(FailureMessageRenderer.Render(nullFailure), callerFilePath, callerLineNumber);
+            AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(nullFailure), callerFilePath, callerLineNumber);
             return;
         }
 
@@ -104,7 +103,7 @@ internal static class CollectionAssertionEngine
                 new Expectation("to contain all", expectedText ??= new RenderedText(FormatSequence(expected))),
                 new RenderedText($"missing expected item at index {index}: {FormatSingleValue(expected[index])}"),
                 because);
-            Fail(FailureMessageRenderer.Render(missingItemFailure), callerFilePath, callerLineNumber);
+            AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(missingItemFailure), callerFilePath, callerLineNumber);
             return;
         }
     }
@@ -128,7 +127,7 @@ internal static class CollectionAssertionEngine
                 new Expectation("to contain any of", expectedText ??= new RenderedText(FormatSequence(expected))),
                 subject,
                 because);
-            Fail(FailureMessageRenderer.Render(nullFailure), callerFilePath, callerLineNumber);
+            AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(nullFailure), callerFilePath, callerLineNumber);
             return;
         }
 
@@ -139,7 +138,7 @@ internal static class CollectionAssertionEngine
                 new Expectation("to contain any of", expectedText ??= new RenderedText(FormatSequence(expected))),
                 new RenderedText("no expected items were provided"),
                 because);
-            Fail(FailureMessageRenderer.Render(noExpectedItemsFailure), callerFilePath, callerLineNumber);
+            AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(noExpectedItemsFailure), callerFilePath, callerLineNumber);
             return;
         }
 
@@ -157,7 +156,7 @@ internal static class CollectionAssertionEngine
             new Expectation("to contain any of", expectedText ??= new RenderedText(FormatSequence(expected))),
             new RenderedText("none of the expected items were found"),
             because);
-        Fail(FailureMessageRenderer.Render(missingAnyFailure), callerFilePath, callerLineNumber);
+        AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(missingAnyFailure), callerFilePath, callerLineNumber);
     }
 
     public static void AssertNotContainAny<T>(
@@ -179,7 +178,7 @@ internal static class CollectionAssertionEngine
                 new Expectation("to not contain any of", unexpectedText ??= new RenderedText(FormatSequence(unexpected))),
                 subject,
                 because);
-            Fail(FailureMessageRenderer.Render(nullFailure), callerFilePath, callerLineNumber);
+            AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(nullFailure), callerFilePath, callerLineNumber);
             return;
         }
 
@@ -199,7 +198,7 @@ internal static class CollectionAssertionEngine
                     new Expectation("to not contain any of", unexpectedText ??= new RenderedText(FormatSequence(unexpected))),
                     new RenderedText($"first matching item at subject index {subjectIndex}: {FormatSingleValue(subjectItem)}"),
                     because);
-                Fail(FailureMessageRenderer.Render(matchingUnexpectedFailure), callerFilePath, callerLineNumber);
+                AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(matchingUnexpectedFailure), callerFilePath, callerLineNumber);
                 return;
             }
 
@@ -222,7 +221,7 @@ internal static class CollectionAssertionEngine
                 new Expectation("to have unique items", IncludeExpectedValue: false),
                 subject,
                 because);
-            Fail(FailureMessageRenderer.Render(nullFailure), callerFilePath, callerLineNumber);
+            AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(nullFailure), callerFilePath, callerLineNumber);
             return;
         }
 
@@ -243,7 +242,7 @@ internal static class CollectionAssertionEngine
                 new Expectation("to have unique items", IncludeExpectedValue: false),
                 new RenderedText($"first duplicate item at index {index}: {FormatSingleValue(item)}"),
                 because);
-            Fail(FailureMessageRenderer.Render(duplicateItemFailure), callerFilePath, callerLineNumber);
+            AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(duplicateItemFailure), callerFilePath, callerLineNumber);
             return;
         }
     }
@@ -265,7 +264,7 @@ internal static class CollectionAssertionEngine
                 new Expectation("to have unique items by selected key", IncludeExpectedValue: false),
                 subject,
                 because);
-            Fail(FailureMessageRenderer.Render(nullFailure), callerFilePath, callerLineNumber);
+            AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(nullFailure), callerFilePath, callerLineNumber);
             return;
         }
 
@@ -289,7 +288,7 @@ internal static class CollectionAssertionEngine
                 new Expectation("to have unique items by selected key", IncludeExpectedValue: false),
                 new RenderedText($"first duplicate selected key at index {index}: {FormatSingleValue(key)}"),
                 because);
-            Fail(FailureMessageRenderer.Render(duplicateKeyFailure), callerFilePath, callerLineNumber);
+            AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(duplicateKeyFailure), callerFilePath, callerLineNumber);
             return;
         }
     }
@@ -313,7 +312,7 @@ internal static class CollectionAssertionEngine
                 new Expectation("to contain exactly", expectedSequenceText ??= new RenderedText(FormatSequence(expectedItems))),
                 subject,
                 because);
-            Fail(FailureMessageRenderer.Render(nullFailure), callerFilePath, callerLineNumber);
+            AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(nullFailure), callerFilePath, callerLineNumber);
             return;
         }
 
@@ -329,7 +328,7 @@ internal static class CollectionAssertionEngine
                     new Expectation("to contain exactly", expectedSequenceText ??= new RenderedText(FormatSequence(expectedItems))),
                     new RenderedText($"extra item at index {index}: {FormatSingleValue(item)}"),
                     because);
-                Fail(FailureMessageRenderer.Render(extraItemFailure), callerFilePath, callerLineNumber);
+                AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(extraItemFailure), callerFilePath, callerLineNumber);
                 return;
             }
 
@@ -341,7 +340,7 @@ internal static class CollectionAssertionEngine
                     new RenderedText(
                         $"item mismatch at index {index}: expected {FormatSingleValue(expectedItems[index])} but found {FormatSingleValue(item)}"),
                     because);
-                Fail(FailureMessageRenderer.Render(mismatchFailure), callerFilePath, callerLineNumber);
+                AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(mismatchFailure), callerFilePath, callerLineNumber);
                 return;
             }
 
@@ -356,7 +355,7 @@ internal static class CollectionAssertionEngine
                 new Expectation("to contain exactly", expectedSequenceText ??= new RenderedText(FormatSequence(expectedItems))),
                 new RenderedText($"missing item at index {index}: {FormatSingleValue(expectedItems[index])}"),
                 because);
-            Fail(FailureMessageRenderer.Render(missingItemFailure), callerFilePath, callerLineNumber);
+            AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(missingItemFailure), callerFilePath, callerLineNumber);
             return;
         }
     }
@@ -380,7 +379,7 @@ internal static class CollectionAssertionEngine
                 new Expectation("to be a subset of", supersetText ??= new RenderedText(FormatSequence(supersetItems))),
                 subject,
                 because);
-            Fail(FailureMessageRenderer.Render(nullFailure), callerFilePath, callerLineNumber);
+            AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(nullFailure), callerFilePath, callerLineNumber);
             return;
         }
 
@@ -400,7 +399,7 @@ internal static class CollectionAssertionEngine
                 new Expectation("to be a subset of", supersetText ??= new RenderedText(FormatSequence(supersetItems))),
                 new RenderedText($"missing item at index {index}: {FormatSingleValue(item)}"),
                 because);
-            Fail(FailureMessageRenderer.Render(missingItemFailure), callerFilePath, callerLineNumber);
+            AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(missingItemFailure), callerFilePath, callerLineNumber);
             return;
         }
     }
@@ -424,7 +423,7 @@ internal static class CollectionAssertionEngine
                 new Expectation("to be a superset of", subsetText ??= new RenderedText(FormatSequence(subsetItems))),
                 subject,
                 because);
-            Fail(FailureMessageRenderer.Render(nullFailure), callerFilePath, callerLineNumber);
+            AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(nullFailure), callerFilePath, callerLineNumber);
             return;
         }
 
@@ -442,7 +441,7 @@ internal static class CollectionAssertionEngine
                 new Expectation("to be a superset of", subsetText ??= new RenderedText(FormatSequence(subsetItems))),
                 new RenderedText($"missing expected item at index {index}: {FormatSingleValue(subsetItems[index])}"),
                 because);
-            Fail(FailureMessageRenderer.Render(missingItemFailure), callerFilePath, callerLineNumber);
+            AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(missingItemFailure), callerFilePath, callerLineNumber);
             return;
         }
     }
@@ -463,7 +462,7 @@ internal static class CollectionAssertionEngine
                 new Expectation("to have count", expectedCount),
                 subject,
                 because);
-            Fail(FailureMessageRenderer.Render(nullFailure), callerFilePath, callerLineNumber);
+            AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(nullFailure), callerFilePath, callerLineNumber);
             return;
         }
 
@@ -478,7 +477,7 @@ internal static class CollectionAssertionEngine
                 new Expectation("to have count", expectedCount),
                 actualCount,
                 because);
-            Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
+            AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
             return;
         }
     }
@@ -498,7 +497,7 @@ internal static class CollectionAssertionEngine
                 new Expectation("to be empty", IncludeExpectedValue: false),
                 subject,
                 because);
-            Fail(FailureMessageRenderer.Render(nullFailure), callerFilePath, callerLineNumber);
+            AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(nullFailure), callerFilePath, callerLineNumber);
             return;
         }
 
@@ -510,7 +509,7 @@ internal static class CollectionAssertionEngine
                 new Expectation("to be empty", IncludeExpectedValue: false),
                 actualCount,
                 because);
-            Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
+            AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
             return;
         }
     }
@@ -530,7 +529,7 @@ internal static class CollectionAssertionEngine
                 new Expectation("to not be empty", IncludeExpectedValue: false),
                 subject,
                 because);
-            Fail(FailureMessageRenderer.Render(nullFailure), callerFilePath, callerLineNumber);
+            AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(nullFailure), callerFilePath, callerLineNumber);
             return;
         }
 
@@ -542,7 +541,7 @@ internal static class CollectionAssertionEngine
                 new Expectation("to not be empty", IncludeExpectedValue: false),
                 actualCount,
                 because);
-            Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
+            AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
             return;
         }
     }
@@ -557,7 +556,7 @@ internal static class CollectionAssertionEngine
         var result = EvaluateContainSingle(subject, subjectExpression, because);
         if (result.FailureMessage is not null)
         {
-            Fail(result.FailureMessage, callerFilePath, callerLineNumber);
+            AssertionFailureDispatcher.Fail(result.FailureMessage, callerFilePath, callerLineNumber);
         }
 
         return result;
@@ -574,7 +573,7 @@ internal static class CollectionAssertionEngine
         var result = EvaluateContainSingle(subject, subjectExpression, predicate, because);
         if (result.FailureMessage is not null)
         {
-            Fail(result.FailureMessage, callerFilePath, callerLineNumber);
+            AssertionFailureDispatcher.Fail(result.FailureMessage, callerFilePath, callerLineNumber);
         }
 
         return result;
@@ -602,7 +601,7 @@ internal static class CollectionAssertionEngine
                 new Expectation(GetExpectationText(), IncludeExpectedValue: false),
                 subject,
                 because);
-            Fail(FailureMessageRenderer.Render(nullFailure), callerFilePath, callerLineNumber);
+            AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(nullFailure), callerFilePath, callerLineNumber);
             return;
         }
 
@@ -620,7 +619,7 @@ internal static class CollectionAssertionEngine
                 new Expectation($"{GetExpectationText()} (first non-matching index {index})", IncludeExpectedValue: false),
                 item,
                 because);
-            Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
+            AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
             return;
         }
     }
@@ -647,7 +646,7 @@ internal static class CollectionAssertionEngine
                 new Expectation(GetExpectationText(), IncludeExpectedValue: false),
                 subject,
                 because);
-            Fail(FailureMessageRenderer.Render(nullFailure), callerFilePath, callerLineNumber);
+            AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(nullFailure), callerFilePath, callerLineNumber);
             return;
         }
 
@@ -665,7 +664,7 @@ internal static class CollectionAssertionEngine
                 new Expectation($"{GetExpectationText()} (first matching index {index})", IncludeExpectedValue: false),
                 item,
                 because);
-            Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
+            AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
             return;
         }
     }
@@ -686,7 +685,7 @@ internal static class CollectionAssertionEngine
                 new Expectation("to not contain", unexpected),
                 subject,
                 because);
-            Fail(FailureMessageRenderer.Render(nullFailure), callerFilePath, callerLineNumber);
+            AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(nullFailure), callerFilePath, callerLineNumber);
             return;
         }
 
@@ -703,7 +702,7 @@ internal static class CollectionAssertionEngine
                 new Expectation("to not contain", unexpected),
                 item,
                 because);
-            Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
+            AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
             return;
         }
     }
@@ -724,7 +723,7 @@ internal static class CollectionAssertionEngine
                 new Expectation("to satisfy all assertions for each item", IncludeExpectedValue: false),
                 subject,
                 because);
-            Fail(FailureMessageRenderer.Render(nullFailure), callerFilePath, callerLineNumber);
+            AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(nullFailure), callerFilePath, callerLineNumber);
             return;
         }
 
@@ -742,7 +741,7 @@ internal static class CollectionAssertionEngine
                     new Expectation($"to satisfy all assertions for each item (first failing index {index})", IncludeExpectedValue: false),
                     new RenderedText(ex.Message),
                     because);
-                Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
+                AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
                 return;
             }
 
@@ -766,7 +765,7 @@ internal static class CollectionAssertionEngine
                 new Expectation("to satisfy assertions respectively (same order and count)", IncludeExpectedValue: false),
                 subject,
                 because);
-            Fail(FailureMessageRenderer.Render(nullFailure), callerFilePath, callerLineNumber);
+            AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(nullFailure), callerFilePath, callerLineNumber);
             return;
         }
 
@@ -782,7 +781,7 @@ internal static class CollectionAssertionEngine
                     new Expectation("to satisfy assertions respectively (same order and count)", IncludeExpectedValue: false),
                     new RenderedText($"collection had fewer items than assertions (expected {expectedCount}, found {index})"),
                     because);
-                Fail(FailureMessageRenderer.Render(fewerItemsFailure), callerFilePath, callerLineNumber);
+                AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(fewerItemsFailure), callerFilePath, callerLineNumber);
                 return;
             }
 
@@ -798,7 +797,7 @@ internal static class CollectionAssertionEngine
                     new Expectation($"to satisfy assertions respectively (failing index {index})", IncludeExpectedValue: false),
                     new RenderedText(ex.Message),
                     because);
-                Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
+                AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
                 return;
             }
         }
@@ -814,7 +813,7 @@ internal static class CollectionAssertionEngine
             new Expectation("to satisfy assertions respectively (same order and count)", IncludeExpectedValue: false),
             new RenderedText($"collection had more items than assertions (expected {expectedCount}, found {actualCount})"),
             because);
-        Fail(FailureMessageRenderer.Render(moreItemsFailure), callerFilePath, callerLineNumber);
+        AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(moreItemsFailure), callerFilePath, callerLineNumber);
     }
 
     public static ContainKeyResult<TValue> AssertContainKeyAndCaptureResult<TKey, TValue>(
@@ -829,7 +828,7 @@ internal static class CollectionAssertionEngine
         if (subject is null)
         {
             var failureMessage = RenderContainKeyFailure(subjectLabel, expectedKey, subject, because);
-            Fail(failureMessage, callerFilePath, callerLineNumber);
+            AssertionFailureDispatcher.Fail(failureMessage, callerFilePath, callerLineNumber);
             return new ContainKeyResult<TValue>(HasValue: false, Value: default!, FailureMessage: failureMessage);
         }
 
@@ -840,7 +839,7 @@ internal static class CollectionAssertionEngine
 
         var failureText = new RenderedText($"keys were {FormatSortedSequence(subject.Keys)}");
         var failure = RenderContainKeyFailure(subjectLabel, expectedKey, failureText, because);
-        Fail(failure, callerFilePath, callerLineNumber);
+        AssertionFailureDispatcher.Fail(failure, callerFilePath, callerLineNumber);
         return new ContainKeyResult<TValue>(HasValue: false, Value: default!, FailureMessage: failure);
     }
 
@@ -860,7 +859,7 @@ internal static class CollectionAssertionEngine
                 new Expectation("to not contain key", unexpectedKey),
                 subject,
                 because);
-            Fail(FailureMessageRenderer.Render(nullFailure), callerFilePath, callerLineNumber);
+            AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(nullFailure), callerFilePath, callerLineNumber);
             return;
         }
 
@@ -874,7 +873,7 @@ internal static class CollectionAssertionEngine
             new Expectation("to not contain key", unexpectedKey),
             new RenderedText($"key was present with value {FormatSingleValue(actualValue)}"),
             because);
-        Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
+        AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
     }
 
     public static void AssertContainValue<TKey, TValue>(
@@ -893,7 +892,7 @@ internal static class CollectionAssertionEngine
                 new Expectation("to contain value", expectedValue),
                 subject,
                 because);
-            Fail(FailureMessageRenderer.Render(nullFailure), callerFilePath, callerLineNumber);
+            AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(nullFailure), callerFilePath, callerLineNumber);
             return;
         }
 
@@ -911,7 +910,7 @@ internal static class CollectionAssertionEngine
             new Expectation("to contain value", expectedValue),
             new RenderedText($"values were {FormatSortedSequence(subject.Values)}"),
             because);
-        Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
+        AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
     }
 
     public static void AssertNotContainValue<TKey, TValue>(
@@ -930,7 +929,7 @@ internal static class CollectionAssertionEngine
                 new Expectation("to not contain value", unexpectedValue),
                 subject,
                 because);
-            Fail(FailureMessageRenderer.Render(nullFailure), callerFilePath, callerLineNumber);
+            AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(nullFailure), callerFilePath, callerLineNumber);
             return;
         }
 
@@ -947,7 +946,7 @@ internal static class CollectionAssertionEngine
                 new Expectation("to not contain value", unexpectedValue),
                 new RenderedText($"a matching value at key {FormatSingleValue(pair.Key)}"),
                 because);
-            Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
+            AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
             return;
         }
     }
@@ -971,7 +970,7 @@ internal static class CollectionAssertionEngine
                 new Expectation("to contain entry", expectedEntry ??= new RenderedText(FormatEntry(expectedKey, expectedValue))),
                 subject,
                 because);
-            Fail(FailureMessageRenderer.Render(nullFailure), callerFilePath, callerLineNumber);
+            AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(nullFailure), callerFilePath, callerLineNumber);
             return;
         }
 
@@ -982,7 +981,7 @@ internal static class CollectionAssertionEngine
                 new Expectation("to contain entry", expectedEntry ??= new RenderedText(FormatEntry(expectedKey, expectedValue))),
                 new RenderedText($"key {FormatSingleValue(expectedKey)} was missing"),
                 because);
-            Fail(FailureMessageRenderer.Render(missingKeyFailure), callerFilePath, callerLineNumber);
+            AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(missingKeyFailure), callerFilePath, callerLineNumber);
             return;
         }
 
@@ -997,7 +996,7 @@ internal static class CollectionAssertionEngine
             new Expectation("to contain entry", expectedEntry ??= new RenderedText(FormatEntry(expectedKey, expectedValue))),
             new RenderedText($"key {FormatSingleValue(expectedKey)} had value {FormatSingleValue(actualValue)}"),
             because);
-        Fail(FailureMessageRenderer.Render(valueMismatchFailure), callerFilePath, callerLineNumber);
+        AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(valueMismatchFailure), callerFilePath, callerLineNumber);
     }
 
     public static void AssertNotContainEntry<TKey, TValue>(
@@ -1019,7 +1018,7 @@ internal static class CollectionAssertionEngine
                 new Expectation("to not contain entry", unexpectedEntry),
                 subject,
                 because);
-            Fail(FailureMessageRenderer.Render(nullFailure), callerFilePath, callerLineNumber);
+            AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(nullFailure), callerFilePath, callerLineNumber);
             return;
         }
 
@@ -1040,7 +1039,7 @@ internal static class CollectionAssertionEngine
             new Expectation("to not contain entry", unexpectedEntryText),
             new RenderedText($"matching entry was present: {FormatEntry(unexpectedKey, actualValue)}"),
             because);
-        Fail(FailureMessageRenderer.Render(presentEntryFailure), callerFilePath, callerLineNumber);
+        AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(presentEntryFailure), callerFilePath, callerLineNumber);
     }
 
     public static void AssertContainInOrder<T>(
@@ -1062,7 +1061,7 @@ internal static class CollectionAssertionEngine
                 new Expectation(expectationText, new RenderedText(FormatSequence(expectedItems))),
                 subject,
                 because);
-            Fail(FailureMessageRenderer.Render(nullFailure), callerFilePath, callerLineNumber);
+            AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(nullFailure), callerFilePath, callerLineNumber);
             return;
         }
 
@@ -1089,7 +1088,7 @@ internal static class CollectionAssertionEngine
                     $"missing expected item at sequence index {expectedIndex}: {FormatSingleValue(expectedItems[expectedIndex])}")
                 : new RenderedText("missing adjacent ordered sequence"),
             because);
-        Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
+        AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
     }
 
     public static void AssertContainInOrderByKey<T, TKey>(
@@ -1112,7 +1111,7 @@ internal static class CollectionAssertionEngine
                 new Expectation(expectationText, new RenderedText(FormatSequence(expectedItems))),
                 subject,
                 because);
-            Fail(FailureMessageRenderer.Render(nullFailure), callerFilePath, callerLineNumber);
+            AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(nullFailure), callerFilePath, callerLineNumber);
             return;
         }
 
@@ -1139,7 +1138,7 @@ internal static class CollectionAssertionEngine
                     $"missing expected selected value at sequence index {expectedIndex}: {FormatSingleValue(expectedItems[expectedIndex])}")
                 : new RenderedText("missing adjacent ordered sequence for selected values"),
             because);
-        Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
+        AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
     }
 
     public static void AssertBeInAscendingOrder(
@@ -1404,7 +1403,7 @@ internal static class CollectionAssertionEngine
                 new Expectation(expectationText, IncludeExpectedValue: false),
                 subject,
                 because);
-            Fail(FailureMessageRenderer.Render(nullFailure), callerFilePath, callerLineNumber);
+            AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(nullFailure), callerFilePath, callerLineNumber);
             return;
         }
 
@@ -1433,7 +1432,7 @@ internal static class CollectionAssertionEngine
                     new Expectation(expectationText, IncludeExpectedValue: false),
                     new RenderedText($"{failureDetailText} at index {index}: previous {FormatSingleValue(previous)} then current {FormatSingleValue(current)}"),
                     because);
-                Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
+                AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
                 return;
             }
         }
@@ -1498,7 +1497,7 @@ internal static class CollectionAssertionEngine
                 new Expectation(expectationText, IncludeExpectedValue: false),
                 subject,
                 because);
-            Fail(FailureMessageRenderer.Render(nullFailure), callerFilePath, callerLineNumber);
+            AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(nullFailure), callerFilePath, callerLineNumber);
             return;
         }
 
@@ -1525,7 +1524,7 @@ internal static class CollectionAssertionEngine
                 new Expectation(expectationText, IncludeExpectedValue: false),
                 new RenderedText($"{failureDetailText} at index {index}: previous {FormatSingleValue(previousKey)} then current {FormatSingleValue(currentKey)}"),
                 because);
-            Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
+            AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
             return;
         }
     }
@@ -1817,20 +1816,6 @@ internal static class CollectionAssertionEngine
         }
 
         return count;
-    }
-
-    private static void Fail(string message, string? callerFilePath, int callerLineNumber)
-    {
-
-        var batch = Batch.Current;
-        if (batch is not null)
-        {
-            // Collect failures during batch execution and throw once at root dispose.
-            batch.AddFailure(message);
-            return;
-        }
-
-        throw new InvalidOperationException(message);
     }
 
     private readonly record struct RenderedText(string Text)

@@ -1,6 +1,5 @@
 using System.Runtime.CompilerServices;
 using Axiom.Assertions.Chaining;
-using Axiom.Core;
 using Axiom.Core.Failures;
 
 namespace Axiom.Assertions.AssertionTypes;
@@ -28,7 +27,7 @@ public sealed class ActionAssertions(Action subject, string? subjectExpression)
                 this,
                 SubjectLabel(),
                 because,
-                Fail);
+                AssertionFailureDispatcher.Fail);
         }
 
         object actual = capturedException is null
@@ -41,7 +40,7 @@ public sealed class ActionAssertions(Action subject, string? subjectExpression)
             actual,
             because);
         var failureMessage = FailureMessageRenderer.Render(failure);
-        Fail(failureMessage, callerFilePath, callerLineNumber);
+        AssertionFailureDispatcher.Fail(failureMessage, callerFilePath, callerLineNumber);
 
         return new ThrownExceptionAssertions<ActionAssertions, TException>(
             capturedException,
@@ -50,7 +49,7 @@ public sealed class ActionAssertions(Action subject, string? subjectExpression)
             this,
             SubjectLabel(),
             because,
-            Fail);
+            AssertionFailureDispatcher.Fail);
     }
 
     public ThrownExceptionAssertions<ActionAssertions, TException> ThrowExactly<TException>(
@@ -69,7 +68,7 @@ public sealed class ActionAssertions(Action subject, string? subjectExpression)
                 this,
                 SubjectLabel(),
                 because,
-                Fail);
+                AssertionFailureDispatcher.Fail);
         }
 
         object actual = capturedException is null
@@ -82,7 +81,7 @@ public sealed class ActionAssertions(Action subject, string? subjectExpression)
             actual,
             because);
         var failureMessage = FailureMessageRenderer.Render(failure);
-        Fail(failureMessage, callerFilePath, callerLineNumber);
+        AssertionFailureDispatcher.Fail(failureMessage, callerFilePath, callerLineNumber);
 
         return new ThrownExceptionAssertions<ActionAssertions, TException>(
             capturedException,
@@ -91,7 +90,7 @@ public sealed class ActionAssertions(Action subject, string? subjectExpression)
             this,
             SubjectLabel(),
             because,
-            Fail);
+            AssertionFailureDispatcher.Fail);
     }
 
     public AndContinuation<ActionAssertions> NotThrow(
@@ -110,7 +109,7 @@ public sealed class ActionAssertions(Action subject, string? subjectExpression)
             new Expectation("to not throw", IncludeExpectedValue: false),
             capturedException.GetType(),
             because);
-        Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
+        AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
 
         return new AndContinuation<ActionAssertions>(this);
     }
@@ -132,20 +131,6 @@ public sealed class ActionAssertions(Action subject, string? subjectExpression)
     private string SubjectLabel()
     {
         return string.IsNullOrWhiteSpace(SubjectExpression) ? "<subject>" : SubjectExpression;
-    }
-
-    private static void Fail(string message, string? callerFilePath, int callerLineNumber)
-    {
-
-        var batch = Batch.Current;
-        if (batch is not null)
-        {
-            // In a batch we aggregate; root batch dispose will throw one combined exception.
-            batch.AddFailure(message);
-            return;
-        }
-
-        throw new InvalidOperationException(message);
     }
 
     private sealed class NoExceptionToken

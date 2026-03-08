@@ -278,7 +278,7 @@ Per-call configuration still overrides global defaults.
 
 ### Core Services
 
-Use `AxiomServices.Configure(...)` to change low-level behavior such as comparer selection, value formatting, or regex timeout.
+Use `AxiomServices.Configure(...)` to change low-level behaviour such as comparer selection, value formatting, regex timeout, or failure dispatch.
 
 ```csharp
 using Axiom.Core.Configuration;
@@ -289,6 +289,37 @@ AxiomServices.Configure(config =>
     config.ComparerProvider = new DomainComparerProvider();
 });
 ```
+
+### Failure Strategy
+
+Failure dispatch is configurable through `IFailureStrategy`.
+
+- Outside a `Batch`, each failed assertion goes through the configured strategy immediately.
+- Inside a `Batch`, assertion failures are aggregated first; when the root batch is disposed, the combined report goes through the configured strategy.
+
+Default behaviour throws `InvalidOperationException`.
+
+```csharp
+using Axiom.Core.Configuration;
+using Axiom.Core.Failures;
+
+AxiomServices.Configure(config =>
+{
+    config.FailureStrategy = new CustomFailureStrategy();
+});
+
+public sealed class CustomFailureStrategy : IFailureStrategy
+{
+    public void Fail(string message, string? callerFilePath = null, int callerLineNumber = 0)
+    {
+        // Replace this with your preferred exception type or framework integration.
+        throw new InvalidOperationException(
+            $"{message} (at {callerFilePath}:{callerLineNumber})");
+    }
+}
+```
+
+`IFailureStrategy.Fail(...)` should always throw. If a strategy returns instead of throwing, Axiom raises an `InvalidOperationException` guard failure.
 
 Use a custom comparer provider when your domain equality rules differ from default `.Equals(...)`. For one-off equivalency rules, prefer per-assertion options such as `UseComparerForType(...)`, `UseComparerForPath(...)`, or `UseComparerForMember(...)`.
 

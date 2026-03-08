@@ -1,6 +1,5 @@
 using System.Runtime.CompilerServices;
 using Axiom.Assertions.Chaining;
-using Axiom.Core;
 using Axiom.Core.Failures;
 
 namespace Axiom.Assertions.AssertionTypes;
@@ -27,7 +26,7 @@ public sealed class AsyncActionAssertions(Func<ValueTask> subject, string? subje
                 this,
                 SubjectLabel(),
                 because,
-                Fail);
+                AssertionFailureDispatcher.Fail);
         }
 
         object actual = capturedException is null
@@ -40,7 +39,7 @@ public sealed class AsyncActionAssertions(Func<ValueTask> subject, string? subje
             actual,
             because);
         var failureMessage = FailureMessageRenderer.Render(failure);
-        Fail(failureMessage, callerFilePath, callerLineNumber);
+        AssertionFailureDispatcher.Fail(failureMessage, callerFilePath, callerLineNumber);
 
         return new ThrownExceptionAssertions<AsyncActionAssertions, TException>(
             capturedException,
@@ -49,7 +48,7 @@ public sealed class AsyncActionAssertions(Func<ValueTask> subject, string? subje
             this,
             SubjectLabel(),
             because,
-            Fail);
+            AssertionFailureDispatcher.Fail);
     }
 
     public async ValueTask<ThrownExceptionAssertions<AsyncActionAssertions, TException>> ThrowExactlyAsync<TException>(
@@ -68,7 +67,7 @@ public sealed class AsyncActionAssertions(Func<ValueTask> subject, string? subje
                 this,
                 SubjectLabel(),
                 because,
-                Fail);
+                AssertionFailureDispatcher.Fail);
         }
 
         object actual = capturedException is null
@@ -81,7 +80,7 @@ public sealed class AsyncActionAssertions(Func<ValueTask> subject, string? subje
             actual,
             because);
         var failureMessage = FailureMessageRenderer.Render(failure);
-        Fail(failureMessage, callerFilePath, callerLineNumber);
+        AssertionFailureDispatcher.Fail(failureMessage, callerFilePath, callerLineNumber);
 
         return new ThrownExceptionAssertions<AsyncActionAssertions, TException>(
             capturedException,
@@ -90,7 +89,7 @@ public sealed class AsyncActionAssertions(Func<ValueTask> subject, string? subje
             this,
             SubjectLabel(),
             because,
-            Fail);
+            AssertionFailureDispatcher.Fail);
     }
 
     public async ValueTask<AndContinuation<AsyncActionAssertions>> NotThrowAsync(
@@ -109,7 +108,7 @@ public sealed class AsyncActionAssertions(Func<ValueTask> subject, string? subje
             new Expectation("to not throw", IncludeExpectedValue: false),
             capturedException.GetType(),
             because);
-        Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
+        AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
 
         return new AndContinuation<AsyncActionAssertions>(this);
     }
@@ -132,7 +131,7 @@ public sealed class AsyncActionAssertions(Func<ValueTask> subject, string? subje
             new Expectation("to complete within", timeout),
             NotCompletedInTimeToken.Instance,
             because);
-        Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
+        AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
 
         return new AndContinuation<AsyncActionAssertions>(this);
     }
@@ -155,7 +154,7 @@ public sealed class AsyncActionAssertions(Func<ValueTask> subject, string? subje
             new Expectation("to not complete within", timeout),
             CompletedInTimeToken.Instance,
             because);
-        Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
+        AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
 
         return new AndContinuation<AsyncActionAssertions>(this);
     }
@@ -208,20 +207,6 @@ public sealed class AsyncActionAssertions(Func<ValueTask> subject, string? subje
     private string SubjectLabel()
     {
         return string.IsNullOrWhiteSpace(SubjectExpression) ? "<subject>" : SubjectExpression;
-    }
-
-    private static void Fail(string message, string? callerFilePath, int callerLineNumber)
-    {
-
-        var batch = Batch.Current;
-        if (batch is not null)
-        {
-            // Keep going inside a batch; root dispose raises one combined exception.
-            batch.AddFailure(message);
-            return;
-        }
-
-        throw new InvalidOperationException(message);
     }
 
     private sealed class NoExceptionToken

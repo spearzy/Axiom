@@ -42,6 +42,17 @@ public sealed class AxiomServicesTests : IDisposable
         Assert.Equal(timeout, AxiomServices.Configuration.RegexMatchTimeout);
     }
 
+    [Fact]
+    public void Configure_PreservesFailureStrategy_WhenUpdatingOtherSettings()
+    {
+        var strategy = new PassthroughFailureStrategy();
+        AxiomServices.Configure(c => c.FailureStrategy = strategy);
+
+        AxiomServices.Configure(c => c.ValueFormatter = new ConstantFormatter("fmt"));
+
+        Assert.Same(strategy, AxiomServices.Configuration.FailureStrategy);
+    }
+
     private sealed class ConstantFormatter : IValueFormatter
     {
         private readonly string _text;
@@ -52,5 +63,13 @@ public sealed class AxiomServicesTests : IDisposable
         }
 
         public string Format(object? value) => _text;
+    }
+
+    private sealed class PassthroughFailureStrategy : IFailureStrategy
+    {
+        public void Fail(string message, string? callerFilePath = null, int callerLineNumber = 0)
+        {
+            throw new InvalidOperationException(message);
+        }
     }
 }

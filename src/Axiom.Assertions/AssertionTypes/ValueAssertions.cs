@@ -1,7 +1,6 @@
 using System.Runtime.CompilerServices;
 using Axiom.Assertions.Chaining;
 using Axiom.Assertions.Equivalency;
-using Axiom.Core;
 using Axiom.Core.Configuration;
 using Axiom.Core.Failures;
 
@@ -26,7 +25,7 @@ public sealed class ValueAssertions<T>(T subject, string? subjectExpression)
                 new Expectation("to be", expected),
                 Subject,
                 because);
-            Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
+            AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
         }
         return new AndContinuation<ValueAssertions<T>>(this);
     }
@@ -45,7 +44,7 @@ public sealed class ValueAssertions<T>(T subject, string? subjectExpression)
                 new Expectation("to not be", unexpected),
                 Subject,
                 because);
-            Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
+            AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
         }
         return new AndContinuation<ValueAssertions<T>>(this);
     }
@@ -73,7 +72,7 @@ public sealed class ValueAssertions<T>(T subject, string? subjectExpression)
                 new Expectation("to be one of", RenderExpectedSet(replayableExpectedValues)),
                 Subject,
                 because);
-            Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
+            AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
         }
         return new AndContinuation<ValueAssertions<T>>(this);
     }
@@ -101,7 +100,7 @@ public sealed class ValueAssertions<T>(T subject, string? subjectExpression)
                 new Expectation("to not be one of", RenderExpectedSet(replayableUnexpectedValues)),
                 Subject,
                 because);
-            Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
+            AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
         }
         return new AndContinuation<ValueAssertions<T>>(this);
     }
@@ -122,7 +121,7 @@ public sealed class ValueAssertions<T>(T subject, string? subjectExpression)
                 new Expectation(AssertionMessageText.BuildPredicateExpectationText("to satisfy predicate", predicateExpression), IncludeExpectedValue: false),
                 Subject,
                 because);
-            Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
+            AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
         }
 
         return new AndContinuation<ValueAssertions<T>>(this);
@@ -144,7 +143,7 @@ public sealed class ValueAssertions<T>(T subject, string? subjectExpression)
                 new Expectation(AssertionMessageText.BuildPredicateExpectationText("to not satisfy predicate", predicateExpression), IncludeExpectedValue: false),
                 Subject,
                 because);
-            Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
+            AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
         }
 
         return new AndContinuation<ValueAssertions<T>>(this);
@@ -163,7 +162,7 @@ public sealed class ValueAssertions<T>(T subject, string? subjectExpression)
                 new Expectation("to be same reference as", expectedReference),
                 Subject,
                 because);
-            Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
+            AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
         }
         return new AndContinuation<ValueAssertions<T>>(this);
     }
@@ -181,7 +180,7 @@ public sealed class ValueAssertions<T>(T subject, string? subjectExpression)
                 new Expectation("to not be same reference as", unexpectedReference),
                 Subject,
                 because);
-            Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
+            AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
         }
         return new AndContinuation<ValueAssertions<T>>(this);
     }
@@ -244,7 +243,7 @@ public sealed class ValueAssertions<T>(T subject, string? subjectExpression)
             var failure = new Failure(SubjectLabel(),
                 new Expectation("to be null", IncludeExpectedValue: false), Subject, because);
 
-            Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
+            AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
         }
         return new AndContinuation<ValueAssertions<T>>(this);
     }
@@ -259,7 +258,7 @@ public sealed class ValueAssertions<T>(T subject, string? subjectExpression)
             var failure = new Failure(SubjectLabel(),
                 new Expectation("to not be null", IncludeExpectedValue: false), Subject, because);
 
-            Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
+            AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
         }
         return new AndContinuation<ValueAssertions<T>>(this);
     }
@@ -274,7 +273,7 @@ public sealed class ValueAssertions<T>(T subject, string? subjectExpression)
             var failure = new Failure(SubjectLabel(),
                 new Expectation("to be of type", typeof(TExpected)), Subject, because);
 
-            Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
+            AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
         }
         return new AndContinuation<ValueAssertions<T>>(this);
     }
@@ -290,7 +289,7 @@ public sealed class ValueAssertions<T>(T subject, string? subjectExpression)
             var failure = new Failure(SubjectLabel(),
                 new Expectation("to be assignable to", typeof(TExpected)), Subject, because);
 
-            Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
+            AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
         }
         return new AndContinuation<ValueAssertions<T>>(this);
     }
@@ -305,7 +304,7 @@ public sealed class ValueAssertions<T>(T subject, string? subjectExpression)
             var failure = new Failure(SubjectLabel(),
                 new Expectation("to not be assignable to", typeof(TExpected)), Subject, because);
 
-            Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
+            AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
         }
         return new AndContinuation<ValueAssertions<T>>(this);
     }
@@ -321,7 +320,7 @@ public sealed class ValueAssertions<T>(T subject, string? subjectExpression)
             var failure = new Failure(SubjectLabel(),
                 new Expectation("to be greater than", threshold), Subject, because);
 
-            Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
+            AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
         }
         return new AndContinuation<ValueAssertions<T>>(this);
     }
@@ -337,7 +336,7 @@ public sealed class ValueAssertions<T>(T subject, string? subjectExpression)
             var failure = new Failure(SubjectLabel(),
                 new Expectation("to be greater than or equal to", threshold), Subject, because);
 
-            Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
+            AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
         }
         return new AndContinuation<ValueAssertions<T>>(this);
     }
@@ -353,7 +352,7 @@ public sealed class ValueAssertions<T>(T subject, string? subjectExpression)
             var failure = new Failure(SubjectLabel(),
                 new Expectation("to be less than", threshold), Subject, because);
 
-            Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
+            AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
         }
         return new AndContinuation<ValueAssertions<T>>(this);
     }
@@ -369,7 +368,7 @@ public sealed class ValueAssertions<T>(T subject, string? subjectExpression)
             var failure = new Failure(SubjectLabel(),
                 new Expectation("to be less than or equal to", threshold), Subject, because);
 
-            Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
+            AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
         }
         return new AndContinuation<ValueAssertions<T>>(this);
     }
@@ -398,7 +397,7 @@ public sealed class ValueAssertions<T>(T subject, string? subjectExpression)
             var failure = new Failure(SubjectLabel(),
                 new Expectation("to be in range", new InclusiveRange(minimum, maximum)), Subject, because);
 
-            Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
+            AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
         }
         return new AndContinuation<ValueAssertions<T>>(this);
     }
@@ -513,7 +512,7 @@ public sealed class ValueAssertions<T>(T subject, string? subjectExpression)
                 options.MaxDifferences,
                 because);
 
-            Fail(message, callerFilePath, callerLineNumber);
+            AssertionFailureDispatcher.Fail(message, callerFilePath, callerLineNumber);
         }
         return new AndContinuation<ValueAssertions<T>>(this);
     }
@@ -536,23 +535,10 @@ public sealed class ValueAssertions<T>(T subject, string? subjectExpression)
                 Subject,
                 because);
 
-            Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
+            AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
             return new AndContinuation<ValueAssertions<T>>(this);
         }
         return new AndContinuation<ValueAssertions<T>>(this);
-    }
-
-    private static void Fail(string message, string? callerFilePath, int callerLineNumber)
-    {
-
-        var batch = Batch.Current;
-        if (batch is not null)
-        {
-            batch.AddFailure(message);
-            return;
-        }
-
-        throw new InvalidOperationException(message);
     }
 
     private readonly record struct InclusiveRange(T Minimum, T Maximum)

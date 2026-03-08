@@ -1,4 +1,5 @@
 using Axiom.Core.Comparison;
+using Axiom.Core.Failures;
 using Axiom.Core.Formatting;
 
 namespace Axiom.Core.Configuration;
@@ -9,6 +10,7 @@ public sealed class AxiomConfiguration
 
     public IComparerProvider ComparerProvider { get; set; } = DefaultComparerProvider.Instance;
     public IValueFormatter ValueFormatter { get; set; } = DefaultValueFormatter.Instance;
+    public IFailureStrategy FailureStrategy { get; set; } = InvalidOperationFailureStrategy.Instance;
 
     public TimeSpan RegexMatchTimeout
     {

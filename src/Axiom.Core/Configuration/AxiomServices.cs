@@ -16,6 +16,7 @@ public static class AxiomServices
         {
             ComparerProvider = _configuration.ComparerProvider,
             ValueFormatter = _configuration.ValueFormatter,
+            FailureStrategy = _configuration.FailureStrategy,
             RegexMatchTimeout = _configuration.RegexMatchTimeout,
         };
 
