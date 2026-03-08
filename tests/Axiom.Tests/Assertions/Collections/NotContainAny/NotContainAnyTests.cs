@@ -29,6 +29,17 @@ public sealed class NotContainAnyTests
     }
 
     [Fact]
+    public void NotContainAny_DoesNotFormatUnexpectedItems_WhenAssertionPasses()
+    {
+        ThrowingToStringValue[] values = [new(1), new(2), new(3)];
+        IEnumerable<ThrowingToStringValue> unexpectedItems = [new(8), new(9)];
+
+        var ex = Record.Exception(() => values.Should().NotContainAny(unexpectedItems));
+
+        Assert.Null(ex);
+    }
+
+    [Fact]
     public void NotContainAny_Throws_WhenUnexpectedItemIsPresent()
     {
         int[] values = [1, 2, 3];
@@ -94,5 +105,13 @@ public sealed class NotContainAnyTests
         var ex = Assert.Throws<ArgumentNullException>(() => values.Should().NotContainAny(unexpectedItems!));
 
         Assert.Equal("unexpectedItems", ex.ParamName);
+    }
+
+    private readonly record struct ThrowingToStringValue(int Value)
+    {
+        public override string ToString()
+        {
+            throw new InvalidOperationException("ToString should not be called on pass path.");
+        }
     }
 }

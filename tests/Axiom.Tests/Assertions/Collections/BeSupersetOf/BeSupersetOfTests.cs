@@ -17,6 +17,17 @@ public sealed class BeSupersetOfTests
     }
 
     [Fact]
+    public void BeSupersetOf_DoesNotFormatExpectedSubset_WhenAssertionPasses()
+    {
+        ThrowingToStringValue[] values = [new(1), new(2), new(3)];
+        ThrowingToStringValue[] expectedSubset = [new(1), new(3)];
+
+        var ex = Record.Exception(() => values.Should().BeSupersetOf(expectedSubset));
+
+        Assert.Null(ex);
+    }
+
+    [Fact]
     public void BeSupersetOf_ReturnsContinuation_WhenExpectedSubsetContainsDuplicates()
     {
         int[] values = [1, 2, 3];
@@ -80,5 +91,13 @@ public sealed class BeSupersetOfTests
         var ex = Assert.Throws<ArgumentNullException>(() => values.Should().BeSupersetOf(expectedSubset!));
 
         Assert.Equal("expectedSubset", ex.ParamName);
+    }
+
+    private readonly record struct ThrowingToStringValue(int Value)
+    {
+        public override string ToString()
+        {
+            throw new InvalidOperationException("ToString should not be called on pass path.");
+        }
     }
 }

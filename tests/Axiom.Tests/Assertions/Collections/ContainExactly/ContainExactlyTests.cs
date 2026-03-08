@@ -17,6 +17,17 @@ public sealed class ContainExactlyTests
     }
 
     [Fact]
+    public void ContainExactly_DoesNotFormatExpectedSequence_WhenAssertionPasses()
+    {
+        ThrowingToStringValue[] values = [new(1), new(2), new(3)];
+        ThrowingToStringValue[] expected = [new(1), new(2), new(3)];
+
+        var ex = Record.Exception(() => values.Should().ContainExactly(expected));
+
+        Assert.Null(ex);
+    }
+
+    [Fact]
     public void ContainExactly_Throws_WhenItemMismatchesByIndex()
     {
         int[] values = [1, 2, 3];
@@ -81,5 +92,13 @@ public sealed class ContainExactlyTests
         var ex = Assert.Throws<ArgumentNullException>(() => values.Should().ContainExactly(expectedSequence!));
 
         Assert.Equal("expectedSequence", ex.ParamName);
+    }
+
+    private readonly record struct ThrowingToStringValue(int Value)
+    {
+        public override string ToString()
+        {
+            throw new InvalidOperationException("ToString should not be called on pass path.");
+        }
     }
 }

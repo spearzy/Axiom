@@ -67,12 +67,13 @@ internal static class CollectionAssertionEngine
     {
         var subjectLabel = SubjectLabel(subjectExpression);
         var expected = MaterialiseExpectedSequence(expectedItems);
-        var expectedText = new RenderedText(FormatSequence(expected));
+        RenderedText? expectedText = null;
+
         if (subject is null)
         {
             var nullFailure = new Failure(
                 subjectLabel,
-                new Expectation("to contain all", expectedText),
+                new Expectation("to contain all", expectedText ??= new RenderedText(FormatSequence(expected))),
                 subject,
                 because);
             Fail(FailureMessageRenderer.Render(nullFailure), callerFilePath, callerLineNumber);
@@ -95,7 +96,7 @@ internal static class CollectionAssertionEngine
 
             var missingItemFailure = new Failure(
                 subjectLabel,
-                new Expectation("to contain all", expectedText),
+                new Expectation("to contain all", expectedText ??= new RenderedText(FormatSequence(expected))),
                 new RenderedText($"missing expected item at index {index}: {FormatSingleValue(expected[index])}"),
                 because);
             Fail(FailureMessageRenderer.Render(missingItemFailure), callerFilePath, callerLineNumber);
@@ -113,12 +114,13 @@ internal static class CollectionAssertionEngine
     {
         var subjectLabel = SubjectLabel(subjectExpression);
         var expected = MaterialiseExpectedSequence(expectedItems);
-        var expectedText = new RenderedText(FormatSequence(expected));
+        RenderedText? expectedText = null;
+
         if (subject is null)
         {
             var nullFailure = new Failure(
                 subjectLabel,
-                new Expectation("to contain any of", expectedText),
+                new Expectation("to contain any of", expectedText ??= new RenderedText(FormatSequence(expected))),
                 subject,
                 because);
             Fail(FailureMessageRenderer.Render(nullFailure), callerFilePath, callerLineNumber);
@@ -129,7 +131,7 @@ internal static class CollectionAssertionEngine
         {
             var noExpectedItemsFailure = new Failure(
                 subjectLabel,
-                new Expectation("to contain any of", expectedText),
+                new Expectation("to contain any of", expectedText ??= new RenderedText(FormatSequence(expected))),
                 new RenderedText("no expected items were provided"),
                 because);
             Fail(FailureMessageRenderer.Render(noExpectedItemsFailure), callerFilePath, callerLineNumber);
@@ -147,7 +149,7 @@ internal static class CollectionAssertionEngine
 
         var missingAnyFailure = new Failure(
             subjectLabel,
-            new Expectation("to contain any of", expectedText),
+            new Expectation("to contain any of", expectedText ??= new RenderedText(FormatSequence(expected))),
             new RenderedText("none of the expected items were found"),
             because);
         Fail(FailureMessageRenderer.Render(missingAnyFailure), callerFilePath, callerLineNumber);
@@ -163,12 +165,13 @@ internal static class CollectionAssertionEngine
     {
         var subjectLabel = SubjectLabel(subjectExpression);
         var unexpected = MaterialiseExpectedSequence(unexpectedItems);
-        var unexpectedText = new RenderedText(FormatSequence(unexpected));
+        RenderedText? unexpectedText = null;
+
         if (subject is null)
         {
             var nullFailure = new Failure(
                 subjectLabel,
-                new Expectation("to not contain any of", unexpectedText),
+                new Expectation("to not contain any of", unexpectedText ??= new RenderedText(FormatSequence(unexpected))),
                 subject,
                 because);
             Fail(FailureMessageRenderer.Render(nullFailure), callerFilePath, callerLineNumber);
@@ -188,7 +191,7 @@ internal static class CollectionAssertionEngine
             {
                 var matchingUnexpectedFailure = new Failure(
                     subjectLabel,
-                    new Expectation("to not contain any of", unexpectedText),
+                    new Expectation("to not contain any of", unexpectedText ??= new RenderedText(FormatSequence(unexpected))),
                     new RenderedText($"first matching item at subject index {subjectIndex}: {FormatSingleValue(subjectItem)}"),
                     because);
                 Fail(FailureMessageRenderer.Render(matchingUnexpectedFailure), callerFilePath, callerLineNumber);
@@ -296,12 +299,13 @@ internal static class CollectionAssertionEngine
     {
         var subjectLabel = SubjectLabel(subjectExpression);
         var expectedItems = MaterialiseExpectedSequence(expectedSequence);
-        var expectedSequenceText = new RenderedText(FormatSequence(expectedItems));
+        RenderedText? expectedSequenceText = null;
+
         if (subject is null)
         {
             var nullFailure = new Failure(
                 subjectLabel,
-                new Expectation("to contain exactly", expectedSequenceText),
+                new Expectation("to contain exactly", expectedSequenceText ??= new RenderedText(FormatSequence(expectedItems))),
                 subject,
                 because);
             Fail(FailureMessageRenderer.Render(nullFailure), callerFilePath, callerLineNumber);
@@ -317,7 +321,7 @@ internal static class CollectionAssertionEngine
             {
                 var extraItemFailure = new Failure(
                     subjectLabel,
-                    new Expectation("to contain exactly", expectedSequenceText),
+                    new Expectation("to contain exactly", expectedSequenceText ??= new RenderedText(FormatSequence(expectedItems))),
                     new RenderedText($"extra item at index {index}: {FormatSingleValue(item)}"),
                     because);
                 Fail(FailureMessageRenderer.Render(extraItemFailure), callerFilePath, callerLineNumber);
@@ -328,7 +332,7 @@ internal static class CollectionAssertionEngine
             {
                 var mismatchFailure = new Failure(
                     subjectLabel,
-                    new Expectation("to contain exactly", expectedSequenceText),
+                    new Expectation("to contain exactly", expectedSequenceText ??= new RenderedText(FormatSequence(expectedItems))),
                     new RenderedText(
                         $"item mismatch at index {index}: expected {FormatSingleValue(expectedItems[index])} but found {FormatSingleValue(item)}"),
                     because);
@@ -344,7 +348,7 @@ internal static class CollectionAssertionEngine
         {
             var missingItemFailure = new Failure(
                 subjectLabel,
-                new Expectation("to contain exactly", expectedSequenceText),
+                new Expectation("to contain exactly", expectedSequenceText ??= new RenderedText(FormatSequence(expectedItems))),
                 new RenderedText($"missing item at index {index}: {FormatSingleValue(expectedItems[index])}"),
                 because);
             Fail(FailureMessageRenderer.Render(missingItemFailure), callerFilePath, callerLineNumber);
@@ -362,12 +366,13 @@ internal static class CollectionAssertionEngine
     {
         var subjectLabel = SubjectLabel(subjectExpression);
         var supersetItems = MaterialiseExpectedSequence(expectedSuperset);
-        var supersetText = new RenderedText(FormatSequence(supersetItems));
+        RenderedText? supersetText = null;
+
         if (subject is null)
         {
             var nullFailure = new Failure(
                 subjectLabel,
-                new Expectation("to be a subset of", supersetText),
+                new Expectation("to be a subset of", supersetText ??= new RenderedText(FormatSequence(supersetItems))),
                 subject,
                 because);
             Fail(FailureMessageRenderer.Render(nullFailure), callerFilePath, callerLineNumber);
@@ -387,7 +392,7 @@ internal static class CollectionAssertionEngine
 
             var missingItemFailure = new Failure(
                 subjectLabel,
-                new Expectation("to be a subset of", supersetText),
+                new Expectation("to be a subset of", supersetText ??= new RenderedText(FormatSequence(supersetItems))),
                 new RenderedText($"missing item at index {index}: {FormatSingleValue(item)}"),
                 because);
             Fail(FailureMessageRenderer.Render(missingItemFailure), callerFilePath, callerLineNumber);
@@ -405,12 +410,13 @@ internal static class CollectionAssertionEngine
     {
         var subjectLabel = SubjectLabel(subjectExpression);
         var subsetItems = MaterialiseExpectedSequence(expectedSubset);
-        var subsetText = new RenderedText(FormatSequence(subsetItems));
+        RenderedText? subsetText = null;
+
         if (subject is null)
         {
             var nullFailure = new Failure(
                 subjectLabel,
-                new Expectation("to be a superset of", subsetText),
+                new Expectation("to be a superset of", subsetText ??= new RenderedText(FormatSequence(subsetItems))),
                 subject,
                 because);
             Fail(FailureMessageRenderer.Render(nullFailure), callerFilePath, callerLineNumber);
@@ -428,7 +434,7 @@ internal static class CollectionAssertionEngine
 
             var missingItemFailure = new Failure(
                 subjectLabel,
-                new Expectation("to be a superset of", subsetText),
+                new Expectation("to be a superset of", subsetText ??= new RenderedText(FormatSequence(subsetItems))),
                 new RenderedText($"missing expected item at index {index}: {FormatSingleValue(subsetItems[index])}"),
                 because);
             Fail(FailureMessageRenderer.Render(missingItemFailure), callerFilePath, callerLineNumber);
@@ -765,7 +771,7 @@ internal static class CollectionAssertionEngine
 
             try
             {
-                //For each assertions, compare against list sequentially
+                //For each assertion, compare against item list sequentially
                 assertionsForItems[index](enumerator.Current);
             }
             catch (InvalidOperationException ex)
@@ -939,12 +945,13 @@ internal static class CollectionAssertionEngine
         int callerLineNumber)
     {
         var subjectLabel = SubjectLabel(subjectExpression);
-        var expectedEntry = new RenderedText(FormatEntry(expectedKey, expectedValue));
+        RenderedText? expectedEntry = null;
+
         if (subject is null)
         {
             var nullFailure = new Failure(
                 subjectLabel,
-                new Expectation("to contain entry", expectedEntry),
+                new Expectation("to contain entry", expectedEntry ??= new RenderedText(FormatEntry(expectedKey, expectedValue))),
                 subject,
                 because);
             Fail(FailureMessageRenderer.Render(nullFailure), callerFilePath, callerLineNumber);
@@ -955,7 +962,7 @@ internal static class CollectionAssertionEngine
         {
             var missingKeyFailure = new Failure(
                 subjectLabel,
-                new Expectation("to contain entry", expectedEntry),
+                new Expectation("to contain entry", expectedEntry ??= new RenderedText(FormatEntry(expectedKey, expectedValue))),
                 new RenderedText($"key {FormatSingleValue(expectedKey)} was missing"),
                 because);
             Fail(FailureMessageRenderer.Render(missingKeyFailure), callerFilePath, callerLineNumber);
@@ -970,7 +977,7 @@ internal static class CollectionAssertionEngine
 
         var valueMismatchFailure = new Failure(
             subjectLabel,
-            new Expectation("to contain entry", expectedEntry),
+            new Expectation("to contain entry", expectedEntry ??= new RenderedText(FormatEntry(expectedKey, expectedValue))),
             new RenderedText($"key {FormatSingleValue(expectedKey)} had value {FormatSingleValue(actualValue)}"),
             because);
         Fail(FailureMessageRenderer.Render(valueMismatchFailure), callerFilePath, callerLineNumber);

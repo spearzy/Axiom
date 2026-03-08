@@ -29,6 +29,17 @@ public sealed class ContainAllTests
     }
 
     [Fact]
+    public void ContainAll_DoesNotFormatExpectedItems_WhenAssertionPasses()
+    {
+        ThrowingToStringValue[] values = [new(1), new(2), new(3)];
+        IEnumerable<ThrowingToStringValue> expectedItems = [new(1), new(3)];
+
+        var ex = Record.Exception(() => values.Should().ContainAll(expectedItems));
+
+        Assert.Null(ex);
+    }
+
+    [Fact]
     public void ContainAll_Throws_WhenAnyExpectedItemIsMissing()
     {
         int[] values = [1, 2, 3];
@@ -82,5 +93,13 @@ public sealed class ContainAllTests
         var ex = Assert.Throws<ArgumentNullException>(() => values.Should().ContainAll(expectedItems!));
 
         Assert.Equal("expectedItems", ex.ParamName);
+    }
+
+    private readonly record struct ThrowingToStringValue(int Value)
+    {
+        public override string ToString()
+        {
+            throw new InvalidOperationException("ToString should not be called on pass path.");
+        }
     }
 }

@@ -21,6 +21,20 @@ public sealed class ContainEntryTests
     }
 
     [Fact]
+    public void ContainEntry_DoesNotFormatExpectedEntry_WhenAssertionPasses()
+    {
+        Dictionary<string, ThrowingToStringValue> values = new()
+        {
+            ["alpha"] = new ThrowingToStringValue(1),
+            ["beta"] = new ThrowingToStringValue(2),
+        };
+
+        var ex = Record.Exception(() => values.Should().ContainEntry("beta", new ThrowingToStringValue(2)));
+
+        Assert.Null(ex);
+    }
+
+    [Fact]
     public void ContainEntry_Throws_WhenKeyDoesNotExist()
     {
         Dictionary<string, int> values = new()
@@ -48,5 +62,13 @@ public sealed class ContainEntryTests
 
         const string expected = "Expected values to contain entry \"beta\" => 5, but found key \"beta\" had value 2.";
         Assert.Equal(expected, ex.Message);
+    }
+
+    private readonly record struct ThrowingToStringValue(int Value)
+    {
+        public override string ToString()
+        {
+            throw new InvalidOperationException("ToString should not be called on pass path.");
+        }
     }
 }

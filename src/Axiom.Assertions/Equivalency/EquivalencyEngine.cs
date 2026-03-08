@@ -264,8 +264,6 @@ internal static class EquivalencyEngine
         List<EquivalencyDifference> differences,
         HashSet<ReferencePair> visitedPairs)
     {
-        var actualItems = actualEnumerable.Cast<object?>().ToList();
-        var expectedItems = expectedEnumerable.Cast<object?>().ToList();
         IEqualityComparer? collectionItemComparer = null;
         var hasCollectionItemComparer =
             options.HasCollectionItemComparers &&
@@ -273,6 +271,10 @@ internal static class EquivalencyEngine
 
         if (options.CollectionOrder == EquivalencyCollectionOrder.Any)
         {
+            // Any-order matching needs random access and "used index" tracking.
+            // Keep list materialisation only for this mode.
+            var actualItems = actualEnumerable.Cast<object?>().ToList();
+            var expectedItems = expectedEnumerable.Cast<object?>().ToList();
             CompareEnumerableAnyOrder(
                 actualItems,
                 expectedItems,
@@ -284,39 +286,87 @@ internal static class EquivalencyEngine
             return;
         }
 
-        var sharedCount = Math.Min(actualItems.Count, expectedItems.Count);
-        for (var index = 0; index < sharedCount; index++)
+        // Ordered mode walks both sequences once to avoid eager list allocations.
+        var actualEnumerator = actualEnumerable.GetEnumerator();
+        var expectedEnumerator = expectedEnumerable.GetEnumerator();
+        try
         {
-            var itemPath = $"{path}[{index}]";
-            if (hasCollectionItemComparer)
+            var index = 0;
+            while (true)
             {
-                if (!collectionItemComparer!.Equals(actualItems[index], expectedItems[index]))
+                var hasActual = actualEnumerator.MoveNext();
+                var hasExpected = expectedEnumerator.MoveNext();
+                if (!hasActual || !hasExpected)
                 {
-                    differences.Add(new EquivalencyDifference(itemPath, expectedItems[index], actualItems[index], "Values differ."));
+                    if (!hasActual && !hasExpected)
+                    {
+                        return;
+                    }
+
+                    if (hasExpected)
+                    {
+                        differences.Add(new EquivalencyDifference(
+                            $"{path}[{index}]",
+                            expectedEnumerator.Current,
+                            null,
+                            "Item missing on actual collection."));
+                        index++;
+
+                        while (expectedEnumerator.MoveNext())
+                        {
+                            differences.Add(new EquivalencyDifference(
+                                $"{path}[{index}]",
+                                expectedEnumerator.Current,
+                                null,
+                                "Item missing on actual collection."));
+                            index++;
+                        }
+                    }
+                    else
+                    {
+                        differences.Add(new EquivalencyDifference(
+                            $"{path}[{index}]",
+                            null,
+                            actualEnumerator.Current,
+                            "Extra item on actual collection."));
+                        index++;
+
+                        while (actualEnumerator.MoveNext())
+                        {
+                            differences.Add(new EquivalencyDifference(
+                                $"{path}[{index}]",
+                                null,
+                                actualEnumerator.Current,
+                                "Extra item on actual collection."));
+                            index++;
+                        }
+                    }
+
+                    return;
                 }
 
-                continue;
+                var itemPath = $"{path}[{index}]";
+                var actualItem = actualEnumerator.Current;
+                var expectedItem = expectedEnumerator.Current;
+                if (hasCollectionItemComparer)
+                {
+                    if (!collectionItemComparer!.Equals(actualItem, expectedItem))
+                    {
+                        differences.Add(new EquivalencyDifference(itemPath, expectedItem, actualItem, "Values differ."));
+                    }
+                }
+                else
+                {
+                    CompareNode(actualItem, expectedItem, itemPath, rootPath, options, differences, visitedPairs);
+                }
+
+                index++;
             }
-
-            CompareNode(actualItems[index], expectedItems[index], itemPath, rootPath, options, differences, visitedPairs);
         }
-
-        for (var index = sharedCount; index < expectedItems.Count; index++)
+        finally
         {
-            differences.Add(new EquivalencyDifference(
-                $"{path}[{index}]",
-                expectedItems[index],
-                null,
-                "Item missing on actual collection."));
-        }
-
-        for (var index = sharedCount; index < actualItems.Count; index++)
-        {
-            differences.Add(new EquivalencyDifference(
-                $"{path}[{index}]",
-                null,
-                actualItems[index],
-                "Extra item on actual collection."));
+            (actualEnumerator as IDisposable)?.Dispose();
+            (expectedEnumerator as IDisposable)?.Dispose();
         }
     }
 
