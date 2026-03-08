@@ -23,7 +23,7 @@ public sealed class OnlyContainTests
 
         var ex = Assert.Throws<InvalidOperationException>(() => values.Should().OnlyContain((int x) => x % 2 == 0));
 
-        const string expected = "Expected values to only contain items matching predicate (first non-matching index 1), but found 3.";
+        const string expected = "Expected values to only contain items matching predicate `(int x) => x % 2 == 0` (first non-matching index 1), but found 3.";
         Assert.Equal(expected, ex.Message);
     }
 
@@ -47,5 +47,16 @@ public sealed class OnlyContainTests
         var ex = Assert.Throws<ArgumentNullException>(() => values.Should().OnlyContain(predicate!));
 
         Assert.Equal("predicate", ex.ParamName);
+    }
+
+    [Fact]
+    public void OnlyContain_UsesPredicateVariableName_InFailureMessage()
+    {
+        int[] values = [2, 3, 6];
+        Func<int, bool> isEven = x => x % 2 == 0;
+
+        var ex = Assert.Throws<InvalidOperationException>(() => values.Should().OnlyContain(isEven));
+
+        Assert.Contains("predicate `isEven`", ex.Message, StringComparison.Ordinal);
     }
 }

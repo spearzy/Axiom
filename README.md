@@ -254,6 +254,13 @@ object value = "hello";
 value.Should().BeOfType<string>().And.BeAssignableTo<object>();
 ```
 
+Predicate assertions include the predicate expression (or predicate variable name) in failure messages:
+
+```text
+Expected value to satisfy predicate `x => x < 40`, but found 42.
+Expected value to not satisfy predicate `isPositive`, but found 42.
+```
+
 ### Equivalency Assertions
 
 ```csharp
@@ -568,6 +575,13 @@ users.Should().BeInAscendingOrder((User user) => user.Email, StringComparer.Ordi
 
 public sealed record Order(int Id, decimal Total);
 public sealed record User(int Id, string Email);
+```
+
+Collection predicate assertions include the predicate expression in deterministic failure output:
+
+```text
+Expected values to only contain items matching predicate `(int x) => x % 2 == 0` (first non-matching index 1), but found 3.
+Expected values to not contain any item matching predicate `isReserved` (first matching index 1), but found 2.
 ```
 
 ### Extractor Behaviour (`Thrown` / `SingleItem` / `WhoseValue`)

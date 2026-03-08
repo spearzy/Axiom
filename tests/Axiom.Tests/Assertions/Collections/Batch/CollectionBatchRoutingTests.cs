@@ -440,9 +440,29 @@ public sealed class CollectionBatchRoutingTests
 
         var message = ex.Message.Replace("\r\n", "\n", StringComparison.Ordinal);
         Assert.Contains("Batch 'collection-rules' failed with 3 assertion failure(s):", message);
-        Assert.Contains("1) Expected values to only contain items matching predicate (first non-matching index 0), but found 1.", message);
-        Assert.Contains("2) Expected values to not contain any item matching predicate (first matching index 1), but found 2.", message);
+        Assert.Contains("1) Expected values to only contain items matching predicate `(int x) => x % 2 == 0` (first non-matching index 0), but found 1.", message);
+        Assert.Contains("2) Expected values to not contain any item matching predicate `(int x) => x == 2` (first matching index 1), but found 2.", message);
         Assert.Contains("3) Expected values to contain items in order [1, 3, 2], but found missing expected item at sequence index 2: 2.", message);
+    }
+
+    [Fact]
+    public void Batch_Dispose_UsesPredicateVariableNames_ForCollectionPredicateFailures()
+    {
+        int[] values = [1, 2, 3];
+        Func<int, bool> isEven = x => x % 2 == 0;
+        Func<int, bool> isTwo = x => x == 2;
+
+        var ex = Assert.Throws<InvalidOperationException>(() =>
+        {
+            using var batch = new Axiom.Core.Batch("collection-predicate-vars");
+            values.Should().OnlyContain(isEven);
+            values.Should().NotContain(isTwo);
+        });
+
+        var message = ex.Message.Replace("\r\n", "\n", StringComparison.Ordinal);
+        Assert.Contains("Batch 'collection-predicate-vars' failed with 2 assertion failure(s):", message);
+        Assert.Contains("1) Expected values to only contain items matching predicate `isEven` (first non-matching index 0), but found 1.", message);
+        Assert.Contains("2) Expected values to not contain any item matching predicate `isTwo` (first matching index 1), but found 2.", message);
     }
 
     [Fact]

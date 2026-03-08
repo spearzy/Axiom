@@ -584,16 +584,22 @@ internal static class CollectionAssertionEngine
         IEnumerable<T>? subject,
         string? subjectExpression,
         Func<T, bool> predicate,
+        string? predicateExpression,
         string? because,
         string? callerFilePath,
         int callerLineNumber)
     {
         var subjectLabel = SubjectLabel(subjectExpression);
+        string? expectationText = null;
+        string GetExpectationText() =>
+            expectationText ??= AssertionMessageText.BuildPredicateExpectationText(
+                "to only contain items matching predicate",
+                predicateExpression);
         if (subject is null)
         {
             var nullFailure = new Failure(
                 subjectLabel,
-                new Expectation("to only contain items matching predicate", IncludeExpectedValue: false),
+                new Expectation(GetExpectationText(), IncludeExpectedValue: false),
                 subject,
                 because);
             Fail(FailureMessageRenderer.Render(nullFailure), callerFilePath, callerLineNumber);
@@ -611,7 +617,7 @@ internal static class CollectionAssertionEngine
 
             var failure = new Failure(
                 subjectLabel,
-                new Expectation($"to only contain items matching predicate (first non-matching index {index})", IncludeExpectedValue: false),
+                new Expectation($"{GetExpectationText()} (first non-matching index {index})", IncludeExpectedValue: false),
                 item,
                 because);
             Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
@@ -623,16 +629,22 @@ internal static class CollectionAssertionEngine
         IEnumerable<T>? subject,
         string? subjectExpression,
         Func<T, bool> predicate,
+        string? predicateExpression,
         string? because,
         string? callerFilePath,
         int callerLineNumber)
     {
         var subjectLabel = SubjectLabel(subjectExpression);
+        string? expectationText = null;
+        string GetExpectationText() =>
+            expectationText ??= AssertionMessageText.BuildPredicateExpectationText(
+                "to not contain any item matching predicate",
+                predicateExpression);
         if (subject is null)
         {
             var nullFailure = new Failure(
                 subjectLabel,
-                new Expectation("to not contain any item matching predicate", IncludeExpectedValue: false),
+                new Expectation(GetExpectationText(), IncludeExpectedValue: false),
                 subject,
                 because);
             Fail(FailureMessageRenderer.Render(nullFailure), callerFilePath, callerLineNumber);
@@ -650,7 +662,7 @@ internal static class CollectionAssertionEngine
 
             var failure = new Failure(
                 subjectLabel,
-                new Expectation($"to not contain any item matching predicate (first matching index {index})", IncludeExpectedValue: false),
+                new Expectation($"{GetExpectationText()} (first matching index {index})", IncludeExpectedValue: false),
                 item,
                 because);
             Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);

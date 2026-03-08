@@ -23,7 +23,7 @@ public sealed class NotContainTests
 
         var ex = Assert.Throws<InvalidOperationException>(() => values.Should().NotContain((int x) => x == 2));
 
-        const string expected = "Expected values to not contain any item matching predicate (first matching index 1), but found 2.";
+        const string expected = "Expected values to not contain any item matching predicate `(int x) => x == 2` (first matching index 1), but found 2.";
         Assert.Equal(expected, ex.Message);
     }
 
@@ -47,5 +47,16 @@ public sealed class NotContainTests
         var ex = Assert.Throws<ArgumentNullException>(() => values.Should().NotContain(predicate!));
 
         Assert.Equal("predicate", ex.ParamName);
+    }
+
+    [Fact]
+    public void NotContain_UsesPredicateVariableName_InFailureMessage()
+    {
+        int[] values = [1, 2, 3];
+        Func<int, bool> isReserved = x => x == 2;
+
+        var ex = Assert.Throws<InvalidOperationException>(() => values.Should().NotContain(isReserved));
+
+        Assert.Contains("predicate `isReserved`", ex.Message, StringComparison.Ordinal);
     }
 }
