@@ -15,6 +15,11 @@ internal static class CollectionAssertionEngine
         object? SingleItem,
         string? FailureMessage);
 
+    public readonly record struct ContainSingleResult<TItem>(
+        bool HasSingleItem,
+        TItem SingleItem,
+        string? FailureMessage);
+
     public readonly record struct ContainKeyResult<TValue>(
         bool HasValue,
         TValue Value,
@@ -558,7 +563,7 @@ internal static class CollectionAssertionEngine
         return result;
     }
 
-    public static ContainSingleResult AssertContainSingleAndCaptureResult<T>(
+    public static ContainSingleResult<T> AssertContainSingleAndCaptureResult<T>(
         IEnumerable<T>? subject,
         string? subjectExpression,
         Func<T, bool> predicate,
@@ -1562,7 +1567,7 @@ internal static class CollectionAssertionEngine
             FailureMessage: null);
     }
 
-    private static ContainSingleResult EvaluateContainSingle<T>(
+    private static ContainSingleResult<T> EvaluateContainSingle<T>(
         IEnumerable<T>? subject,
         string? subjectExpression,
         Func<T, bool> predicate,
@@ -1572,14 +1577,14 @@ internal static class CollectionAssertionEngine
         const string expectationText = "to contain a single item matching predicate";
         if (subject is null)
         {
-            return new ContainSingleResult(
+            return new ContainSingleResult<T>(
                 HasSingleItem: false,
-                SingleItem: null,
+                SingleItem: default!,
                 FailureMessage: RenderContainSingleFailure(subjectLabel, expectationText, subject, because));
         }
 
         var count = 0;
-        object? singleItem = null;
+        T singleItem = default!;
 
         foreach (var item in subject)
         {
@@ -1598,13 +1603,13 @@ internal static class CollectionAssertionEngine
 
         if (count != 1)
         {
-            return new ContainSingleResult(
+            return new ContainSingleResult<T>(
                 HasSingleItem: false,
-                SingleItem: null,
+                SingleItem: default!,
                 FailureMessage: RenderContainSingleFailure(subjectLabel, expectationText, count, because));
         }
 
-        return new ContainSingleResult(
+        return new ContainSingleResult<T>(
             HasSingleItem: true,
             SingleItem: singleItem,
             FailureMessage: null);

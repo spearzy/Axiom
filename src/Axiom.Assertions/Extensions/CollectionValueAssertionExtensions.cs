@@ -368,7 +368,7 @@ public static class CollectionValueAssertionExtensions
             result.FailureMessage);
     }
 
-    public static ContainSingleContinuation<ValueAssertions<TCollection>> ContainSingle<TCollection, TItem>(
+    public static ContainSingleContinuation<ValueAssertions<TCollection>, TItem> ContainSingle<TCollection, TItem>(
         this ValueAssertions<TCollection> assertions,
         Func<TItem, bool> predicate,
         string? because = null,
@@ -387,7 +387,7 @@ public static class CollectionValueAssertionExtensions
             callerFilePath,
             callerLineNumber);
 
-        return new ContainSingleContinuation<ValueAssertions<TCollection>>(
+        return new ContainSingleContinuation<ValueAssertions<TCollection>, TItem>(
             assertions,
             result.HasSingleItem,
             result.SingleItem,

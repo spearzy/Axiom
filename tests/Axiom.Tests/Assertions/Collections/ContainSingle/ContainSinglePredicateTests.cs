@@ -5,6 +5,8 @@ namespace Axiom.Tests.Assertions.Collections.ContainSingle;
 
 public sealed class ContainSinglePredicateTests
 {
+    private sealed record Order(int Id);
+
     [Fact]
     public void ContainSingle_WithPredicate_ReturnsContinuation_WhenExactlyOneItemMatches()
     {
@@ -22,9 +24,20 @@ public sealed class ContainSinglePredicateTests
         int[] values = [10, 20, 30];
 
         var continuation = values.Should().ContainSingle((int item) => item == 20);
-        var singleItem = Assert.IsType<int>(continuation.SingleItem);
+        int singleItem = continuation.SingleItem;
 
         Assert.Equal(20, singleItem);
+    }
+
+    [Fact]
+    public void ContainSingle_WithPredicate_ExposesTypedSingleItem_ForReferenceType()
+    {
+        Order[] values = [new(1), new(2), new(3)];
+
+        var continuation = values.Should().ContainSingle((Order order) => order.Id == 2);
+        Order singleItem = continuation.SingleItem;
+
+        Assert.Equal(2, singleItem.Id);
     }
 
     [Fact]
@@ -108,7 +121,7 @@ public sealed class ContainSinglePredicateTests
 
         var batch = new Axiom.Core.Batch();
         var continuation = values.Should().ContainSingle((int item) => item == 2);
-        var singleItem = Assert.IsType<int>(continuation.SingleItem);
+        int singleItem = continuation.SingleItem;
 
         Assert.Equal(2, singleItem);
         var disposeEx = Record.Exception(() => batch.Dispose());

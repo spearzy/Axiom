@@ -165,6 +165,7 @@ Expected value to start with "ab", but found "test".
 - `ContainSingle()`
 - `ContainSingle(predicate)`
 - `ContainSingle().SingleItem`
+- `ContainSingle(predicate).SingleItem` (typed for generic collections)
 - `OnlyContain(predicate)`
 - `NotContain(item)` / `NotContain(predicate)`
 - `AllSatisfy(assertion)`
@@ -540,7 +541,8 @@ values.Should()
 Order[] orders = [new(42, 19.99m)];
 var onlyOrder = (Order)orders.Should().ContainSingle().SingleItem!;
 onlyOrder.Total.Should().Be(19.99m);
-orders.Should().ContainSingle((Order order) => order.Id == 42);
+Order matchedOrder = orders.Should().ContainSingle((Order order) => order.Id == 42).SingleItem;
+matchedOrder.Total.Should().Be(19.99m);
 
 Dictionary<string, int> scores = new()
 {
@@ -573,6 +575,8 @@ public sealed record User(int Id, string Email);
 - If the base assertion succeeds, the extractor returns the matched value.
 - If the base assertion fails outside `Batch`, it throws immediately and the extractor is not reached.
 - If the base assertion fails inside `Batch`, the failure is aggregated and the extractor throws an explicit unavailable message that includes the original assertion failure text.
+- `ContainSingle(predicate).SingleItem` is strongly typed for generic collections.
+- Parameterless `ContainSingle().SingleItem` remains `object?` for non-generic compatibility paths.
 
 ### Temporal Assertions
 
