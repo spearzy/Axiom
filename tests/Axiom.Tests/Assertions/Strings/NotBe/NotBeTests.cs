@@ -33,7 +33,7 @@ public sealed class NotBeTests
 
         var ex = Assert.Throws<InvalidOperationException>(() => value.Should().NotBe("test"));
 
-        const string expected = "Expected value to not be \"test\", but found \"test\".";
+        const string expected = "Expected value to not be \"test\", but found \"test\" (first string difference; strings are identical).";
         Assert.Equal(expected, ex.Message);
     }
 

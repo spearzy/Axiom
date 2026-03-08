@@ -76,10 +76,11 @@ public sealed class StringAssertions(string? subject, string? subjectExpression)
 
         if (!subject.StartsWith(expectedPrefix, comparison))
         {
+            var detail = StringDifferenceDiagnostics.BuildStartWithFailureDetail(expectedPrefix, subject);
             var failure = new Failure(
                 SubjectLabel(),
                 new Expectation("to start with", expectedPrefix),
-                subject,
+                RenderStringActualWithDetail(subject, detail),
                 because);
             Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
         }
@@ -116,10 +117,11 @@ public sealed class StringAssertions(string? subject, string? subjectExpression)
 
         if (!subject.EndsWith(expectedSuffix, comparison))
         {
+            var detail = StringDifferenceDiagnostics.BuildEndWithFailureDetail(expectedSuffix, subject);
             var failure = new Failure(
                 SubjectLabel(),
                 new Expectation("to end with", expectedSuffix),
-                subject,
+                RenderStringActualWithDetail(subject, detail),
                 because);
             Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
         }
@@ -156,10 +158,11 @@ public sealed class StringAssertions(string? subject, string? subjectExpression)
 
         if (!subject.Contains(expectedSubstring, comparison))
         {
+            var detail = StringDifferenceDiagnostics.BuildContainFailureDetail(expectedSubstring, subject);
             var failure = new Failure(
                 SubjectLabel(),
                 new Expectation("to contain", expectedSubstring),
-                subject,
+                RenderStringActualWithDetail(subject, detail),
                 because);
             Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
         }
@@ -196,10 +199,12 @@ public sealed class StringAssertions(string? subject, string? subjectExpression)
 
         if (subject.Contains(unexpectedSubstring, comparison))
         {
+            var matchIndex = subject.IndexOf(unexpectedSubstring, comparison);
+            var detail = StringDifferenceDiagnostics.BuildNotContainFailureDetail(unexpectedSubstring, subject, matchIndex);
             var failure = new Failure(
                 SubjectLabel(),
                 new Expectation("to not contain", unexpectedSubstring),
-                subject,
+                RenderStringActualWithDetail(subject, detail),
                 because);
             Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
         }
@@ -385,12 +390,20 @@ public sealed class StringAssertions(string? subject, string? subjectExpression)
         [CallerFilePath] string? callerFilePath = null,
         [CallerLineNumber] int callerLineNumber = 0)
     {
-        if (!string.Equals(Subject, expected, StringComparison.Ordinal))
+        var subject = Subject;
+        if (!string.Equals(subject, expected, StringComparison.Ordinal))
         {
+            object? actual = subject;
+            if (subject is not null)
+            {
+                var detail = StringDifferenceDiagnostics.BuildEqualityFailureDetail(expected, subject);
+                actual = RenderStringActualWithDetail(subject, detail);
+            }
+
             var failure = new Failure(
                 SubjectLabel(),
                 new Expectation("to be", expected),
-                Subject,
+                actual,
                 because);
             Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
         }
@@ -404,12 +417,20 @@ public sealed class StringAssertions(string? subject, string? subjectExpression)
         [CallerFilePath] string? callerFilePath = null,
         [CallerLineNumber] int callerLineNumber = 0)
     {
-        if (string.Equals(Subject, unexpected, StringComparison.Ordinal))
+        var subject = Subject;
+        if (string.Equals(subject, unexpected, StringComparison.Ordinal))
         {
+            object? actual = subject;
+            if (subject is not null)
+            {
+                var detail = StringDifferenceDiagnostics.BuildEqualityFailureDetail(unexpected, subject);
+                actual = RenderStringActualWithDetail(subject, detail);
+            }
+
             var failure = new Failure(
                 SubjectLabel(),
                 new Expectation("to not be", unexpected),
-                Subject,
+                actual,
                 because);
             Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
         }
@@ -528,6 +549,18 @@ public sealed class StringAssertions(string? subject, string? subjectExpression)
     private string SubjectLabel()
     {
         return string.IsNullOrWhiteSpace(SubjectExpression) ? "<subject>" : SubjectExpression;
+    }
+
+    private static RenderedText RenderStringActualWithDetail(string actual, string detail)
+    {
+        return new RenderedText($"\"{EscapeForMessage(actual)}\" ({detail})");
+    }
+
+    private static string EscapeForMessage(string value)
+    {
+        return value
+            .Replace("\\", "\\\\", StringComparison.Ordinal)
+            .Replace("\"", "\\\"", StringComparison.Ordinal);
     }
 
     private void Fail(string message, string? callerFilePath, int callerLineNumber)

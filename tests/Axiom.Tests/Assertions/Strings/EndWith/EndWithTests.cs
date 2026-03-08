@@ -26,6 +26,8 @@ public sealed class EndWithTests
         Assert.Contains("end with", ex.Message);
         Assert.Contains("ab", ex.Message);
         Assert.Contains("test", ex.Message);
+        Assert.Contains("end comparison", ex.Message, StringComparison.Ordinal);
+        Assert.Contains("first difference at expected index 0, actual index 2", ex.Message, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -48,5 +50,6 @@ public sealed class EndWithTests
             value.Should().EndWith("st", StringComparison.Ordinal));
 
         Assert.Contains("Expected value to end with \"st\"", ex.Message, StringComparison.Ordinal);
+        Assert.Contains("end comparison", ex.Message, StringComparison.Ordinal);
     }
 }

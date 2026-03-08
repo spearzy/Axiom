@@ -22,7 +22,7 @@ public sealed class NotContainTests
 
         var ex = Assert.Throws<InvalidOperationException>(() => value.Should().NotContain("es"));
 
-        const string expected = "Expected value to not contain \"es\", but found \"test\".";
+        const string expected = "Expected value to not contain \"es\", but found \"test\" (unexpected match at index 1; strings are identical).";
         Assert.Equal(expected, ex.Message);
     }
 
@@ -57,6 +57,7 @@ public sealed class NotContainTests
             value.Should().NotContain("es", StringComparison.OrdinalIgnoreCase));
 
         Assert.Contains("Expected value to not contain \"es\"", ex.Message, StringComparison.Ordinal);
+        Assert.Contains("unexpected match at index", ex.Message, StringComparison.Ordinal);
     }
 
     [Fact]

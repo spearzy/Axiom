@@ -235,6 +235,12 @@ Batch 'user profile' failed with 3 assertion failure(s):
 "ABC".Should().StartWith("ab", StringComparison.OrdinalIgnoreCase);
 ```
 
+When a string assertion fails, Axiom includes deterministic difference details to make diagnostics clearer:
+
+```text
+Expected value to be "prod", but found "test" (first string difference; first difference at expected index 0, actual index 0; expected snippet "prod", actual snippet "test").
+```
+
 ### Value Assertions
 
 ```csharp

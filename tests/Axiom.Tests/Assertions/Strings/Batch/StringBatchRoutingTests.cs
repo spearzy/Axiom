@@ -65,6 +65,46 @@ public sealed class StringBatchRoutingTests
     }
 
     [Fact]
+    public void StartWith_OutsideBatch_ThrowsImmediately()
+    {
+        const string value = "test";
+
+        Assert.Throws<InvalidOperationException>(() => value.Should().StartWith("ab"));
+    }
+
+    [Fact]
+    public void StartWith_InsideBatch_DoesNotThrowAtAssertionCallSite()
+    {
+        const string value = "test";
+
+        using var batch = new Axiom.Core.Batch();
+        var callEx = Record.Exception(() => value.Should().StartWith("ab"));
+
+        Assert.Null(callEx);
+        Assert.Throws<InvalidOperationException>(() => batch.Dispose());
+    }
+
+    [Fact]
+    public void EndWith_OutsideBatch_ThrowsImmediately()
+    {
+        const string value = "test";
+
+        Assert.Throws<InvalidOperationException>(() => value.Should().EndWith("ab"));
+    }
+
+    [Fact]
+    public void EndWith_InsideBatch_DoesNotThrowAtAssertionCallSite()
+    {
+        const string value = "test";
+
+        using var batch = new Axiom.Core.Batch();
+        var callEx = Record.Exception(() => value.Should().EndWith("ab"));
+
+        Assert.Null(callEx);
+        Assert.Throws<InvalidOperationException>(() => batch.Dispose());
+    }
+
+    [Fact]
     public void Contain_OutsideBatch_ThrowsImmediately()
     {
         const string value = "test";
@@ -395,11 +435,42 @@ public sealed class StringBatchRoutingTests
 
         var message = ex.Message.Replace("\r\n", "\n", StringComparison.Ordinal);
         Assert.Contains("Batch 'string-extended' failed with 5 assertion failure(s):", message);
-        Assert.Contains("1) Expected valueA to contain \"ab\", but found \"test\".", message);
-        Assert.Contains("2) Expected valueB to not contain \"es\", but found \"test\".", message);
+        Assert.Contains("1) Expected valueA to contain \"ab\", but found \"test\" (closest subject segment starts at index 0; first difference at expected index 0, actual index 0; expected snippet \"ab\", actual snippet \"te\").", message);
+        Assert.Contains("2) Expected valueB to not contain \"es\", but found \"test\" (unexpected match at index 1; strings are identical).", message);
         Assert.Contains("3) Expected valueC to have length 3, but found 4.", message);
         Assert.Contains("4) Expected valueD to be empty, but found \"test\".", message);
         Assert.Contains("5) Expected valueE to not be empty, but found \"\".", message);
+    }
+
+    [Fact]
+    public void Batch_Dispose_ThrowsCombinedFailures_WithStringDifferenceDetails_ForCoreStringMethods()
+    {
+        const string beValue = "test";
+        const string notBeValue = "same";
+        const string startWithValue = "test";
+        const string endWithValue = "test";
+        const string containValue = "test";
+        const string notContainValue = "test";
+
+        var ex = Assert.Throws<InvalidOperationException>(() =>
+        {
+            using var batch = new Axiom.Core.Batch("string-diff-details");
+            beValue.Should().Be("prod");
+            notBeValue.Should().NotBe("same");
+            startWithValue.Should().StartWith("ab");
+            endWithValue.Should().EndWith("ab");
+            containValue.Should().Contain("ab");
+            notContainValue.Should().NotContain("es");
+        });
+
+        var message = ex.Message.Replace("\r\n", "\n", StringComparison.Ordinal);
+        Assert.Contains("Batch 'string-diff-details' failed with 6 assertion failure(s):", message);
+        Assert.Contains("1) Expected beValue to be \"prod\", but found \"test\" (first string difference; first difference at expected index 0, actual index 0; expected snippet \"prod\", actual snippet \"test\").", message);
+        Assert.Contains("2) Expected notBeValue to not be \"same\", but found \"same\" (first string difference; strings are identical).", message);
+        Assert.Contains("3) Expected startWithValue to start with \"ab\", but found \"test\" (start comparison; first difference at expected index 0, actual index 0; expected snippet \"ab\", actual snippet \"te\").", message);
+        Assert.Contains("4) Expected endWithValue to end with \"ab\", but found \"test\" (end comparison; first difference at expected index 0, actual index 2; expected snippet \"ab\", actual snippet \"st\").", message);
+        Assert.Contains("5) Expected containValue to contain \"ab\", but found \"test\" (closest subject segment starts at index 0; first difference at expected index 0, actual index 0; expected snippet \"ab\", actual snippet \"te\").", message);
+        Assert.Contains("6) Expected notContainValue to not contain \"es\", but found \"test\" (unexpected match at index 1; strings are identical).", message);
     }
 
     [Fact]

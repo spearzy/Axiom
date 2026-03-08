@@ -26,6 +26,8 @@ public sealed class StartWithTests
         Assert.Contains("start with", ex.Message);
         Assert.Contains("ab", ex.Message);
         Assert.Contains("test", ex.Message);
+        Assert.Contains("start comparison", ex.Message, StringComparison.Ordinal);
+        Assert.Contains("first difference at expected index 0, actual index 0", ex.Message, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -59,5 +61,6 @@ public sealed class StartWithTests
             value.Should().StartWith("te", StringComparison.Ordinal));
 
         Assert.Contains("Expected value to start with \"te\"", ex.Message, StringComparison.Ordinal);
+        Assert.Contains("start comparison", ex.Message, StringComparison.Ordinal);
     }
 }

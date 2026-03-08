@@ -22,7 +22,7 @@ public sealed class BeTests
 
         var ex = Assert.Throws<InvalidOperationException>(() => value.Should().Be("prod"));
 
-        const string expected = "Expected value to be \"prod\", but found \"test\".";
+        const string expected = "Expected value to be \"prod\", but found \"test\" (first string difference; first difference at expected index 0, actual index 0; expected snippet \"prod\", actual snippet \"test\").";
         Assert.Equal(expected, ex.Message);
     }
 

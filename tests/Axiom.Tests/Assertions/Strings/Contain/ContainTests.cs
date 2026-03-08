@@ -22,7 +22,7 @@ public sealed class ContainTests
 
         var ex = Assert.Throws<InvalidOperationException>(() => value.Should().Contain("ab"));
 
-        const string expected = "Expected value to contain \"ab\", but found \"test\".";
+        const string expected = "Expected value to contain \"ab\", but found \"test\" (closest subject segment starts at index 0; first difference at expected index 0, actual index 0; expected snippet \"ab\", actual snippet \"te\").";
         Assert.Equal(expected, ex.Message);
     }
 
@@ -68,5 +68,6 @@ public sealed class ContainTests
             value.Should().Contain("es", StringComparison.Ordinal));
 
         Assert.Contains("Expected value to contain \"es\"", ex.Message, StringComparison.Ordinal);
+        Assert.Contains("closest subject segment starts at index", ex.Message, StringComparison.Ordinal);
     }
 }
