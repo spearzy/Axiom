@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using Axiom.Core.Failures;
 
@@ -30,7 +31,7 @@ public sealed class ThrownExceptionAssertions<TParent, TException>(
                 ? "Thrown is unavailable because Throw assertion failed."
                 : $"Thrown is unavailable because Throw assertion failed with error: {throwFailureMessage}";
             AssertionFailureDispatcher.Throw(message);
-            throw new InvalidOperationException("Failure strategy returned without throwing.");
+            throw new UnreachableException();
         }
     }
 

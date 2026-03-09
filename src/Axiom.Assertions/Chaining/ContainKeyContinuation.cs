@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Axiom.Core.Failures;
 
 namespace Axiom.Assertions.Chaining;
@@ -35,7 +36,7 @@ public readonly struct ContainKeyContinuation<TAssertions, TValue>
                 ? "WhoseValue is unavailable because ContainKey failed."
                 : $"WhoseValue is unavailable because ContainKey failed with error: {_containKeyFailureMessage}";
             AssertionFailureDispatcher.Throw(message);
-            throw new InvalidOperationException("Failure strategy returned without throwing.");
+            throw new UnreachableException();
         }
     }
 }

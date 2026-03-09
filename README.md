@@ -321,6 +321,24 @@ public sealed class CustomFailureStrategy : IFailureStrategy
 
 `IFailureStrategy.Fail(...)` should always throw. If a strategy returns instead of throwing, Axiom raises an `InvalidOperationException` guard failure.
 
+Built-in framework strategies are also available:
+
+```csharp
+using Axiom.Core.Configuration;
+using Axiom.Core.Failures;
+
+// xUnit projects
+AxiomServices.Configure(c => c.FailureStrategy = XunitFailureStrategy.Instance);
+
+// NUnit projects
+AxiomServices.Configure(c => c.FailureStrategy = NUnitFailureStrategy.Instance);
+
+// MSTest projects
+AxiomServices.Configure(c => c.FailureStrategy = MSTestFailureStrategy.Instance);
+```
+
+Each built-in strategy requires the corresponding test framework package to be referenced by the test project.
+
 Use a custom comparer provider when your domain equality rules differ from default `.Equals(...)`. For one-off equivalency rules, prefer per-assertion options such as `UseComparerForType(...)`, `UseComparerForPath(...)`, or `UseComparerForMember(...)`.
 
 If you need to package recurring configuration, implement `IAxiomModule` and apply it with `AxiomServices.UseModule(...)`.

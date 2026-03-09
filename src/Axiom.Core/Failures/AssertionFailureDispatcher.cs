@@ -24,6 +24,6 @@ public static class AssertionFailureDispatcher
     {
         ArgumentNullException.ThrowIfNull(message);
         AxiomServices.Configuration.FailureStrategy.Fail(message, callerFilePath, callerLineNumber);
-        throw new InvalidOperationException("Failure strategy returned without throwing.");
+        throw new InvalidOperationException(FailureStrategyMessages.NonThrowingStrategyGuard);
     }
 }
