@@ -52,28 +52,28 @@ Expected user.Email to contain "@", but found "invalid-email".
 Put shared configuration in one `AxiomSetup.cs` file in your test project:
 
 ```csharp
+using Axiom.Assertions;
+using Axiom.Assertions.Configuration;
 using Axiom.Assertions.Equivalency;
-using Axiom.Core.Configuration;
 using Axiom.Core.Failures;
 
 public static class AxiomSetup
 {
     public static void Apply()
     {
-        EquivalencyDefaults.Configure(options =>
+        AxiomSettings.Configure(options =>
         {
-            options.CollectionOrder = EquivalencyCollectionOrder.Any;
-            options.RequireStrictRuntimeTypes = false;
-        });
-
-        AxiomServices.Configure(config =>
-        {
-            config.RegexMatchTimeout = TimeSpan.FromMilliseconds(500);
+            options.Core.RegexMatchTimeout = TimeSpan.FromMilliseconds(500);
 
             // Pick the strategy that matches your test framework:
-            config.FailureStrategy = XunitFailureStrategy.Instance;
-            // config.FailureStrategy = NUnitFailureStrategy.Instance;
-            // config.FailureStrategy = MSTestFailureStrategy.Instance;
+            options.Core.FailureStrategy = XunitFailureStrategy.Instance;
+            // options.Core.FailureStrategy = NUnitFailureStrategy.Instance;
+            // options.Core.FailureStrategy = MSTestFailureStrategy.Instance;
+
+            options.Equivalency.CollectionOrder = EquivalencyCollectionOrder.Any;
+            options.Equivalency.RequireStrictRuntimeTypes = false;
+            options.Equivalency.FailOnMissingMembers = false;
+            options.Equivalency.FailOnExtraMembers = false;
         });
     }
 }

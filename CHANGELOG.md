@@ -4,6 +4,33 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project follows [Semantic Versioning](https://semver.org/).
 
+## [0.4.0] - 2026-03-12
+
+### Added
+
+- Unified consumer-facing startup facade:
+  - `AxiomSettings.Configure(Action<AxiomSettingsOptions>)`
+  - `AxiomSettings.Reset()`
+- Expression-based equivalency selectors for named types:
+  - `Ignore<TSubject>(...)`
+  - `OnlyCompare<TSubject>(...)`
+  - `UseComparer<TSubject>(...)`
+  - `UseCollectionItemComparer<TSubject>(...)`
+- Direct task outcome assertions and continuations for task subjects:
+  - `Succeed()`, `SucceedWithin(...)`
+  - `BeCanceled()`, `BeCanceledWithin(...)`
+  - `BeFaultedWith<TException>()`, `BeFaultedWithWithin<TException>(...)`
+
+### Changed
+
+- `RequireStrictRuntimeTypes = false` now enables structural comparison across unrelated runtime types by default; `MatchMemberName(...)` is now only needed for renamed members.
+- Updated README/NuGet setup guidance to promote one setup entrypoint via `AxiomSettings.Configure(...)`.
+- Updated consumer smoke coverage and test namespaces for current assertion surface.
+
+### Fixed
+
+- Added focused configuration and equivalency tests to preserve compatibility between `AxiomSettings`, `AxiomServices`, and `EquivalencyDefaults`.
+
 ## [0.3.0] - 2026-03-09
 
 ### Added
