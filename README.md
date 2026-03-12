@@ -61,28 +61,27 @@ For most teams, the clearest approach is one setup file in the test project.
 Create `AxiomSetup.cs`:
 
 ```csharp
+using Axiom.Assertions;
 using Axiom.Assertions.Equivalency;
-using Axiom.Core.Configuration;
 using Axiom.Core.Failures;
 
 public static class AxiomSetup
 {
     public static void Apply()
     {
-        EquivalencyDefaults.Configure(options =>
+        AxiomSettings.Configure(options =>
         {
-            options.CollectionOrder = EquivalencyCollectionOrder.Any;
-            options.RequireStrictRuntimeTypes = false;
-        });
-
-        AxiomServices.Configure(config =>
-        {
-            config.RegexMatchTimeout = TimeSpan.FromMilliseconds(500);
+            options.Core.RegexMatchTimeout = TimeSpan.FromMilliseconds(500);
 
             // Pick the strategy that matches your test framework:
-            config.FailureStrategy = XunitFailureStrategy.Instance;
-            // config.FailureStrategy = NUnitFailureStrategy.Instance;
-            // config.FailureStrategy = MSTestFailureStrategy.Instance;
+            options.Core.FailureStrategy = XunitFailureStrategy.Instance;
+            // options.Core.FailureStrategy = NUnitFailureStrategy.Instance;
+            // options.Core.FailureStrategy = MSTestFailureStrategy.Instance;
+
+            options.Equivalency.CollectionOrder = EquivalencyCollectionOrder.Any;
+            options.Equivalency.RequireStrictRuntimeTypes = false;
+            options.Equivalency.FailOnMissingMembers = false;
+            options.Equivalency.FailOnExtraMembers = false;
         });
     }
 }
@@ -93,6 +92,8 @@ Call `AxiomSetup.Apply()` once in your test framework's startup hook:
 - xUnit: call it in a collection fixture constructor.
 - NUnit: call it from `[SetUpFixture]` + `[OneTimeSetUp]`.
 - MSTest: call it from `[AssemblyInitialize]`.
+
+`AxiomServices` and `EquivalencyDefaults` still work and remain fully supported for lower-level or separate configuration flows.
 
 ## Why Axiom
 

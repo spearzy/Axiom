@@ -12,16 +12,9 @@ public static class AxiomServices
     {
         ArgumentNullException.ThrowIfNull(configure);
 
-        var next = new AxiomConfiguration
-        {
-            ComparerProvider = _configuration.ComparerProvider,
-            ValueFormatter = _configuration.ValueFormatter,
-            FailureStrategy = _configuration.FailureStrategy,
-            RegexMatchTimeout = _configuration.RegexMatchTimeout,
-        };
-
+        var next = Snapshot();
         configure(next);
-        _configuration = next;
+        Apply(next);
     }
 
     public static void Reset()
@@ -33,5 +26,27 @@ public static class AxiomServices
     {
         ArgumentNullException.ThrowIfNull(module);
         Configure(module.Configure);
+    }
+
+    internal static AxiomConfiguration Snapshot()
+    {
+        return Clone(_configuration);
+    }
+
+    internal static void Apply(AxiomConfiguration configuration)
+    {
+        ArgumentNullException.ThrowIfNull(configuration);
+        _configuration = Clone(configuration);
+    }
+
+    private static AxiomConfiguration Clone(AxiomConfiguration source)
+    {
+        return new AxiomConfiguration
+        {
+            ComparerProvider = source.ComparerProvider,
+            ValueFormatter = source.ValueFormatter,
+            FailureStrategy = source.FailureStrategy,
+            RegexMatchTimeout = source.RegexMatchTimeout,
+        };
     }
 }

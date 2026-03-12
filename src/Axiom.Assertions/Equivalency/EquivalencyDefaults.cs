@@ -32,4 +32,14 @@ public static class EquivalencyDefaults
             return _options.Clone();
         }
     }
+
+    internal static void Apply(EquivalencyOptions options)
+    {
+        ArgumentNullException.ThrowIfNull(options);
+
+        lock (Sync)
+        {
+            _options = options.Clone();
+        }
+    }
 }

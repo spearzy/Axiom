@@ -290,9 +290,39 @@ Key options:
 
 ## Configuration And Extensibility
 
+Recommended startup pattern in test projects:
+
+```csharp
+// AxiomSetup.cs
+using System;
+using Axiom.Assertions;
+using Axiom.Core.Failures;
+
+public static class AxiomSetup
+{
+    public static void Apply()
+    {
+        AxiomSettings.Configure(options =>
+        {
+            options.Core.FailureStrategy = XunitFailureStrategy.Instance;
+            options.Core.RegexMatchTimeout = TimeSpan.FromMilliseconds(500);
+
+            options.Equivalency.RequireStrictRuntimeTypes = false;
+            options.Equivalency.FailOnMissingMembers = false;
+            options.Equivalency.FailOnExtraMembers = false;
+        });
+    }
+}
+```
+
+Call `AxiomSetup.Apply()` once from your framework startup hook (xUnit fixture, NUnit one-time setup, or MSTest assembly initialise).
+
 Project-wide configuration:
 
 ```csharp
+AxiomSettings.Configure(Action<AxiomSettingsOptions> configure)
+AxiomSettings.Reset()
+
 EquivalencyDefaults.Configure(Action<EquivalencyOptions> configure)
 EquivalencyDefaults.Reset()
 
