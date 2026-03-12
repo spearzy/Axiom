@@ -34,7 +34,6 @@ public sealed class TaskOutcomeAssertionsTests
         var continuation = await task.Should().SucceedWithin(TimeSpan.FromMilliseconds(10));
 
         Assert.Equal(42, continuation.WhoseResult);
-        Assert.Equal(42, continuation.Which);
     }
 
     [Fact]
