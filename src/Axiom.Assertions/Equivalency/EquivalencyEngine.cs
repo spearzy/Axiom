@@ -889,41 +889,9 @@ internal static class EquivalencyEngine
             return actualType == expectedType;
         }
 
-        if (actualType.IsAssignableFrom(expectedType) || expectedType.IsAssignableFrom(actualType))
-        {
-            return true;
-        }
-
-        return HasApplicableMemberNameMappingForTypes(actualType, expectedType, options);
-    }
-
-    private static bool HasApplicableMemberNameMappingForTypes(
-        Type actualType,
-        Type expectedType,
-        EquivalencyOptions options)
-    {
-        if (!options.HasMemberNameMappings)
-        {
-            return false;
-        }
-
-        var actualMembers = GetComparableMembers(actualType, options);
-        var expectedMembers = GetComparableMembers(expectedType, options);
-
-        foreach (var actualMemberName in actualMembers.Keys)
-        {
-            if (!options.TryGetMappedExpectedMemberName(actualMemberName, out var expectedMemberName))
-            {
-                continue;
-            }
-
-            if (expectedMembers.ContainsKey(expectedMemberName))
-            {
-                return true;
-            }
-        }
-
-        return false;
+        // Structural mode: compare members/values regardless of runtime type identity.
+        // MatchMemberName(...) remains an optional rename tool, not a type-compatibility gate.
+        return true;
     }
 
     private static bool IsLeafType(Type type)
