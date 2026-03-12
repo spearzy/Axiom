@@ -82,7 +82,7 @@ public sealed class BeEquivalentToStructuralTypeComparisonTests
         Assert.Contains("Member missing on expected type.", ex.Message, StringComparison.Ordinal);
         Assert.Contains("Member missing on actual type.", ex.Message, StringComparison.Ordinal);
     }
-    
+
     [Fact]
     public void GivenUnrelatedTypesWithRenamedMembers_WhenRequireStrictRuntimeTypesEnabled_ThenThrowsForDifferentTypes()
     {
