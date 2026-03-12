@@ -40,6 +40,4 @@ public readonly struct SuccessfulTaskContinuation<TAssertions, TResult>
             throw new UnreachableException();
         }
     }
-
-    public TResult Which => WhoseResult;
 }
