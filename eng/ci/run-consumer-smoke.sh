@@ -78,6 +78,8 @@ EOF
 create_nunit_smoke_tests() {
   rm -f UnitTest1.cs
   cat > ConsumerSmokeTests.cs <<'EOF'
+using System;
+using System.Threading.Tasks;
 using Axiom.Assertions;
 using Axiom.Assertions.Extensions;
 using AAssert = Axiom.Core.Assert;
@@ -137,6 +139,8 @@ EOF
 create_xunit_smoke_tests() {
   rm -f UnitTest1.cs
   cat > ConsumerSmokeTests.cs <<'EOF'
+using System;
+using System.Threading.Tasks;
 using Axiom.Assertions;
 using Axiom.Assertions.Extensions;
 using AAssert = Axiom.Core.Assert;
@@ -195,6 +199,8 @@ EOF
 create_mstest_smoke_tests() {
   rm -f UnitTest1.cs Test1.cs
   cat > ConsumerSmokeTests.cs <<'EOF'
+using System;
+using System.Threading.Tasks;
 using Axiom.Assertions;
 using Axiom.Assertions.Extensions;
 using AAssert = Axiom.Core.Assert;
