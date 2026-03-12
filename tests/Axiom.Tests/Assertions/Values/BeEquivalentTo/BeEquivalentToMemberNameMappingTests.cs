@@ -118,7 +118,7 @@ public sealed class BeEquivalentToMemberNameMappingTests
     }
 
     [Fact]
-    public void GivenUnrelatedMemberMapping_WhenTypesAreUnrelated_ThenRuntimeTypeMismatchStillReported()
+    public void GivenUnrelatedLeafTypes_WhenStrictRuntimeTypesDisabled_ThenComparedByValue()
     {
         object actual = 42;
         object expected = 42L;
@@ -126,13 +126,10 @@ public sealed class BeEquivalentToMemberNameMappingTests
         var ex = Assert.Throws<InvalidOperationException>(() =>
             actual.Should().BeEquivalentTo(
                 expected,
-                options =>
-                {
-                    options.RequireStrictRuntimeTypes = false;
-                    options.MatchMemberName(nameof(ActualPerson.GivenName), nameof(ExpectedPerson.FirstName));
-                }));
+                options => options.RequireStrictRuntimeTypes = false));
 
-        Assert.Contains("Runtime types differ", ex.Message, StringComparison.Ordinal);
+        Assert.Contains("Values differ.", ex.Message, StringComparison.Ordinal);
+        Assert.DoesNotContain("Runtime types differ", ex.Message, StringComparison.Ordinal);
     }
 
     private sealed class ActualPerson
