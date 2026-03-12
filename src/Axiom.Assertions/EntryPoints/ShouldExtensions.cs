@@ -1,7 +1,7 @@
 using System.Runtime.CompilerServices;
 using Axiom.Assertions.AssertionTypes;
 
-namespace Axiom.Assertions;
+namespace Axiom.Assertions.EntryPoints;
 
 public static class ShouldExtensions
 {
@@ -25,30 +25,31 @@ public static class ShouldExtensions
         [CallerArgumentExpression("subject")] string? subjectExpression = null)
         => new(subject, subjectExpression);
 
-    public static AsyncActionAssertions Should(
+    public static TaskAssertions Should(
         this Task subject,
         [CallerArgumentExpression("subject")] string? subjectExpression = null)
-        => new(() => new ValueTask(subject), subjectExpression);
+        => new(subject, subjectExpression);
 
-    public static AsyncActionAssertions Should<T>(
+    public static TaskAssertions<T> Should<T>(
         this Task<T> subject,
         [CallerArgumentExpression("subject")] string? subjectExpression = null)
-        => new(() => new ValueTask(subject), subjectExpression);
+        => new(subject, subjectExpression);
 
-    public static AsyncActionAssertions Should(
+    public static TaskAssertions Should(
         this ValueTask subject,
         [CallerArgumentExpression("subject")] string? subjectExpression = null)
     {
-        // A raw ValueTask can be unsafe to await repeatedly; Task is safe for repeated checks/chaining.
+        // Normalize once at the boundary so every later assertion observes the same Task instance.
         var task = subject.AsTask();
-        return new(() => new ValueTask(task), subjectExpression);
+        return new(task, subjectExpression);
     }
 
-    public static AsyncActionAssertions Should<T>(
+    public static TaskAssertions<T> Should<T>(
         this ValueTask<T> subject,
         [CallerArgumentExpression("subject")] string? subjectExpression = null)
     {
+        // ValueTask<T> may be single-consumption, so do not carry it deeper into the assertion graph.
         var task = subject.AsTask();
-        return new(() => new ValueTask(task), subjectExpression);
+        return new(task, subjectExpression);
     }
 }

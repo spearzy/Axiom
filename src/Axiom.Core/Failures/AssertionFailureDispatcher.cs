@@ -19,7 +19,6 @@ public static class AssertionFailureDispatcher
         Throw(message, callerFilePath, callerLineNumber);
     }
 
-    [DoesNotReturn]
     public static void Throw(string message, string? callerFilePath = null, int callerLineNumber = 0)
     {
         ArgumentNullException.ThrowIfNull(message);

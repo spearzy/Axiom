@@ -11,7 +11,8 @@ public sealed class ThrownExceptionAssertions<TParent, TException>(
     TParent parentAssertions,
     string subjectLabel,
     string? inheritedReason,
-    Action<string, string?, int> fail)
+    Action<string, string?, int> fail,
+    string baseAssertionName = "Throw")
     where TException : Exception
 {
     public TParent And { get; } = parentAssertions;
@@ -28,8 +29,8 @@ public sealed class ThrownExceptionAssertions<TParent, TException>(
             }
 
             var message = throwFailureMessage is null
-                ? "Thrown is unavailable because Throw assertion failed."
-                : $"Thrown is unavailable because Throw assertion failed with error: {throwFailureMessage}";
+                ? $"Thrown is unavailable because {baseAssertionName} assertion failed."
+                : $"Thrown is unavailable because {baseAssertionName} assertion failed with error: {throwFailureMessage}";
             AssertionFailureDispatcher.Throw(message);
             throw new UnreachableException();
         }
