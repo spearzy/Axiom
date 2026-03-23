@@ -349,6 +349,7 @@ UseComparerForMember(memberPath, comparer)
 UseComparer<TSubject>(x => x.Member, comparer)
 UseCollectionItemComparerForPath(path, comparer)
 UseCollectionItemComparer<TSubject>(x => x.Collection, comparer)
+MatchMember<TActual, TExpected>(actualSelector, expectedSelector)
 MatchMemberName(actualMember, expectedMember)
 IgnoreExpectedNullMembers()
 IgnoreActualNullMembers()
@@ -373,6 +374,12 @@ Key options:
 - `DateTimeOffsetTolerance`
 - `TimeOnlyTolerance`
 - `TimeSpanTolerance`
+
+For cross-type renames:
+
+- Prefer `MatchMember<TActual, TExpected>(...)` when you can point at members with expressions.
+- Use `MatchMemberName(...)` when you only have string member names or are working from dynamic/string-based configuration.
+- If both are configured for the same member, typed `MatchMember(...)` wins.
 
 ## Configuration And Extensibility
 
@@ -408,6 +415,9 @@ Project-wide configuration:
 ```csharp
 AxiomSettings.Configure(Action<AxiomSettingsOptions> configure)
 AxiomSettings.Reset()
+AxiomSettings.UseModule(IAxiomSettingsModule module)
+AxiomSettings.UseModules(params IAxiomSettingsModule[] modules)
+AxiomSettings.UseModule(IAxiomModule module)
 
 EquivalencyDefaults.Configure(Action<EquivalencyOptions> configure)
 EquivalencyDefaults.Reset()
@@ -426,7 +436,16 @@ ValueFormatter
 RegexMatchTimeout
 
 // Extensibility interfaces
+IAxiomSettingsModule
 IAxiomModule
 IComparerProvider
 IValueFormatter
 ```
+
+`IAxiomSettingsModule` exposes:
+
+```csharp
+Configure(AxiomSettingsOptions options)
+```
+
+Use it when you want one reusable preset that can configure both `options.Core` and `options.Equivalency`.

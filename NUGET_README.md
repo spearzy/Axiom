@@ -81,6 +81,12 @@ public static class AxiomSetup
 
 Call `AxiomSetup.Apply()` once from your framework startup hook (xUnit fixture, NUnit one-time setup, or MSTest assembly initialise).
 
+If you package shared defaults for several test projects, use `AxiomSettings.UseModule(...)` with an `IAxiomSettingsModule`:
+
+```csharp
+AxiomSettings.UseModule(new ApiTestModule());
+```
+
 ## Core Workflows
 
 ### Batch Aggregation
@@ -106,6 +112,12 @@ actual.Should().BeEquivalentTo(expected, options =>
 {
     options.CollectionOrder = EquivalencyCollectionOrder.Any;
     options.IgnorePath("actual.UpdatedAt");
+});
+
+actual.Should().BeEquivalentTo(expected, options =>
+{
+    options.RequireStrictRuntimeTypes = false;
+    options.MatchMember<ActualUser, ExpectedUser>(x => x.GivenName, x => x.FirstName);
 });
 ```
 

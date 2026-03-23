@@ -76,6 +76,28 @@ public static class ApiResponseAssertionExtensions
         return context.And();
     }
 
+    public static AndContinuation<ValueAssertions<ApiResponse>> HaveStatusCode(
+        this ValueAssertions<ApiResponse> assertions,
+        int expectedStatusCode,
+        string? because = null,
+        [CallerFilePath] string? callerFilePath = null,
+        [CallerLineNumber] int callerLineNumber = 0)
+    {
+        var context = AssertionContext.Create(assertions);
+
+        if (context.Subject.StatusCode != expectedStatusCode)
+        {
+            context.Fail(
+                new Expectation("to have status code", expectedStatusCode),
+                context.Subject.StatusCode,
+                because,
+                callerFilePath,
+                callerLineNumber);
+        }
+
+        return context.And();
+    }
+
     public static AndContinuation<ValueAssertions<ApiResponse>> HaveErrorCode(
         this ValueAssertions<ApiResponse> assertions,
         string expectedErrorCode,
@@ -105,7 +127,7 @@ public static class ApiResponseAssertionExtensions
 Consumer usage stays small and readable:
 
 ```csharp
-response.Should().BeSuccessful();
+response.Should().BeSuccessful().And.HaveStatusCode(200);
 failedResponse.Should().HaveErrorCode("ORDER_NOT_FOUND");
 ```
 
@@ -154,7 +176,7 @@ Call `context.And()` to keep the same fluent style as built-in assertions:
 
 ```csharp
 invoice.Should().HaveCurrency("GBP").And.NotBeNull();
-response.Should().BeSuccessful().And.HaveErrorCode("ORDER_NOT_FOUND");
+response.Should().BeSuccessful().And.HaveStatusCode(200);
 ```
 
 ## Respecting Batch

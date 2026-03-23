@@ -84,6 +84,8 @@ EquivalencyDefaults.Configure(options =>
 });
 ```
 
+For most test projects, prefer `AxiomSettings.Configure(...)` for shared setup and use `EquivalencyDefaults.Configure(...)` when you intentionally want to work with the equivalency defaults in isolation.
+
 Reset project-wide defaults:
 
 ```csharp
@@ -186,7 +188,54 @@ actual.Should().BeEquivalentTo(expected, options =>
 
 ### Map Members With Different Names
 
-When two types represent the same concept but use different member names, map them explicitly:
+When two types represent the same concept but use different member names, you have three levels of matching available.
+
+#### Same-Name Structural Matching
+
+If member names already line up, you do not need any rename configuration at all:
+
+```csharp
+actual.Should().BeEquivalentTo(expected, options =>
+    options.RequireStrictRuntimeTypes = false);
+```
+
+Use this first. It is the simplest setup and keeps the comparison shape obvious.
+
+#### Typed Cross-Type Member Mapping
+
+Prefer typed mapping when the types are known at compile time and one or more members were renamed.
+
+```csharp
+actual.Should().BeEquivalentTo(expected, options =>
+{
+    options.RequireStrictRuntimeTypes = false;
+    options.MatchMember<ActualUser, ExpectedUser>(x => x.GivenName, x => x.FirstName);
+    options.MatchMember<ActualUser, ExpectedUser>(x => x.Address.Postcode, x => x.Location.ZipCode);
+});
+```
+
+This is the most precise rename option because:
+
+- it supports nested paths
+- invalid selectors fail early
+- the comparison still reports failures using the actual-side path
+- ignore/include/path-comparer configuration still remains anchored to the actual object graph
+
+Nested-path example:
+
+```csharp
+actual.Should().BeEquivalentTo(expected, options =>
+{
+    options.RequireStrictRuntimeTypes = false;
+    options.MatchMember<OrderSnapshot, ApiOrderDto>(x => x.Customer.Address.Postcode, x => x.CustomerLocation.ZipCode);
+});
+```
+
+That tells Axiom to compare `actual.Customer.Address.Postcode` with `expected.CustomerLocation.ZipCode`, while keeping rendered failure paths rooted on the actual side.
+
+#### Legacy Name-Based Mapping
+
+Use `MatchMemberName(...)` when expression-based mapping is not practical, for example with string-driven configuration:
 
 ```csharp
 actual.Should().BeEquivalentTo(expected, options =>
@@ -197,6 +246,16 @@ actual.Should().BeEquivalentTo(expected, options =>
 ```
 
 This tells Axiom to compare `actual.GivenName` with `expected.FirstName`.
+
+#### Member-Mapping Precedence
+
+When Axiom resolves which expected member should be compared with an actual member, it uses this order:
+
+1. typed `MatchMember<TActual, TExpected>(...)`
+2. `MatchMemberName(...)`
+3. same-name structural matching
+
+If both typed and name-based mapping could apply to the same member, typed mapping wins.
 
 ## Custom Equality Rules
 

@@ -96,6 +96,23 @@ Call `AxiomSetup.Apply()` once in your test framework's startup hook:
 
 `AxiomServices` and `EquivalencyDefaults` still work and remain fully supported for lower-level or separate configuration flows.
 
+If your team reuses the same setup across many test projects, package it as a module:
+
+```csharp
+AxiomSettings.UseModule(new ApiTestModule());
+
+public sealed class ApiTestModule : IAxiomSettingsModule
+{
+    public void Configure(AxiomSettingsOptions options)
+    {
+        options.Core.RegexMatchTimeout = TimeSpan.FromMilliseconds(500);
+        options.Equivalency.RequireStrictRuntimeTypes = false;
+        options.Equivalency.FailOnMissingMembers = false;
+        options.Equivalency.FailOnExtraMembers = false;
+    }
+}
+```
+
 ## Why Axiom
 
 - Deterministic messages you can rely on in CI, code review, and snapshot-like tests.
@@ -175,11 +192,22 @@ Current equivalency configuration supports:
 
 - strict or any-order collection comparison
 - member and path exclusion, including expression-based selectors on named types
-- member-name mapping between different object shapes
+- typed or name-based member mapping between different object shapes
 - per-path, per-member, and per-type comparers
 - missing and extra member controls
 - numeric and temporal tolerances
 - global defaults via `EquivalencyDefaults.Configure(...)`
+
+For cross-type renames, prefer the typed mapping API:
+
+```csharp
+actual.Should().BeEquivalentTo(expected, options =>
+{
+    options.RequireStrictRuntimeTypes = false;
+    options.MatchMember<ActualUser, ExpectedUser>(x => x.GivenName, x => x.FirstName);
+    options.MatchMember<ActualUser, ExpectedUser>(x => x.Address.Postcode, x => x.Location.ZipCode);
+});
+```
 
 Equality precedence inside `BeEquivalentTo(...)` is:
 
@@ -461,7 +489,7 @@ Quick selection guide:
 
 Use a custom comparer provider when your domain equality rules differ from default `.Equals(...)`. For one-off equivalency rules, prefer per-assertion options such as `UseComparerForType(...)`, `UseComparerForPath(...)`, or `UseComparerForMember(...)`.
 
-If you need to package recurring configuration, implement `IAxiomModule` and apply it with `AxiomServices.UseModule(...)`.
+If you need to package recurring configuration for test projects, implement `IAxiomSettingsModule` and apply it with `AxiomSettings.UseModule(...)`. Core-only `IAxiomModule` modules remain available through `AxiomServices` and can also be bridged through `AxiomSettings.UseModule(...)`.
 
 ## Notes
 
