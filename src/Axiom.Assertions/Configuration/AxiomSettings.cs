@@ -1,5 +1,6 @@
 using Axiom.Assertions.Equivalency;
 using Axiom.Core.Configuration;
+using Axiom.Core.Modules;
 
 namespace Axiom.Assertions.Configuration;
 
@@ -23,5 +24,33 @@ public static class AxiomSettings
     {
         AxiomServices.Reset();
         EquivalencyDefaults.Reset();
+    }
+
+    public static void UseModule(IAxiomSettingsModule module)
+    {
+        ArgumentNullException.ThrowIfNull(module);
+
+        Configure(module.Configure);
+    }
+
+    public static void UseModules(params IAxiomSettingsModule[] modules)
+    {
+        ArgumentNullException.ThrowIfNull(modules);
+
+        Configure(options =>
+        {
+            foreach (var module in modules)
+            {
+                ArgumentNullException.ThrowIfNull(module, nameof(modules));
+                module.Configure(options);
+            }
+        });
+    }
+
+    public static void UseModule(IAxiomModule module)
+    {
+        ArgumentNullException.ThrowIfNull(module);
+
+        Configure(options => module.Configure(options.Core));
     }
 }
