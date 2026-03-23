@@ -268,6 +268,8 @@ steps.Should().SatisfyRespectively(
 timestamps.Should().BeInAscendingOrder();
 ```
 
+For common generic collection subjects, parameterless `ContainSingle()` keeps `SingleItem` strongly typed so follow-up assertions do not need a cast.
+
 Representative collection coverage includes:
 
 - containment and negative containment

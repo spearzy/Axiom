@@ -4,6 +4,32 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project follows [Semantic Versioning](https://semver.org/).
 
+## [0.5.0] - 2026-03-23
+
+### Added
+
+- Supported custom assertion authoring on `ValueAssertions<T>` with:
+  - `AssertionContext.Create(...)`
+  - `AssertionContext<TAssertions, TSubject>` for subject access, `.And()` continuation wiring, and routed failures
+- Async function result assertions for:
+  - `Func<Task<T>>`
+  - `Func<ValueTask<T>>`
+- New `AsyncFunctionAssertions<T>` outcome and exception assertions, including:
+  - `ThrowAsync(...)` and `ThrowExactlyAsync(...)`
+  - `NotThrowAsync()`
+  - `CompleteWithin(...)` and `NotCompleteWithin(...)`
+  - `Succeed()` and `SucceedWithin(...)`
+  - `BeCanceled()` and `BeCanceledWithin(...)`
+  - `BeFaultedWith<TException>()` and `BeFaultedWithWithin<TException>(...)`
+
+### Changed
+
+- Parameterless `ContainSingle()` now keeps a typed `SingleItem` for common generic collection subjects such as arrays, `List<T>`, and interface-typed generic collections.
+- Expanded release-facing documentation with:
+  - a dedicated custom assertions guide
+  - updated assertion reference coverage for authoring and async function result assertions
+  - refreshed README and NuGet README examples for shipped `0.5.0` APIs
+
 ## [0.4.1] - 2026-03-12
 
 ### Fixed

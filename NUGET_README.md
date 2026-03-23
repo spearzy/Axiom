@@ -163,6 +163,8 @@ public static class InvoiceAssertionExtensions
 }
 ```
 
+For common generic collection subjects, parameterless `ContainSingle()` keeps `SingleItem` strongly typed so follow-up assertions do not need a cast.
+
 ## Assertion Coverage
 
 Axiom currently includes:

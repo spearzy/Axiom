@@ -2,7 +2,7 @@
 
 Use custom assertions when a domain rule shows up often enough that the built-in Axiom surface starts to feel too low-level.
 
-`AssertionContext.Create(...)` gives you a small supported way to build on `ValueAssertions<T>` while still using Axiom's normal failure rendering, `Batch` aggregation, and configured failure strategy.
+`AssertionContext.Create(...)` is the supported `0.5.0` entry point for building on `ValueAssertions<T>` while still using Axiom's normal failure rendering, `Batch` aggregation, and configured failure strategy.
 
 ## Basic Example
 
