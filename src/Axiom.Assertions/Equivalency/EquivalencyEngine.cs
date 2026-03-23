@@ -24,7 +24,7 @@ internal static class EquivalencyEngine
 
         var differences = new List<EquivalencyDifference>();
         var visitedPairs = new HashSet<ReferencePair>(ReferencePairComparer.Instance);
-        CompareNode(actual, expected, rootPath, rootPath, options, differences, visitedPairs);
+        CompareNode(actual, expected, rootPath, rootPath, string.Empty, options, differences, visitedPairs);
         return differences;
     }
 
@@ -33,6 +33,7 @@ internal static class EquivalencyEngine
         object? expected,
         string path,
         string rootPath,
+        string expectedPath,
         EquivalencyOptions options,
         List<EquivalencyDifference> differences,
         HashSet<ReferencePair> visitedPairs)
@@ -123,7 +124,7 @@ internal static class EquivalencyEngine
             actual is not string &&
             expected is not string)
         {
-            CompareEnumerable(actualEnumerable, expectedEnumerable, path, rootPath, options, differences, visitedPairs);
+            CompareEnumerable(actualEnumerable, expectedEnumerable, path, rootPath, expectedPath, options, differences, visitedPairs);
             return;
         }
 
@@ -151,7 +152,7 @@ internal static class EquivalencyEngine
             }
         }
 
-        CompareMembers(actual, expected, actualType, expectedType, path, rootPath, options, differences, visitedPairs);
+        CompareMembers(actual, expected, actualType, expectedType, path, rootPath, expectedPath, options, differences, visitedPairs);
     }
 
     private static void CompareMembers(
@@ -161,6 +162,7 @@ internal static class EquivalencyEngine
         Type expectedType,
         string path,
         string rootPath,
+        string expectedPath,
         EquivalencyOptions options,
         List<EquivalencyDifference> differences,
         HashSet<ReferencePair> visitedPairs)
@@ -168,11 +170,14 @@ internal static class EquivalencyEngine
         var actualMembers = GetComparableMembers(actualType, options);
         var expectedMembers = GetComparableMembers(expectedType, options);
         var usedExpectedMembers = new HashSet<string>(StringComparer.Ordinal);
+        var actualRelativePath = ToRelativePath(path, rootPath);
 
         // Compare by actual members first so the rendered paths stay anchored to the actual object shape.
         foreach (var actualMemberName in actualMembers.Keys.OrderBy(static name => name, StringComparer.Ordinal))
         {
-            var expectedMemberName = ResolveExpectedMemberName(actualMemberName, options);
+            var actualMemberPath = AppendPath(actualRelativePath, actualMemberName);
+            var expectedMemberPath = ResolveExpectedMemberPath(actualMemberPath, expectedPath, actualMemberName, options);
+            var expectedMemberName = GetDirectChildMemberName(expectedMemberPath, expectedPath);
             if (options.IgnoredMemberNames.Contains(actualMemberName) ||
                 options.IgnoredMemberNames.Contains(expectedMemberName))
             {
@@ -221,7 +226,7 @@ internal static class EquivalencyEngine
                 continue;
             }
 
-            CompareNode(actualValueAtMember, expectedValueAtMember, memberPath, rootPath, options, differences, visitedPairs);
+            CompareNode(actualValueAtMember, expectedValueAtMember, memberPath, rootPath, expectedMemberPath, options, differences, visitedPairs);
         }
 
         // Then account for expected members that were never matched to an actual member.
@@ -232,7 +237,9 @@ internal static class EquivalencyEngine
                 continue;
             }
 
-            var actualMemberName = ResolveActualMemberName(expectedMemberName, options);
+            var expectedMemberPath = AppendPath(expectedPath, expectedMemberName);
+            var actualMemberPath = ResolveActualMemberPath(expectedMemberPath, actualRelativePath, expectedMemberName, options);
+            var actualMemberName = GetDirectChildMemberName(actualMemberPath, actualRelativePath);
             if (options.IgnoredMemberNames.Contains(expectedMemberName) ||
                 options.IgnoredMemberNames.Contains(actualMemberName))
             {
@@ -265,6 +272,7 @@ internal static class EquivalencyEngine
         IEnumerable expectedEnumerable,
         string path,
         string rootPath,
+        string expectedPath,
         EquivalencyOptions options,
         List<EquivalencyDifference> differences,
         HashSet<ReferencePair> visitedPairs)
@@ -285,6 +293,7 @@ internal static class EquivalencyEngine
                 expectedItems,
                 path,
                 rootPath,
+                expectedPath,
                 options,
                 differences,
                 hasCollectionItemComparer ? collectionItemComparer : null);
@@ -362,7 +371,15 @@ internal static class EquivalencyEngine
                 }
                 else
                 {
-                    CompareNode(actualItem, expectedItem, itemPath, rootPath, options, differences, visitedPairs);
+                    CompareNode(
+                        actualItem,
+                        expectedItem,
+                        itemPath,
+                        rootPath,
+                        AppendIndex(expectedPath, index),
+                        options,
+                        differences,
+                        visitedPairs);
                 }
 
                 index++;
@@ -380,6 +397,7 @@ internal static class EquivalencyEngine
         List<object?> expectedItems,
         string path,
         string rootPath,
+        string expectedPath,
         EquivalencyOptions options,
         List<EquivalencyDifference> differences,
         IEqualityComparer? collectionItemComparer)
@@ -406,6 +424,7 @@ internal static class EquivalencyEngine
                         expectedItem,
                         $"{path}[{expectedIndex}]",
                         rootPath,
+                        AppendIndex(expectedPath, expectedIndex),
                         options);
                 if (!isEquivalent)
                 {
@@ -447,11 +466,12 @@ internal static class EquivalencyEngine
         object? expected,
         string path,
         string rootPath,
+        string expectedPath,
         EquivalencyOptions options)
     {
         var localDifferences = new List<EquivalencyDifference>();
         var localVisitedPairs = new HashSet<ReferencePair>(ReferencePairComparer.Instance);
-        CompareNode(actual, expected, path, rootPath, options, localDifferences, localVisitedPairs);
+        CompareNode(actual, expected, path, rootPath, expectedPath, options, localDifferences, localVisitedPairs);
         return localDifferences.Count == 0;
     }
 
@@ -696,6 +716,66 @@ internal static class EquivalencyEngine
         return options.TryGetMappedActualMemberName(expectedMemberName, out var actualMemberName)
             ? actualMemberName
             : expectedMemberName;
+    }
+
+    private static string ResolveExpectedMemberPath(
+        string actualMemberPath,
+        string currentExpectedPath,
+        string actualMemberName,
+        EquivalencyOptions options)
+    {
+        if (options.TryGetMappedExpectedMemberPath(actualMemberPath, out var expectedMemberPath))
+        {
+            return expectedMemberPath;
+        }
+
+        return AppendPath(currentExpectedPath, ResolveExpectedMemberName(actualMemberName, options));
+    }
+
+    private static string ResolveActualMemberPath(
+        string expectedMemberPath,
+        string currentActualPath,
+        string expectedMemberName,
+        EquivalencyOptions options)
+    {
+        if (options.TryGetMappedActualMemberPath(expectedMemberPath, out var actualMemberPath))
+        {
+            return actualMemberPath;
+        }
+
+        return AppendPath(currentActualPath, ResolveActualMemberName(expectedMemberName, options));
+    }
+
+    private static string AppendPath(string parentPath, string childSegment)
+    {
+        return parentPath.Length == 0 ? childSegment : $"{parentPath}.{childSegment}";
+    }
+
+    private static string AppendIndex(string path, int index)
+    {
+        return path.Length == 0 ? $"[{index}]" : $"{path}[{index}]";
+    }
+
+    private static string GetDirectChildMemberName(string fullPath, string parentPath)
+    {
+        if (parentPath.Length == 0)
+        {
+            return ExtractFirstMemberSegment(fullPath);
+        }
+
+        if (fullPath.StartsWith($"{parentPath}.", StringComparison.Ordinal))
+        {
+            return ExtractFirstMemberSegment(fullPath[(parentPath.Length + 1)..]);
+        }
+
+        throw new InvalidOperationException(
+            $"Configured member mapping '{fullPath}' does not align with expected parent path '{parentPath}'.");
+    }
+
+    private static string ExtractFirstMemberSegment(string path)
+    {
+        var separatorIndex = path.IndexOf('.');
+        return separatorIndex >= 0 ? path[..separatorIndex] : path;
     }
 
     private static Type? GetSharedComparisonType(Type actualType, Type expectedType)

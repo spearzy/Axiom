@@ -18,6 +18,8 @@ public sealed class EquivalencyOptions
     private readonly Dictionary<string, IEqualityComparer> _collectionItemComparers = new(StringComparer.Ordinal);
     private readonly Dictionary<string, string> _actualToExpectedMemberNames = new(StringComparer.Ordinal);
     private readonly Dictionary<string, string> _expectedToActualMemberNames = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, string> _actualToExpectedMemberPaths = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, string> _expectedToActualMemberPaths = new(StringComparer.Ordinal);
     private readonly Dictionary<Type, Func<object, object, bool>> _typeComparers = new();
 
     public EquivalencyCollectionOrder CollectionOrder { get; set; } = EquivalencyCollectionOrder.Strict;
@@ -46,6 +48,7 @@ public sealed class EquivalencyOptions
     internal bool HasPathComparers => _pathComparers.Count > 0;
     internal bool HasCollectionItemComparers => _collectionItemComparers.Count > 0;
     internal bool HasMemberNameMappings => _actualToExpectedMemberNames.Count > 0;
+    internal bool HasTypedMemberMappings => _actualToExpectedMemberPaths.Count > 0;
 
     public EquivalencyOptions IgnoreMember(string memberName)
     {
@@ -200,6 +203,21 @@ public sealed class EquivalencyOptions
         return this;
     }
 
+    public EquivalencyOptions MatchMember<TActual, TExpected>(
+        Expression<Func<TActual, object?>> actualMemberSelector,
+        Expression<Func<TExpected, object?>> expectedMemberSelector)
+    {
+        ArgumentNullException.ThrowIfNull(actualMemberSelector);
+        ArgumentNullException.ThrowIfNull(expectedMemberSelector);
+
+        var actualPath = EquivalencySelectorPath.Create(actualMemberSelector, nameof(actualMemberSelector));
+        var expectedPath = EquivalencySelectorPath.Create(expectedMemberSelector, nameof(expectedMemberSelector));
+
+        ValidateTypedMemberMappingDepth(actualPath, expectedPath);
+        AddTypedMemberMapping(actualPath, expectedPath);
+        return this;
+    }
+
     public EquivalencyOptions IgnoreExpectedNullMembers()
     {
         IgnoreExpectedNullMemberValues = true;
@@ -252,6 +270,16 @@ public sealed class EquivalencyOptions
         return _expectedToActualMemberNames.TryGetValue(expectedMember, out actualMember!);
     }
 
+    internal bool TryGetMappedExpectedMemberPath(string actualPath, out string expectedPath)
+    {
+        return _actualToExpectedMemberPaths.TryGetValue(actualPath, out expectedPath!);
+    }
+
+    internal bool TryGetMappedActualMemberPath(string expectedPath, out string actualPath)
+    {
+        return _expectedToActualMemberPaths.TryGetValue(expectedPath, out actualPath!);
+    }
+
     private static Type NormaliseComparerType(Type type)
     {
         // Nullable<T> values are boxed as their underlying T when they have a value.
@@ -278,6 +306,46 @@ public sealed class EquivalencyOptions
 
         _actualToExpectedMemberNames[actualMember] = expectedMember;
         _expectedToActualMemberNames[expectedMember] = actualMember;
+    }
+
+    private void AddTypedMemberMapping(string actualPath, string expectedPath)
+    {
+        var actualSegments = actualPath.Split('.', StringSplitOptions.RemoveEmptyEntries);
+        var expectedSegments = expectedPath.Split('.', StringSplitOptions.RemoveEmptyEntries);
+
+        for (var index = 0; index < actualSegments.Length; index++)
+        {
+            AddTypedPathMapping(
+                string.Join(".", actualSegments[..(index + 1)]),
+                string.Join(".", expectedSegments[..(index + 1)]));
+        }
+    }
+
+    private void AddTypedPathMapping(string actualPath, string expectedPath)
+    {
+        if (_actualToExpectedMemberPaths.TryGetValue(actualPath, out var existingExpected))
+        {
+            _expectedToActualMemberPaths.Remove(existingExpected);
+        }
+
+        if (_expectedToActualMemberPaths.TryGetValue(expectedPath, out var existingActual))
+        {
+            _actualToExpectedMemberPaths.Remove(existingActual);
+        }
+
+        _actualToExpectedMemberPaths[actualPath] = expectedPath;
+        _expectedToActualMemberPaths[expectedPath] = actualPath;
+    }
+
+    private static void ValidateTypedMemberMappingDepth(string actualPath, string expectedPath)
+    {
+        var actualDepth = actualPath.Split('.', StringSplitOptions.RemoveEmptyEntries).Length;
+        var expectedDepth = expectedPath.Split('.', StringSplitOptions.RemoveEmptyEntries).Length;
+        if (actualDepth != expectedDepth)
+        {
+            throw new ArgumentException(
+                "actualMemberSelector and expectedMemberSelector must select member paths with the same depth.");
+        }
     }
 
     // Snapshot copy for deterministic comparison settings during one assertion run.
@@ -344,6 +412,16 @@ public sealed class EquivalencyOptions
         foreach (var reverseMapping in _expectedToActualMemberNames)
         {
             clone._expectedToActualMemberNames[reverseMapping.Key] = reverseMapping.Value;
+        }
+
+        foreach (var pathMapping in _actualToExpectedMemberPaths)
+        {
+            clone._actualToExpectedMemberPaths[pathMapping.Key] = pathMapping.Value;
+        }
+
+        foreach (var reversePathMapping in _expectedToActualMemberPaths)
+        {
+            clone._expectedToActualMemberPaths[reversePathMapping.Key] = reversePathMapping.Value;
         }
 
         return clone;
