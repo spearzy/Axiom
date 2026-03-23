@@ -565,6 +565,22 @@ internal static class CollectionAssertionEngine
     public static ContainSingleResult<T> AssertContainSingleAndCaptureResult<T>(
         IEnumerable<T>? subject,
         string? subjectExpression,
+        string? because,
+        string? callerFilePath,
+        int callerLineNumber)
+    {
+        var result = EvaluateContainSingle(subject, subjectExpression, because);
+        if (result.FailureMessage is not null)
+        {
+            AssertionFailureDispatcher.Fail(result.FailureMessage, callerFilePath, callerLineNumber);
+        }
+
+        return result;
+    }
+
+    public static ContainSingleResult<T> AssertContainSingleAndCaptureResult<T>(
+        IEnumerable<T>? subject,
+        string? subjectExpression,
         Func<T, bool> predicate,
         string? because,
         string? callerFilePath,
@@ -1573,6 +1589,47 @@ internal static class CollectionAssertionEngine
         }
 
         return new ContainSingleResult(
+            HasSingleItem: true,
+            SingleItem: singleItem,
+            FailureMessage: null);
+    }
+
+    private static ContainSingleResult<T> EvaluateContainSingle<T>(
+        IEnumerable<T>? subject,
+        string? subjectExpression,
+        string? because)
+    {
+        var subjectLabel = SubjectLabel(subjectExpression);
+        if (subject is null)
+        {
+            return new ContainSingleResult<T>(
+                HasSingleItem: false,
+                SingleItem: default!,
+                FailureMessage: RenderContainSingleFailure(subjectLabel, subject, because));
+        }
+
+        var count = 0;
+        T singleItem = default!;
+
+        foreach (var item in subject)
+        {
+            if (count == 0)
+            {
+                singleItem = item;
+            }
+
+            count++;
+        }
+
+        if (count != 1)
+        {
+            return new ContainSingleResult<T>(
+                HasSingleItem: false,
+                SingleItem: default!,
+                FailureMessage: RenderContainSingleFailure(subjectLabel, count, because));
+        }
+
+        return new ContainSingleResult<T>(
             HasSingleItem: true,
             SingleItem: singleItem,
             FailureMessage: null);

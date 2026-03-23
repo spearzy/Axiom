@@ -25,6 +25,16 @@ public static class ShouldExtensions
         [CallerArgumentExpression("subject")] string? subjectExpression = null)
         => new(subject, subjectExpression);
 
+    public static AsyncFunctionAssertions<T> Should<T>(
+        this Func<Task<T>> subject,
+        [CallerArgumentExpression("subject")] string? subjectExpression = null)
+        => new(() => new ValueTask<T>(subject()), subjectExpression);
+
+    public static AsyncFunctionAssertions<T> Should<T>(
+        this Func<ValueTask<T>> subject,
+        [CallerArgumentExpression("subject")] string? subjectExpression = null)
+        => new(subject, subjectExpression);
+
     public static TaskAssertions Should(
         this Task subject,
         [CallerArgumentExpression("subject")] string? subjectExpression = null)

@@ -62,6 +62,7 @@ Create `AxiomSetup.cs`:
 
 ```csharp
 using Axiom.Assertions;
+using Axiom.Assertions.Configuration;
 using Axiom.Assertions.Equivalency;
 using Axiom.Core.Failures;
 
@@ -214,12 +215,21 @@ Task<string> rollout = Task.FromResult("pricing-api");
 
 var continuation = await rollout.Should().SucceedWithin(TimeSpan.FromMilliseconds(50));
 continuation.WhoseResult.Should().Be("pricing-api");
+
+Func<Task<User>> loadUser = () => userClient.LoadAsync("ada");
+var loadedUser = await loadUser.Should().SucceedWithin(TimeSpan.FromMilliseconds(250));
+loadedUser.WhoseResult.Email.Should().Contain("@");
+
+Func<ValueTask<int>> loadCount = () => ValueTask.FromResult(3);
+await loadCount.Should().NotThrowAsync();
 ```
 
 Async exception and completion assertions are supported on:
 
 - `Func<Task>`
 - `Func<ValueTask>`
+- `Func<Task<T>>`
+- `Func<ValueTask<T>>`
 - `Task`
 - `Task<T>`
 - `ValueTask`
@@ -231,10 +241,14 @@ Direct task subjects also support outcome assertions such as `Succeed()`, `Succe
 
 ```csharp
 Order order = orders.Should()
-    .ContainSingle((Order x) => x.Id == 42)
+    .ContainSingle()
     .SingleItem;
 
 order.Total.Should().Be(19.99m);
+
+Order matchingOrder = orders.Should()
+    .ContainSingle((Order x) => x.Id == 42)
+    .SingleItem;
 
 scores.Should()
     .ContainKey("a")
@@ -265,6 +279,47 @@ Representative collection coverage includes:
 - ordered assertions, including key-selector overloads
 - workflow-style assertions such as `SatisfyRespectively(...)`
 
+Parameterless `ContainSingle()` returns a typed `SingleItem` for common generic collection subjects such as `List<T>`, arrays, and interface-typed generic enumerables. Nongeneric collections still expose `object? SingleItem`.
+
+### Custom Assertions
+
+Use `AssertionContext.Create(...)` when you want to write your own domain assertions on top of `ValueAssertions<T>` without reimplementing failure rendering or batch routing.
+
+```csharp
+using System.Runtime.CompilerServices;
+using Axiom.Assertions.AssertionTypes;
+using Axiom.Assertions.Authoring;
+using Axiom.Assertions.Chaining;
+using Axiom.Core.Failures;
+
+public static class InvoiceAssertionExtensions
+{
+    public static AndContinuation<ValueAssertions<Invoice>> HaveCurrency(
+        this ValueAssertions<Invoice> assertions,
+        string expectedCurrency,
+        string? because = null,
+        [CallerFilePath] string? callerFilePath = null,
+        [CallerLineNumber] int callerLineNumber = 0)
+    {
+        var context = AssertionContext.Create(assertions);
+
+        if (!string.Equals(context.Subject.Currency, expectedCurrency, StringComparison.Ordinal))
+        {
+            context.Fail(
+                new Expectation("to have currency", expectedCurrency),
+                context.Subject.Currency,
+                because,
+                callerFilePath,
+                callerLineNumber);
+        }
+
+        return context.And();
+    }
+}
+```
+
+That custom assertion automatically respects `Batch`, your configured failure strategy, and the same subject-expression labelling as built-in Axiom assertions.
+
 ### Temporal Assertions
 
 ```csharp
@@ -284,13 +339,16 @@ This README focuses on common workflows rather than listing every method in the 
 
 - Values: equality, nullability, type/reference checks, numeric comparisons, ranges, predicates, approximate numeric checks, equivalency
 - Strings: exact equality, null/empty/whitespace checks, prefix/suffix/contain, regex, case-aware comparisons
-- Exceptions and async: throw, exact throw, message/parameter/inner-exception checks, delegate-based async assertions, direct task completion and outcome assertions
+- Exceptions and async: throw, exact throw, message/parameter/inner-exception checks, delegate-based async assertions, async function result assertions, direct task completion and outcome assertions
 - Collections and dictionaries: containment, sequence checks, ordering, uniqueness, count/empty checks, single-item extraction, key/value extraction
 - Temporal values: before, after, and within-tolerance checks
+- Custom assertions: supported authoring on top of `ValueAssertions<T>` via `AssertionContext.Create(...)`
 
 ## Assertion Reference
 
 For the complete current method catalog, see [docs/assertion-reference.md](docs/assertion-reference.md). That page is the API-discovery layer for consumers who want to evaluate Axiom without opening the source or relying on IDE completion.
+
+For practical guidance on building domain-specific assertions, see [docs/custom-assertions.md](docs/custom-assertions.md).
 
 For deeper guidance on structural comparison, configuration precedence, and common equivalency recipes, see [docs/equivalency.md](docs/equivalency.md).
 

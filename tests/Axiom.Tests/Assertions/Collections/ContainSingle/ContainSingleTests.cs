@@ -23,9 +23,42 @@ public sealed class ContainSingleTests
         int[] values = [42];
 
         var continuation = values.Should().ContainSingle();
-        var singleItem = Assert.IsType<int>(continuation.SingleItem);
+        var singleItem = continuation.SingleItem;
 
         Assert.Equal(42, singleItem);
+    }
+
+    [Fact]
+    public void ContainSingle_ExposesStronglyTypedSingleItem_ForGenericValueTypes()
+    {
+        List<int> values = [42];
+
+        var continuation = values.Should().ContainSingle();
+        int singleItem = continuation.SingleItem;
+
+        Assert.Equal(42, singleItem);
+    }
+
+    [Fact]
+    public void ContainSingle_ExposesStronglyTypedSingleItem_ForGenericReferenceTypes()
+    {
+        List<Order> values = [new(42, 19.99m)];
+
+        var continuation = values.Should().ContainSingle();
+        var total = continuation.SingleItem.Total;
+
+        Assert.Equal(19.99m, total);
+    }
+
+    [Fact]
+    public void ContainSingle_ExposesStronglyTypedSingleItem_ForInterfaceTypedGenericCollections()
+    {
+        IReadOnlyList<Order> values = [new(7, 12.50m)];
+
+        var continuation = values.Should().ContainSingle();
+        decimal total = continuation.SingleItem.Total;
+
+        Assert.Equal(12.50m, total);
     }
 
     [Fact]
@@ -94,10 +127,12 @@ public sealed class ContainSingleTests
 
         var batch = new Axiom.Core.Batch();
         var continuation = values.Should().ContainSingle();
-        var singleItem = Assert.IsType<int>(continuation.SingleItem);
+        var singleItem = continuation.SingleItem;
 
         Assert.Equal(7, singleItem);
         var disposeEx = Record.Exception(() => batch.Dispose());
         Assert.Null(disposeEx);
     }
+
+    private sealed record Order(int Id, decimal Total);
 }

@@ -16,6 +16,8 @@ All fluent assertions either:
 | `Action` | `subject.Should()` | `ActionAssertions` |
 | `Func<Task>` | `subject.Should()` | `AsyncActionAssertions` |
 | `Func<ValueTask>` | `subject.Should()` | `AsyncActionAssertions` |
+| `Func<Task<T>>` | `subject.Should()` | `AsyncFunctionAssertions<T>` |
+| `Func<ValueTask<T>>` | `subject.Should()` | `AsyncFunctionAssertions<T>` |
 | `Task` | `subject.Should()` | `TaskAssertions` |
 | `Task<T>` | `subject.Should()` | `TaskAssertions<T>` |
 | `ValueTask` | `subject.Should()` | `TaskAssertions` |
@@ -32,6 +34,28 @@ Assert.Batch(string? name = null)
 ```
 
 Use `Batch` when you want to aggregate multiple failures and throw once at the end of the scope.
+
+## Custom Assertion Authoring
+
+Available in `Axiom.Assertions.Authoring`.
+
+```csharp
+AssertionContext.Create(assertions)
+```
+
+`AssertionContext.Create(...)` currently supports `ValueAssertions<T>` and returns `AssertionContext<ValueAssertions<T>, T>`.
+
+`AssertionContext<TAssertions, TSubject>` exposes:
+
+```csharp
+Assertions
+Subject
+SubjectLabel
+And()
+Fail(expectation, actual, because = null, callerFilePath = null, callerLineNumber = 0)
+```
+
+Use it when you want to build domain-specific assertions that still respect `Batch`, the configured failure strategy, and Axiom's standard message rendering.
 
 ## Value Assertions
 
@@ -148,6 +172,37 @@ NotCompleteWithin(timeout)
 
 `ThrowAsync(...)` and `ThrowExactlyAsync(...)` return the same `ThrownExceptionAssertions<AsyncActionAssertions, TException>` continuation surface documented above.
 
+## Async Function Result Assertions
+
+Available on `AsyncFunctionAssertions<TResult>` from:
+
+- `Func<Task<T>>`
+- `Func<ValueTask<T>>`
+
+```csharp
+ThrowAsync<TException>()
+ThrowExactlyAsync<TException>()
+NotThrowAsync()
+CompleteWithin(timeout)
+NotCompleteWithin(timeout)
+Succeed()
+SucceedWithin(timeout)
+BeCanceled()
+BeCanceledWithin(timeout)
+BeFaultedWith<TException>()
+BeFaultedWithWithin<TException>(timeout)
+```
+
+Result continuations:
+
+```csharp
+// Succeed() / SucceedWithin(timeout)
+And
+WhoseResult
+```
+
+`ThrowAsync(...)`, `ThrowExactlyAsync(...)`, `BeFaultedWith(...)`, and `BeFaultedWithWithin(...)` return the same `ThrownExceptionAssertions<TParent, TException>` continuation surface documented in the exception section above.
+
 ## Direct Task Assertions
 
 Available on `TaskAssertions` / `TaskAssertions<T>` from:
@@ -234,7 +289,7 @@ And
 SingleItem
 ```
 
-The predicate overload gives you a strongly typed `SingleItem`. The parameterless overload currently exposes `object? SingleItem`.
+The predicate overload gives you a strongly typed `SingleItem`. The parameterless overload is also strongly typed for common generic collection subjects such as `List<T>`, arrays, and interface-typed generic enumerables. Nongeneric collections still expose `object? SingleItem`.
 
 ## Dictionary Assertions
 

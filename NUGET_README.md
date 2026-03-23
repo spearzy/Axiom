@@ -122,6 +122,45 @@ Task<string> rollout = Task.FromResult("pricing-api");
 
 var continuation = await rollout.Should().SucceedWithin(TimeSpan.FromMilliseconds(50));
 continuation.WhoseResult.Should().Be("pricing-api");
+
+Func<Task<User>> loadUser = () => userClient.LoadAsync("ada");
+var loadedUser = await loadUser.Should().SucceedWithin(TimeSpan.FromMilliseconds(250));
+loadedUser.WhoseResult.Email.Should().Contain("@");
+```
+
+### Custom Assertions
+
+```csharp
+using System.Runtime.CompilerServices;
+using Axiom.Assertions.AssertionTypes;
+using Axiom.Assertions.Authoring;
+using Axiom.Assertions.Chaining;
+using Axiom.Core.Failures;
+
+public static class InvoiceAssertionExtensions
+{
+    public static AndContinuation<ValueAssertions<Invoice>> HaveCurrency(
+        this ValueAssertions<Invoice> assertions,
+        string expectedCurrency,
+        string? because = null,
+        [CallerFilePath] string? callerFilePath = null,
+        [CallerLineNumber] int callerLineNumber = 0)
+    {
+        var context = AssertionContext.Create(assertions);
+
+        if (!string.Equals(context.Subject.Currency, expectedCurrency, StringComparison.Ordinal))
+        {
+            context.Fail(
+                new Expectation("to have currency", expectedCurrency),
+                context.Subject.Currency,
+                because,
+                callerFilePath,
+                callerLineNumber);
+        }
+
+        return context.And();
+    }
+}
 ```
 
 ## Assertion Coverage
@@ -130,13 +169,15 @@ Axiom currently includes:
 
 - value assertions: equality, nullability, type/reference checks, numeric comparisons, ranges, predicates, approximate numeric checks, equivalency
 - string assertions: exact equality, null/empty/whitespace checks, prefix/suffix/contain, regex, comparison-aware matching
-- exceptions and async: throw, exact throw, message/parameter/inner-exception checks, delegate-based async assertions, direct task completion and outcome assertions
+- exceptions and async: throw, exact throw, message/parameter/inner-exception checks, delegate-based async assertions, async function result assertions, direct task completion and outcome assertions
 - collections and dictionaries: containment, exact sequence, count/empty checks, ordering, uniqueness, single-item extraction, key/value extraction
 - temporal assertions: before, after, and within-tolerance checks
+- custom assertion authoring: `AssertionContext.Create(...)` for domain assertions on `ValueAssertions<T>`
 
 ## Documentation
 
 - [GitHub repository](https://github.com/spearzy/Axiom)
 - [Main README](https://github.com/spearzy/Axiom/blob/main/README.md)
 - [Assertion reference](https://github.com/spearzy/Axiom/blob/main/docs/assertion-reference.md)
+- [Custom assertions guide](https://github.com/spearzy/Axiom/blob/main/docs/custom-assertions.md)
 - [Equivalency guide](https://github.com/spearzy/Axiom/blob/main/docs/equivalency.md)
