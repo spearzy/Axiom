@@ -4,6 +4,22 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project follows [Semantic Versioning](https://semver.org/).
 
+## [0.6.0] - 2026-03-23
+
+### Added
+
+- Typed cross-type equivalency member mapping with `MatchMember<TActual, TExpected>(...)`, including nested member-path support.
+- `AxiomSettings`-level reusable modules with:
+  - `IAxiomSettingsModule`
+  - `AxiomSettings.UseModule(...)`
+  - `AxiomSettings.UseModules(...)`
+  - bridging support for existing core-only `IAxiomModule` modules through `AxiomSettings.UseModule(...)`
+
+### Changed
+
+- Expanded the custom assertion authoring guidance with more practical domain examples built on `AssertionContext.Create(...)`.
+- Updated release-facing documentation to cover typed equivalency mapping, `AxiomSettings` modules, and the preferred `0.6.0` setup/configuration workflows.
+
 ## [0.5.0] - 2026-03-23
 
 ### Added
