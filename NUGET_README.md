@@ -12,6 +12,8 @@ Most test projects should install `Axiom.Assertions`:
 dotnet add package Axiom.Assertions
 ```
 
+`Axiom.Assertions` bundles the Axiom analyzers/code fixes automatically, including checks for ignored async Axiom assertions and undisposed `Batch` usage.
+
 Install `Axiom.Analyzers` separately only if you want the diagnostics without the runtime assertion library:
 
 ```bash

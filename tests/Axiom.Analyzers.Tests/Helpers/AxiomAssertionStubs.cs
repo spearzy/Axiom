@@ -52,5 +52,19 @@ internal static class AxiomAssertionStubs
             public readonly struct SuccessfulTaskContinuation<TParent, TResult> { }
             public readonly struct ThrownExceptionAssertions<TParent, TException> where TException : Exception { }
         }
+
+        namespace Axiom.Core
+        {
+            public sealed class Batch : IDisposable
+            {
+                public Batch() { }
+                public void Dispose() { }
+            }
+
+            public static class Assert
+            {
+                public static Batch Batch(string? name = null) => throw null!;
+            }
+        }
         """;
 }

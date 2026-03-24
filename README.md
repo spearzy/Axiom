@@ -22,7 +22,7 @@ Target frameworks: `net8.0`, `net9.0`, and `net10.0`.
 
 ## Packages
 
-Most test projects should reference `Axiom.Assertions`. It contains the fluent `Should()` API, pulls in `Axiom.Core` automatically, and bundles the Axiom analyzers/code fixes so editor and build diagnostics light up without extra package setup.
+Most test projects should reference `Axiom.Assertions`. It contains the fluent `Should()` API, pulls in `Axiom.Core` automatically, and bundles the Axiom analyzers/code fixes so editor and build diagnostics light up without extra package setup. The bundled rules currently cover ignored async Axiom assertions and `Batch` instances that are created without being disposed.
 
 Use `Axiom.Core` directly only when you need low-level primitives such as `Batch`, formatting, or configuration without the full assertion surface.
 

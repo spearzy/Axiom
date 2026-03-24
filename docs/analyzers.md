@@ -4,7 +4,10 @@ Installing `Axiom.Assertions` gives you the Axiom Roslyn analyzers/code fixes au
 
 `Axiom.Analyzers` still exists as an optional standalone package if you only want the diagnostics without the runtime assertion library.
 
-The first shipped rule focuses on one of the easiest errors to make with async assertions: calling the assertion, then dropping the returned `ValueTask` so the assertion never actually runs.
+The current rules focus on two high-value Axiom mistakes:
+
+- ignored async Axiom assertion results
+- `Batch` instances created without `using`
 
 ## Async Assertions Must Be Awaited
 
@@ -42,3 +45,27 @@ await loader.Should().Succeed();
 ```
 
 The analyzer also offers a code fix in async contexts where prepending `await` is safe.
+
+## Batch Must Be Disposed
+
+Rule: `AXM0002`
+
+This rule flags `Batch` instances created without `using`.
+
+Before:
+
+```csharp
+var batch = Assert.Batch("user");
+user.Name.Should().NotBeNull();
+```
+
+After:
+
+```csharp
+using var batch = Assert.Batch("user");
+user.Name.Should().NotBeNull();
+```
+
+`Batch` flushes aggregated failures when it is disposed. If it is created without `using`, failures may never be emitted at the end of the scope.
+
+The analyzer offers a code fix for the common local declaration case by converting `var batch = ...;` to `using var batch = ...;`.

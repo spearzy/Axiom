@@ -1,4 +1,4 @@
-using Axiom.Analyzers.CodeFixes;
+using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Testing;
 using Microsoft.CodeAnalysis.Testing.Verifiers;
 
@@ -6,9 +6,10 @@ namespace Axiom.Analyzers.Tests.Helpers;
 
 internal static class AnalyzerVerifier
 {
-    public static async Task VerifyAnalyzerAsync(string source)
+    public static async Task VerifyAnalyzerAsync<TAnalyzer>(string source)
+        where TAnalyzer : Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer, new()
     {
-        var test = new CSharpAnalyzerTest<AwaitAsyncAssertionResultAnalyzer, XUnitVerifier>
+        var test = new CSharpAnalyzerTest<TAnalyzer, XUnitVerifier>
         {
             TestCode = source,
         };
@@ -17,9 +18,11 @@ internal static class AnalyzerVerifier
         await test.RunAsync();
     }
 
-    public static async Task VerifyCodeFixAsync(string source, string fixedSource)
+    public static async Task VerifyCodeFixAsync<TAnalyzer, TCodeFixProvider>(string source, string fixedSource)
+        where TAnalyzer : Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer, new()
+        where TCodeFixProvider : CodeFixProvider, new()
     {
-        var test = new CSharpCodeFixTest<AwaitAsyncAssertionResultAnalyzer, AwaitAsyncAssertionResultCodeFixProvider, XUnitVerifier>
+        var test = new CSharpCodeFixTest<TAnalyzer, TCodeFixProvider, XUnitVerifier>
         {
             TestCode = source,
             FixedCode = fixedSource,

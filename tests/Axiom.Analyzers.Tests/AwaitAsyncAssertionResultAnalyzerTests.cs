@@ -1,4 +1,5 @@
 using Axiom.Analyzers.Tests.Helpers;
+using Axiom.Analyzers.CodeFixes;
 
 namespace Axiom.Analyzers.Tests;
 
@@ -23,7 +24,7 @@ public sealed class AwaitAsyncAssertionResultAnalyzerTests
             }
             """;
 
-        await AnalyzerVerifier.VerifyAnalyzerAsync(source);
+        await AnalyzerVerifier.VerifyAnalyzerAsync<AwaitAsyncAssertionResultAnalyzer>(source);
     }
 
     [Fact]
@@ -44,7 +45,7 @@ public sealed class AwaitAsyncAssertionResultAnalyzerTests
             }
             """;
 
-        await AnalyzerVerifier.VerifyAnalyzerAsync(source);
+        await AnalyzerVerifier.VerifyAnalyzerAsync<AwaitAsyncAssertionResultAnalyzer>(source);
     }
 
     [Fact]
@@ -65,7 +66,7 @@ public sealed class AwaitAsyncAssertionResultAnalyzerTests
             }
             """;
 
-        await AnalyzerVerifier.VerifyAnalyzerAsync(source);
+        await AnalyzerVerifier.VerifyAnalyzerAsync<AwaitAsyncAssertionResultAnalyzer>(source);
     }
 
     [Fact]
@@ -87,7 +88,7 @@ public sealed class AwaitAsyncAssertionResultAnalyzerTests
             }
             """;
 
-        await AnalyzerVerifier.VerifyAnalyzerAsync(source);
+        await AnalyzerVerifier.VerifyAnalyzerAsync<AwaitAsyncAssertionResultAnalyzer>(source);
     }
 
     [Fact]
@@ -109,7 +110,7 @@ public sealed class AwaitAsyncAssertionResultAnalyzerTests
             }
             """;
 
-        await AnalyzerVerifier.VerifyAnalyzerAsync(source);
+        await AnalyzerVerifier.VerifyAnalyzerAsync<AwaitAsyncAssertionResultAnalyzer>(source);
     }
 
     [Fact]
@@ -130,7 +131,7 @@ public sealed class AwaitAsyncAssertionResultAnalyzerTests
             }
             """;
 
-        await AnalyzerVerifier.VerifyAnalyzerAsync(source);
+        await AnalyzerVerifier.VerifyAnalyzerAsync<AwaitAsyncAssertionResultAnalyzer>(source);
     }
 
     [Fact]
@@ -152,7 +153,7 @@ public sealed class AwaitAsyncAssertionResultAnalyzerTests
             }
             """;
 
-        await AnalyzerVerifier.VerifyAnalyzerAsync(source);
+        await AnalyzerVerifier.VerifyAnalyzerAsync<AwaitAsyncAssertionResultAnalyzer>(source);
     }
 
     [Fact]
@@ -174,7 +175,7 @@ public sealed class AwaitAsyncAssertionResultAnalyzerTests
             }
             """;
 
-        await AnalyzerVerifier.VerifyAnalyzerAsync(source);
+        await AnalyzerVerifier.VerifyAnalyzerAsync<AwaitAsyncAssertionResultAnalyzer>(source);
     }
 
     [Fact]
@@ -210,6 +211,6 @@ public sealed class AwaitAsyncAssertionResultAnalyzerTests
             }
             """;
 
-        await AnalyzerVerifier.VerifyCodeFixAsync(source, fixedSource);
+        await AnalyzerVerifier.VerifyCodeFixAsync<AwaitAsyncAssertionResultAnalyzer, AwaitAsyncAssertionResultCodeFixProvider>(source, fixedSource);
     }
 }
