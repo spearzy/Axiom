@@ -24,7 +24,7 @@
     <None Include="../Axiom.Analyzers.CodeFixes/bin/$(Configuration)/$(TargetFramework)/Axiom.Analyzers.CodeFixes.pdb" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" Condition="Exists('../Axiom.Analyzers.CodeFixes/bin/$(Configuration)/$(TargetFramework)/Axiom.Analyzers.CodeFixes.pdb')" />
   </ItemGroup>
 
-  <Target Name="BuildCodeFixProjectForPack" BeforeTargets="GenerateNuspec">
+  <Target Name="BuildCodeFixProjectForPack" BeforeTargets="GenerateNuspec" Condition="'$(NoBuild)' != 'true'">
     <MSBuild
       Projects="../Axiom.Analyzers.CodeFixes/Axiom.Analyzers.CodeFixes.csproj"
       Targets="Build"

@@ -10,7 +10,7 @@
     <ProjectReference Include="..\Axiom.Core\Axiom.Core.csproj" />
   </ItemGroup>
 
-  <Target Name="BuildBundledAnalyzersForPack" Condition="'$(TargetFramework)' == 'net10.0'">
+  <Target Name="BuildBundledAnalyzersForPack" Condition="'$(TargetFramework)' == 'net10.0' and '$(NoBuild)' != 'true'">
     <MSBuild
       Projects="../Axiom.Analyzers/Axiom.Analyzers.csproj"
       Targets="Build"
