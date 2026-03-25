@@ -113,6 +113,9 @@ jobs:
       - name: Standalone analyzer smoke test
         run: bash eng/ci/run-analyzers-package-smoke.sh "$GITHUB_WORKSPACE/artifacts/packages"
 
+      - name: Vectors package smoke test
+        run: bash eng/ci/run-vectors-smoke.sh "$GITHUB_WORKSPACE/artifacts/packages"
+
       - name: Consumer smoke test (NUnit)
         run: bash eng/ci/run-consumer-smoke.sh "$GITHUB_WORKSPACE/artifacts/packages" nunit
 

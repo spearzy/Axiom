@@ -2,7 +2,7 @@
 
 `Axiom.Vectors` adds vector and embedding-focused assertions without pushing that API surface into `Axiom.Assertions`.
 
-Install it when you want to assert dimensions, numeric validity, approximate equality, cosine similarity, or normalization directly on vector outputs.
+Install it when you want to assert dimensions, numeric validity, approximate equality, cosine similarity, or normalization directly on vector outputs. It builds on top of the main Axiom assertion infrastructure, so `Batch`, failure strategies, and deterministic messages behave the same way.
 
 ```bash
 dotnet add package Axiom.Vectors
@@ -26,6 +26,11 @@ Supported subject shapes in the first release:
 - `double[]`
 - `ReadOnlyMemory<float>`
 - `ReadOnlyMemory<double>`
+
+The package exposes `Should()` entry points for those shapes and returns:
+
+- `VectorAssertions<float>`
+- `VectorAssertions<double>`
 
 ## Dimension
 
@@ -67,6 +72,11 @@ var similarity = embedding.Should().HaveCosineSimilarityTo(expected).ActualSimil
 ```
 
 Zero vectors are handled explicitly and produce deterministic failures instead of ambiguous `NaN` output.
+
+The returned continuation exposes:
+
+- `ActualSimilarity`
+- `AtLeast(threshold)`
 
 ## Normalization
 

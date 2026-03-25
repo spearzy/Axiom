@@ -81,6 +81,14 @@ jobs:
           --output artifacts/packages
           /p:PackageVersion=${{ steps.version.outputs.version }}
 
+      - name: Pack Axiom.Vectors
+        run: >
+          dotnet pack src/Axiom.Vectors/Axiom.Vectors.csproj
+          -c Release
+          --no-build
+          --output artifacts/packages
+          /p:PackageVersion=${{ steps.version.outputs.version }}
+
       - name: Consumer analyzer smoke test (standalone)
         run: >
           bash eng/ci/run-analyzers-package-smoke.sh
@@ -110,6 +118,12 @@ jobs:
       - name: Consumer analyzer smoke test (bundled)
         run: >
           bash eng/ci/run-assertions-analyzer-smoke.sh
+          "$GITHUB_WORKSPACE/artifacts/packages"
+          "${{ steps.version.outputs.version }}"
+
+      - name: Vectors package smoke test
+        run: >
+          bash eng/ci/run-vectors-smoke.sh
           "$GITHUB_WORKSPACE/artifacts/packages"
           "${{ steps.version.outputs.version }}"
 

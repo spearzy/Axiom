@@ -9,12 +9,12 @@ This document captures the design direction for Axiom.
 - Batch-based failure aggregation (`Batch`) for grouped assertions.
 - First-class extensibility for custom assertions and formatting/comparison behaviour.
 
-## Architecture (Planned)
+## Architecture
 
 - `Axiom.Core`: batch, failure model, formatting pipeline, entrypoints.
 - `Axiom.Assertions`: built-in assertion sets and chaining APIs.
-- `Axiom.Analyzers` (planned): Roslyn analysers/code fixes.
-- `Axiom.Vectors` (planned): vector-type adapters.
+- `Axiom.Analyzers`: Roslyn analyzers and code fixes for common Axiom usage mistakes.
+- `Axiom.Vectors`: optional vector and embedding-focused assertions layered on top of Axiom's core assertion pipeline.
 
 ## Open Questions
 

@@ -32,6 +32,8 @@ Install `Axiom.Vectors` when you want vector and embedding-focused assertions on
 dotnet add package Axiom.Vectors
 ```
 
+`Axiom.Vectors` adds dimension, approximate equality, cosine similarity, NaN/infinity, and normalization assertions for vector and embedding test scenarios.
+
 ## Why Axiom
 
 - Deterministic failure messages that stay stable in CI and code review.

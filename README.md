@@ -311,6 +311,8 @@ embedding.Should().HaveCosineSimilarityTo(expected).AtLeast(0.995f);
 embedding.Should().BeNormalized(tolerance: 1e-5f);
 ```
 
+For the full vectors guide, see [docs/vectors.md](docs/vectors.md).
+
 ### Collections And Dictionaries
 
 ```csharp

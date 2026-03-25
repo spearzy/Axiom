@@ -1,6 +1,6 @@
 # Assertion Reference
 
-Axiom's [README](../README.md) focuses on adoption and common workflows. This page is the complete consumer-facing catalog of the current `Axiom.Assertions` surface so you can browse available assertions without opening the source or relying on IDE completion.
+Axiom's [README](../README.md) focuses on adoption and common workflows. This page is the complete consumer-facing catalog of the shipped assertion surface so you can browse available APIs without opening the source or relying on IDE completion.
 
 All fluent assertions either:
 
@@ -24,6 +24,10 @@ All fluent assertions either:
 | `Task<T>` | `subject.Should()` | `TaskAssertions<T>` |
 | `ValueTask` | `subject.Should()` | `TaskAssertions` |
 | `ValueTask<T>` | `subject.Should()` | `TaskAssertions<T>` |
+| `float[]?` with `using Axiom.Vectors;` | `subject.Should()` | `VectorAssertions<float>` |
+| `double[]?` with `using Axiom.Vectors;` | `subject.Should()` | `VectorAssertions<double>` |
+| `ReadOnlyMemory<float>` with `using Axiom.Vectors;` | `subject.Should()` | `VectorAssertions<float>` |
+| `ReadOnlyMemory<double>` with `using Axiom.Vectors;` | `subject.Should()` | `VectorAssertions<double>` |
 
 `Task<T>` and `ValueTask<T>` expose task-behaviour assertions plus success continuations through `WhoseResult`. They do not unwrap the result directly into `ValueAssertions<T>`.
 
@@ -230,6 +234,51 @@ SingleItem
 ```
 
 Use them when you want to assert an async stream directly instead of materializing it into a list first.
+
+## Vector Assertions
+
+Available from the optional `Axiom.Vectors` package.
+
+```bash
+dotnet add package Axiom.Vectors
+```
+
+Entry points live in `Axiom.Vectors.ShouldExtensions` and currently support:
+
+- `float[]`
+- `double[]`
+- `ReadOnlyMemory<float>`
+- `ReadOnlyMemory<double>`
+
+`subject.Should()` returns `VectorAssertions<TNumeric>`, which exposes:
+
+```csharp
+HaveDimension(expectedDimension)
+NotContainNaNOrInfinity()
+BeApproximatelyEqualTo(expected, tolerance)
+HaveCosineSimilarityTo(expected)
+BeNormalized()
+BeNormalized(tolerance)
+```
+
+`HaveCosineSimilarityTo(expected)` returns `CosineSimilarityAssertions<TNumeric>`, which exposes:
+
+```csharp
+ActualSimilarity
+AtLeast(threshold)
+```
+
+Typical usage:
+
+```csharp
+using Axiom.Vectors;
+
+embedding.Should().HaveDimension(1536);
+embedding.Should().NotContainNaNOrInfinity();
+embedding.Should().BeApproximatelyEqualTo(expected, tolerance: 1e-5f);
+embedding.Should().HaveCosineSimilarityTo(expected).AtLeast(0.995f);
+embedding.Should().BeNormalized(tolerance: 1e-5f);
+```
 
 ## Direct Task Assertions
 
