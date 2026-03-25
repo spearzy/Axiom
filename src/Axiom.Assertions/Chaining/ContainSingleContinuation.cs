@@ -8,17 +8,20 @@ public readonly struct ContainSingleContinuation<TAssertions>
     private readonly bool _hasSingleItem;
     private readonly object? _singleItem;
     private readonly string? _containSingleFailureMessage;
+    private readonly string _assertionName;
 
     public ContainSingleContinuation(
         TAssertions assertions,
         bool hasSingleItem,
         object? singleItem,
-        string? containSingleFailureMessage)
+        string? containSingleFailureMessage,
+        string assertionName = "ContainSingle")
     {
         And = assertions;
         _hasSingleItem = hasSingleItem;
         _singleItem = singleItem;
         _containSingleFailureMessage = containSingleFailureMessage;
+        _assertionName = assertionName;
     }
 
     public TAssertions And { get; }
@@ -33,8 +36,8 @@ public readonly struct ContainSingleContinuation<TAssertions>
             }
 
             var message = _containSingleFailureMessage is null
-                ? "SingleItem is unavailable because ContainSingle failed."
-                : $"SingleItem is unavailable because ContainSingle failed with error: {_containSingleFailureMessage}";
+                ? $"SingleItem is unavailable because {_assertionName} failed."
+                : $"SingleItem is unavailable because {_assertionName} failed with error: {_containSingleFailureMessage}";
             AssertionFailureDispatcher.Throw(message);
             throw new UnreachableException();
         }
@@ -46,17 +49,20 @@ public readonly struct ContainSingleContinuation<TAssertions, TItem>
     private readonly bool _hasSingleItem;
     private readonly TItem _singleItem;
     private readonly string? _containSingleFailureMessage;
+    private readonly string _assertionName;
 
     public ContainSingleContinuation(
         TAssertions assertions,
         bool hasSingleItem,
         TItem singleItem,
-        string? containSingleFailureMessage)
+        string? containSingleFailureMessage,
+        string assertionName = "ContainSingle")
     {
         And = assertions;
         _hasSingleItem = hasSingleItem;
         _singleItem = singleItem;
         _containSingleFailureMessage = containSingleFailureMessage;
+        _assertionName = assertionName;
     }
 
     public TAssertions And { get; }
@@ -71,8 +77,8 @@ public readonly struct ContainSingleContinuation<TAssertions, TItem>
             }
 
             var message = _containSingleFailureMessage is null
-                ? "SingleItem is unavailable because ContainSingle failed."
-                : $"SingleItem is unavailable because ContainSingle failed with error: {_containSingleFailureMessage}";
+                ? $"SingleItem is unavailable because {_assertionName} failed."
+                : $"SingleItem is unavailable because {_assertionName} failed with error: {_containSingleFailureMessage}";
             AssertionFailureDispatcher.Throw(message);
             throw new UnreachableException();
         }

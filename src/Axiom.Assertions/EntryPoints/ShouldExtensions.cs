@@ -35,6 +35,16 @@ public static class ShouldExtensions
         [CallerArgumentExpression("subject")] string? subjectExpression = null)
         => new(subject, subjectExpression);
 
+    public static AsyncEnumerableAssertions<T> Should<T>(
+        this IAsyncEnumerable<T>? subject,
+        [CallerArgumentExpression("subject")] string? subjectExpression = null)
+        => CreateAsyncEnumerableAssertions(subject, subjectExpression);
+
+    public static AsyncEnumerableAssertions<T> ShouldAsyncEnumerable<T>(
+        this IAsyncEnumerable<T>? subject,
+        [CallerArgumentExpression("subject")] string? subjectExpression = null)
+        => CreateAsyncEnumerableAssertions(subject, subjectExpression);
+
     public static TaskAssertions Should(
         this Task subject,
         [CallerArgumentExpression("subject")] string? subjectExpression = null)
@@ -62,4 +72,9 @@ public static class ShouldExtensions
         var task = subject.AsTask();
         return new(task, subjectExpression);
     }
+
+    private static AsyncEnumerableAssertions<T> CreateAsyncEnumerableAssertions<T>(
+        IAsyncEnumerable<T>? subject,
+        string? subjectExpression)
+        => new(subject, subjectExpression);
 }

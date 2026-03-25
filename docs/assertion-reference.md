@@ -18,6 +18,8 @@ All fluent assertions either:
 | `Func<ValueTask>` | `subject.Should()` | `AsyncActionAssertions` |
 | `Func<Task<T>>` | `subject.Should()` | `AsyncFunctionAssertions<T>` |
 | `Func<ValueTask<T>>` | `subject.Should()` | `AsyncFunctionAssertions<T>` |
+| `IAsyncEnumerable<T>` | `subject.Should()` | `AsyncEnumerableAssertions<T>` |
+| `IAsyncEnumerable<T>` | `subject.ShouldAsyncEnumerable()` | `AsyncEnumerableAssertions<T>` |
 | `Task` | `subject.Should()` | `TaskAssertions` |
 | `Task<T>` | `subject.Should()` | `TaskAssertions<T>` |
 | `ValueTask` | `subject.Should()` | `TaskAssertions` |
@@ -202,6 +204,32 @@ WhoseResult
 ```
 
 `ThrowAsync(...)`, `ThrowExactlyAsync(...)`, `BeFaultedWith(...)`, and `BeFaultedWithWithin(...)` return the same `ThrownExceptionAssertions<TParent, TException>` continuation surface documented in the exception section above.
+
+## Async Stream Assertions
+
+Available on `AsyncEnumerableAssertions<T>` from `IAsyncEnumerable<T>.Should()`.
+
+If a concrete wrapper type implements `IAsyncEnumerable<T>` and `.Should()` resolves to the generic `ValueAssertions<T>` entry point, use `.ShouldAsyncEnumerable()` to force async-stream assertions.
+
+```csharp
+BeEmptyAsync()
+NotBeEmptyAsync()
+HaveCountAsync(expectedCount)
+ContainAsync(expected)
+ContainAsync(predicate)
+OnlyContainAsync(predicate)
+ContainSingleAsync()
+ContainSingleAsync(predicate)
+```
+
+`ContainSingleAsync()` and `ContainSingleAsync(predicate)` return:
+
+```csharp
+And
+SingleItem
+```
+
+Use them when you want to assert an async stream directly instead of materializing it into a list first.
 
 ## Direct Task Assertions
 
