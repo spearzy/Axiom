@@ -257,6 +257,45 @@ When Axiom resolves which expected member should be compared with an actual memb
 
 If both typed and name-based mapping could apply to the same member, typed mapping wins.
 
+## Reading Failures
+
+Equivalency failures stay rooted on the actual-side path, but the report now makes it clearer what kind of mismatch happened.
+
+- value mismatches show the actual-side path first
+- missing members say explicitly whether the member was missing on actual or missing on expected
+- typed member mappings add the expected-side path when that is what Axiom compared
+- string leaf mismatches include the first differing index and short snippets
+- when `MaxDifferences` truncates the report, the summary tells you how many differences were omitted
+
+Typed mapping example:
+
+```csharp
+actual.Should().BeEquivalentTo(expected, options =>
+{
+    options.RequireStrictRuntimeTypes = false;
+    options.MatchMember<ActualUser, ExpectedUser>(x => x.Address.Postcode, x => x.Location.ZipCode);
+});
+```
+
+If those values differ, the failure report keeps the actual-side path and adds a short mapping note:
+
+```text
+actual.Address.Postcode (compared with expected.Location.ZipCode): expected "EC1A 1BB", but found "AB1A 1AA" (string mismatch; ...)
+```
+
+Missing and extra members are also explicit:
+
+```text
+actual.Email: member is missing on actual; expected "bob@example.com"
+actual.Email: member is present on actual but missing on expected; actual "bob@example.com"
+```
+
+`MaxDifferences` still preserves deterministic ordering. When the report is truncated, Axiom tells you exactly what was omitted:
+
+```text
++ 2 additional difference(s) omitted after reaching MaxDifferences = 2.
+```
+
 ## Custom Equality Rules
 
 ### Compare All Leaves Of A Type With One Rule

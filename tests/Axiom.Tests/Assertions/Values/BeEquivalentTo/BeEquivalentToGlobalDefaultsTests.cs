@@ -75,7 +75,7 @@ public sealed class BeEquivalentToGlobalDefaultsTests : IDisposable
         var ex = Assert.Throws<InvalidOperationException>(() =>
             actual.Should().BeEquivalentTo(expected, options => options.HalfTolerance = 0.10f));
 
-        Assert.Contains("Values differ.", ex.Message, StringComparison.Ordinal);
+        Assert.Contains("values differ", ex.Message, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -102,7 +102,7 @@ public sealed class BeEquivalentToGlobalDefaultsTests : IDisposable
         var ex = Assert.Throws<InvalidOperationException>(() =>
             actual.Should().BeEquivalentTo(expected, options => options.TimeOnlyTolerance = TimeSpan.FromMilliseconds(500)));
 
-        Assert.Contains("Values differ.", ex.Message, StringComparison.Ordinal);
+        Assert.Contains("values differ", ex.Message, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -129,7 +129,7 @@ public sealed class BeEquivalentToGlobalDefaultsTests : IDisposable
         var ex = Assert.Throws<InvalidOperationException>(() =>
             actual.Should().BeEquivalentTo(expected, options => options.DateTimeOffsetTolerance = TimeSpan.FromMilliseconds(500)));
 
-        Assert.Contains("Values differ.", ex.Message, StringComparison.Ordinal);
+        Assert.Contains("values differ", ex.Message, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -156,7 +156,7 @@ public sealed class BeEquivalentToGlobalDefaultsTests : IDisposable
         var ex = Assert.Throws<InvalidOperationException>(() =>
             actual.Should().BeEquivalentTo(expected, options => options.DecimalTolerance = 0.01m));
 
-        Assert.Contains("Values differ.", ex.Message, StringComparison.Ordinal);
+        Assert.Contains("values differ", ex.Message, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -183,6 +183,6 @@ public sealed class BeEquivalentToGlobalDefaultsTests : IDisposable
         var ex = Assert.Throws<InvalidOperationException>(() =>
             actual.Should().BeEquivalentTo(expected, options => options.TimeSpanTolerance = TimeSpan.FromMilliseconds(200)));
 
-        Assert.Contains("Values differ.", ex.Message, StringComparison.Ordinal);
+        Assert.Contains("values differ", ex.Message, StringComparison.Ordinal);
     }
 }

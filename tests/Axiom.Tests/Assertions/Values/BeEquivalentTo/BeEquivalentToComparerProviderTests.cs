@@ -41,7 +41,7 @@ public sealed class BeEquivalentToComparerProviderTests : IDisposable
         var actual = 3;
         var ex = Assert.Throws<InvalidOperationException>(() => actual.Should().BeEquivalentTo(5));
 
-        Assert.Contains("Values differ.", ex.Message, StringComparison.Ordinal);
+        Assert.Contains("values differ", ex.Message, StringComparison.Ordinal);
     }
 
     private sealed class NumberWrapper

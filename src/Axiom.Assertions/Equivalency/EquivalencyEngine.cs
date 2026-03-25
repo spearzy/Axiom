@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Numerics;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using Axiom.Assertions.AssertionTypes;
 using Axiom.Core.Comparison;
 using Axiom.Core.Configuration;
 
@@ -12,6 +13,38 @@ internal static class EquivalencyEngine
 {
     // Cache per runtime comparison type so we pay reflection cost only once per type.
     private static readonly ConcurrentDictionary<Type, Func<IComparerProvider, object, object, bool?>> ComparerInvokers = new();
+    private static int _appendPathProbeCount;
+    private static int _appendIndexProbeCount;
+    private static int _resolveExpectedMemberPathProbeCount;
+    private static int _resolveActualMemberPathProbeCount;
+    private static int _getDirectChildMemberNameProbeCount;
+    private static volatile bool _expectedPathHelperProbeEnabled;
+
+    internal static void SetExpectedPathHelperProbeEnabled(bool enabled)
+    {
+        _expectedPathHelperProbeEnabled = enabled;
+    }
+
+    internal static void ResetExpectedPathHelperProbe()
+    {
+        _appendPathProbeCount = 0;
+        _appendIndexProbeCount = 0;
+        _resolveExpectedMemberPathProbeCount = 0;
+        _resolveActualMemberPathProbeCount = 0;
+        _getDirectChildMemberNameProbeCount = 0;
+    }
+
+    internal static int[] SnapshotExpectedPathHelperProbe()
+    {
+        return
+        [
+            _appendPathProbeCount,
+            _appendIndexProbeCount,
+            _resolveExpectedMemberPathProbeCount,
+            _resolveActualMemberPathProbeCount,
+            _getDirectChildMemberNameProbeCount,
+        ];
+    }
 
     public static IReadOnlyList<EquivalencyDifference> Compare(
         object? actual,
@@ -24,19 +57,148 @@ internal static class EquivalencyEngine
 
         var differences = new List<EquivalencyDifference>();
         var visitedPairs = new HashSet<ReferencePair>(ReferencePairComparer.Instance);
-        CompareNode(actual, expected, rootPath, rootPath, string.Empty, options, differences, visitedPairs);
+        // Keep one traversal skeleton, but swap the expected-side path mode once up front
+        // so the common no-mapping path does not pay to build mapped diagnostics state.
+        if (HasMemberMappings(options))
+        {
+            CompareNode(actual, expected, rootPath, rootPath, MappedPathMode.Root, options, differences, visitedPairs);
+        }
+        else
+        {
+            CompareNode(actual, expected, rootPath, rootPath, default(NoMappingPathMode), options, differences, visitedPairs);
+        }
+
         return differences;
     }
 
-    private static void CompareNode(
+    private static bool HasMemberMappings(EquivalencyOptions options)
+    {
+        return options.HasTypedMemberMappings || options.HasMemberNameMappings;
+    }
+
+    private interface IExpectedPathMode<TSelf>
+        where TSelf : struct, IExpectedPathMode<TSelf>
+    {
+        string DifferenceExpectedPath { get; }
+
+        TSelf GetExpectedMemberMode(
+            string path,
+            string rootPath,
+            string actualMemberName,
+            EquivalencyOptions options,
+            out string expectedMemberName);
+
+        TSelf GetActualMemberMode(
+            string path,
+            string rootPath,
+            string expectedMemberName,
+            EquivalencyOptions options,
+            out string actualMemberName);
+
+        TSelf GetIndexedMode(int index);
+
+        TSelf ClearExpectedPath();
+    }
+
+    private readonly struct NoMappingPathMode : IExpectedPathMode<NoMappingPathMode>
+    {
+        public string DifferenceExpectedPath => string.Empty;
+
+        public NoMappingPathMode GetExpectedMemberMode(
+            string path,
+            string rootPath,
+            string actualMemberName,
+            EquivalencyOptions options,
+            out string expectedMemberName)
+        {
+            expectedMemberName = actualMemberName;
+            return default;
+        }
+
+        public NoMappingPathMode GetActualMemberMode(
+            string path,
+            string rootPath,
+            string expectedMemberName,
+            EquivalencyOptions options,
+            out string actualMemberName)
+        {
+            actualMemberName = expectedMemberName;
+            return default;
+        }
+
+        public NoMappingPathMode GetIndexedMode(int index)
+        {
+            return default;
+        }
+
+        public NoMappingPathMode ClearExpectedPath()
+        {
+            return default;
+        }
+    }
+
+    private readonly struct MappedPathMode : IExpectedPathMode<MappedPathMode>
+    {
+        private readonly string _expectedPath;
+
+        public MappedPathMode(string expectedPath)
+        {
+            _expectedPath = expectedPath;
+        }
+
+        public static MappedPathMode Root => new(string.Empty);
+
+        public string DifferenceExpectedPath => _expectedPath;
+
+        public MappedPathMode GetExpectedMemberMode(
+            string path,
+            string rootPath,
+            string actualMemberName,
+            EquivalencyOptions options,
+            out string expectedMemberName)
+        {
+            var actualRelativePath = ToRelativePath(path, rootPath);
+            var actualMemberPath = AppendPath(actualRelativePath, actualMemberName);
+            var expectedMemberPath = ResolveExpectedMemberPath(actualMemberPath, _expectedPath, actualMemberName, options);
+            expectedMemberName = GetDirectChildMemberName(expectedMemberPath, _expectedPath);
+            return new MappedPathMode(expectedMemberPath);
+        }
+
+        public MappedPathMode GetActualMemberMode(
+            string path,
+            string rootPath,
+            string expectedMemberName,
+            EquivalencyOptions options,
+            out string actualMemberName)
+        {
+            var actualRelativePath = ToRelativePath(path, rootPath);
+            var expectedMemberPath = AppendPath(_expectedPath, expectedMemberName);
+            var actualMemberPath = ResolveActualMemberPath(expectedMemberPath, actualRelativePath, expectedMemberName, options);
+            actualMemberName = GetDirectChildMemberName(actualMemberPath, actualRelativePath);
+            return new MappedPathMode(expectedMemberPath);
+        }
+
+        public MappedPathMode GetIndexedMode(int index)
+        {
+            return new MappedPathMode(AppendIndex(_expectedPath, index));
+        }
+
+        public MappedPathMode ClearExpectedPath()
+        {
+            return Root;
+        }
+    }
+
+    private static void CompareNode<TPathMode>(
         object? actual,
         object? expected,
         string path,
         string rootPath,
-        string expectedPath,
+        TPathMode pathMode,
         EquivalencyOptions options,
         List<EquivalencyDifference> differences,
         HashSet<ReferencePair> visitedPairs)
+        where TPathMode : struct, IExpectedPathMode<TPathMode>
     {
         if (IsPathIgnored(path, rootPath, options))
         {
@@ -63,7 +225,14 @@ internal static class EquivalencyEngine
                 return;
             }
 
-            differences.Add(new EquivalencyDifference(path, expected, actual, "One value was <null> and the other was not."));
+            AddDifference(
+                differences,
+                path,
+                pathMode.DifferenceExpectedPath,
+                expected,
+                actual,
+                EquivalencyDifferenceKind.NullMismatch,
+                "one value was <null> and the other was not");
             return;
         }
 
@@ -71,11 +240,14 @@ internal static class EquivalencyEngine
         var expectedType = expected.GetType();
         if (!AreTypesCompatible(actualType, expectedType, options))
         {
-            differences.Add(new EquivalencyDifference(
+            AddDifference(
+                differences,
                 path,
+                pathMode.DifferenceExpectedPath,
                 expected,
                 actual,
-                $"Runtime types differ: expected {expectedType.FullName}, but found {actualType.FullName}."));
+                EquivalencyDifferenceKind.TypeMismatch,
+                $"runtime types differ: expected {expectedType.FullName}, but found {actualType.FullName}");
             return;
         }
 
@@ -87,7 +259,14 @@ internal static class EquivalencyEngine
         {
             if (!toleranceResult)
             {
-                differences.Add(new EquivalencyDifference(path, expected, actual, "Values differ."));
+                AddDifference(
+                    differences,
+                    path,
+                    pathMode.DifferenceExpectedPath,
+                    expected,
+                    actual,
+                    EquivalencyDifferenceKind.ValueMismatch,
+                    "values differ");
             }
 
             return;
@@ -98,7 +277,14 @@ internal static class EquivalencyEngine
         {
             if (!pathComparerResult)
             {
-                differences.Add(new EquivalencyDifference(path, expected, actual, "Values differ."));
+                AddDifference(
+                    differences,
+                    path,
+                    pathMode.DifferenceExpectedPath,
+                    expected,
+                    actual,
+                    EquivalencyDifferenceKind.ValueMismatch,
+                    "values differ");
             }
 
             return;
@@ -113,7 +299,14 @@ internal static class EquivalencyEngine
         {
             if (!string.Equals(actualString, expectedString, options.StringComparison))
             {
-                differences.Add(new EquivalencyDifference(path, expected, actual, "String values differ."));
+                AddDifference(
+                    differences,
+                    path,
+                    pathMode.DifferenceExpectedPath,
+                    expected,
+                    actual,
+                    EquivalencyDifferenceKind.StringMismatch,
+                    BuildStringMismatchDetail(expectedString, actualString, options.StringComparison));
             }
 
             return;
@@ -124,7 +317,7 @@ internal static class EquivalencyEngine
             actual is not string &&
             expected is not string)
         {
-            CompareEnumerable(actualEnumerable, expectedEnumerable, path, rootPath, expectedPath, options, differences, visitedPairs);
+            CompareEnumerable(actualEnumerable, expectedEnumerable, path, rootPath, pathMode, options, differences, visitedPairs);
             return;
         }
 
@@ -136,7 +329,14 @@ internal static class EquivalencyEngine
 
             if (!areEquivalent)
             {
-                differences.Add(new EquivalencyDifference(path, expected, actual, "Values differ."));
+                AddDifference(
+                    differences,
+                    path,
+                    pathMode.DifferenceExpectedPath,
+                    expected,
+                    actual,
+                    EquivalencyDifferenceKind.ValueMismatch,
+                    "values differ");
             }
 
             return;
@@ -152,40 +352,40 @@ internal static class EquivalencyEngine
             }
         }
 
-        CompareMembers(actual, expected, actualType, expectedType, path, rootPath, expectedPath, options, differences, visitedPairs);
+        CompareMembers(actual, expected, actualType, expectedType, path, rootPath, pathMode, options, differences, visitedPairs);
     }
 
-    private static void CompareMembers(
+    private static void CompareMembers<TPathMode>(
         object actual,
         object expected,
         Type actualType,
         Type expectedType,
         string path,
         string rootPath,
-        string expectedPath,
+        TPathMode pathMode,
         EquivalencyOptions options,
         List<EquivalencyDifference> differences,
         HashSet<ReferencePair> visitedPairs)
+        where TPathMode : struct, IExpectedPathMode<TPathMode>
     {
         var actualMembers = GetComparableMembers(actualType, options);
         var expectedMembers = GetComparableMembers(expectedType, options);
         var usedExpectedMembers = new HashSet<string>(StringComparer.Ordinal);
-        var actualRelativePath = ToRelativePath(path, rootPath);
-
-        // Compare by actual members first so the rendered paths stay anchored to the actual object shape.
         foreach (var actualMemberName in actualMembers.Keys.OrderBy(static name => name, StringComparer.Ordinal))
         {
-            var actualMemberPath = AppendPath(actualRelativePath, actualMemberName);
-            var expectedMemberPath = ResolveExpectedMemberPath(actualMemberPath, expectedPath, actualMemberName, options);
-            var expectedMemberName = GetDirectChildMemberName(expectedMemberPath, expectedPath);
-            if (options.IgnoredMemberNames.Contains(actualMemberName) ||
-                options.IgnoredMemberNames.Contains(expectedMemberName))
+            if (options.IgnoredMemberNames.Contains(actualMemberName))
             {
                 continue;
             }
 
             var memberPath = $"{path}.{actualMemberName}";
             if (IsPathIgnored(memberPath, rootPath, options))
+            {
+                continue;
+            }
+
+            var childMode = pathMode.GetExpectedMemberMode(path, rootPath, actualMemberName, options, out var expectedMemberName);
+            if (options.IgnoredMemberNames.Contains(expectedMemberName))
             {
                 continue;
             }
@@ -210,7 +410,13 @@ internal static class EquivalencyEngine
                     continue;
                 }
 
-                differences.Add(new EquivalencyDifference(memberPath, null, actualValue, "Member missing on expected type."));
+                AddDifference(
+                    differences,
+                    memberPath,
+                    childMode.DifferenceExpectedPath,
+                    null,
+                    actualValue,
+                    EquivalencyDifferenceKind.MissingMemberOnExpected);
                 continue;
             }
 
@@ -226,22 +432,19 @@ internal static class EquivalencyEngine
                 continue;
             }
 
-            CompareNode(actualValueAtMember, expectedValueAtMember, memberPath, rootPath, expectedMemberPath, options, differences, visitedPairs);
+            CompareNode(actualValueAtMember, expectedValueAtMember, memberPath, rootPath, childMode, options, differences, visitedPairs);
         }
 
-        // Then account for expected members that were never matched to an actual member.
         foreach (var expectedMemberName in expectedMembers.Keys.OrderBy(static name => name, StringComparer.Ordinal))
         {
-            if (usedExpectedMembers.Contains(expectedMemberName))
+            if (usedExpectedMembers.Contains(expectedMemberName) ||
+                options.IgnoredMemberNames.Contains(expectedMemberName))
             {
                 continue;
             }
 
-            var expectedMemberPath = AppendPath(expectedPath, expectedMemberName);
-            var actualMemberPath = ResolveActualMemberPath(expectedMemberPath, actualRelativePath, expectedMemberName, options);
-            var actualMemberName = GetDirectChildMemberName(actualMemberPath, actualRelativePath);
-            if (options.IgnoredMemberNames.Contains(expectedMemberName) ||
-                options.IgnoredMemberNames.Contains(actualMemberName))
+            var childMode = pathMode.GetActualMemberMode(path, rootPath, expectedMemberName, options, out var actualMemberName);
+            if (options.IgnoredMemberNames.Contains(actualMemberName))
             {
                 continue;
             }
@@ -263,19 +466,26 @@ internal static class EquivalencyEngine
                 continue;
             }
 
-            differences.Add(new EquivalencyDifference(memberPath, expectedValue, null, "Member missing on actual type."));
+            AddDifference(
+                differences,
+                memberPath,
+                childMode.DifferenceExpectedPath,
+                expectedValue,
+                null,
+                EquivalencyDifferenceKind.MissingMemberOnActual);
         }
     }
 
-    private static void CompareEnumerable(
+    private static void CompareEnumerable<TPathMode>(
         IEnumerable actualEnumerable,
         IEnumerable expectedEnumerable,
         string path,
         string rootPath,
-        string expectedPath,
+        TPathMode pathMode,
         EquivalencyOptions options,
         List<EquivalencyDifference> differences,
         HashSet<ReferencePair> visitedPairs)
+        where TPathMode : struct, IExpectedPathMode<TPathMode>
     {
         IEqualityComparer? collectionItemComparer = null;
         var hasCollectionItemComparer =
@@ -293,7 +503,7 @@ internal static class EquivalencyEngine
                 expectedItems,
                 path,
                 rootPath,
-                expectedPath,
+                pathMode,
                 options,
                 differences,
                 hasCollectionItemComparer ? collectionItemComparer : null);
@@ -319,39 +529,47 @@ internal static class EquivalencyEngine
 
                     if (hasExpected)
                     {
-                        differences.Add(new EquivalencyDifference(
+                        AddDifference(
+                            differences,
                             $"{path}[{index}]",
+                            pathMode.GetIndexedMode(index).DifferenceExpectedPath,
                             expectedEnumerator.Current,
                             null,
-                            "Item missing on actual collection."));
+                            EquivalencyDifferenceKind.CollectionItemMissingOnActual);
                         index++;
 
                         while (expectedEnumerator.MoveNext())
                         {
-                            differences.Add(new EquivalencyDifference(
+                            AddDifference(
+                                differences,
                                 $"{path}[{index}]",
+                                pathMode.GetIndexedMode(index).DifferenceExpectedPath,
                                 expectedEnumerator.Current,
                                 null,
-                                "Item missing on actual collection."));
+                                EquivalencyDifferenceKind.CollectionItemMissingOnActual);
                             index++;
                         }
                     }
                     else
                     {
-                        differences.Add(new EquivalencyDifference(
+                        AddDifference(
+                            differences,
                             $"{path}[{index}]",
+                            pathMode.ClearExpectedPath().DifferenceExpectedPath,
                             null,
                             actualEnumerator.Current,
-                            "Extra item on actual collection."));
+                            EquivalencyDifferenceKind.CollectionItemExtraOnActual);
                         index++;
 
                         while (actualEnumerator.MoveNext())
                         {
-                            differences.Add(new EquivalencyDifference(
+                            AddDifference(
+                                differences,
                                 $"{path}[{index}]",
+                                pathMode.ClearExpectedPath().DifferenceExpectedPath,
                                 null,
                                 actualEnumerator.Current,
-                                "Extra item on actual collection."));
+                                EquivalencyDifferenceKind.CollectionItemExtraOnActual);
                             index++;
                         }
                     }
@@ -366,7 +584,15 @@ internal static class EquivalencyEngine
                 {
                     if (!collectionItemComparer!.Equals(actualItem, expectedItem))
                     {
-                        differences.Add(new EquivalencyDifference(itemPath, expectedItem, actualItem, "Values differ."));
+                        var indexedMode = pathMode.GetIndexedMode(index);
+                        AddDifference(
+                            differences,
+                            itemPath,
+                            indexedMode.DifferenceExpectedPath,
+                            expectedItem,
+                            actualItem,
+                            EquivalencyDifferenceKind.ValueMismatch,
+                            "values differ");
                     }
                 }
                 else
@@ -376,7 +602,7 @@ internal static class EquivalencyEngine
                         expectedItem,
                         itemPath,
                         rootPath,
-                        AppendIndex(expectedPath, index),
+                        pathMode.GetIndexedMode(index),
                         options,
                         differences,
                         visitedPairs);
@@ -392,17 +618,17 @@ internal static class EquivalencyEngine
         }
     }
 
-    private static void CompareEnumerableAnyOrder(
+    private static void CompareEnumerableAnyOrder<TPathMode>(
         List<object?> actualItems,
         List<object?> expectedItems,
         string path,
         string rootPath,
-        string expectedPath,
+        TPathMode pathMode,
         EquivalencyOptions options,
         List<EquivalencyDifference> differences,
         IEqualityComparer? collectionItemComparer)
+        where TPathMode : struct, IExpectedPathMode<TPathMode>
     {
-        // Simple one-pass matching: each actual element can satisfy at most one expected element.
         var usedActualIndexes = new bool[actualItems.Count];
 
         for (var expectedIndex = 0; expectedIndex < expectedItems.Count; expectedIndex++)
@@ -418,13 +644,12 @@ internal static class EquivalencyEngine
 
                 var isEquivalent = collectionItemComparer is not null
                     ? collectionItemComparer.Equals(actualItems[actualIndex], expectedItem)
-                    // In Any-order mode we still require deep equivalency for each candidate pair.
                     : ItemsEquivalentDeep(
                         actualItems[actualIndex],
                         expectedItem,
                         $"{path}[{expectedIndex}]",
                         rootPath,
-                        AppendIndex(expectedPath, expectedIndex),
+                        pathMode.GetIndexedMode(expectedIndex),
                         options);
                 if (!isEquivalent)
                 {
@@ -438,11 +663,13 @@ internal static class EquivalencyEngine
 
             if (!matched)
             {
-                differences.Add(new EquivalencyDifference(
+                AddDifference(
+                    differences,
                     $"{path}[{expectedIndex}]",
+                    pathMode.GetIndexedMode(expectedIndex).DifferenceExpectedPath,
                     expectedItem,
                     null,
-                    "Expected item was not found in actual collection."));
+                    EquivalencyDifferenceKind.ExpectedCollectionItemNotFound);
             }
         }
 
@@ -453,25 +680,28 @@ internal static class EquivalencyEngine
                 continue;
             }
 
-            differences.Add(new EquivalencyDifference(
+            AddDifference(
+                differences,
                 $"{path}[{actualIndex}]",
+                pathMode.ClearExpectedPath().DifferenceExpectedPath,
                 null,
                 actualItems[actualIndex],
-                "Actual collection contains an extra item."));
+                EquivalencyDifferenceKind.ActualCollectionContainsExtraItem);
         }
     }
 
-    private static bool ItemsEquivalentDeep(
+    private static bool ItemsEquivalentDeep<TPathMode>(
         object? actual,
         object? expected,
         string path,
         string rootPath,
-        string expectedPath,
+        TPathMode pathMode,
         EquivalencyOptions options)
+        where TPathMode : struct, IExpectedPathMode<TPathMode>
     {
         var localDifferences = new List<EquivalencyDifference>();
         var localVisitedPairs = new HashSet<ReferencePair>(ReferencePairComparer.Instance);
-        CompareNode(actual, expected, path, rootPath, expectedPath, options, localDifferences, localVisitedPairs);
+        CompareNode(actual, expected, path, rootPath, pathMode, options, localDifferences, localVisitedPairs);
         return localDifferences.Count == 0;
     }
 
@@ -724,6 +954,8 @@ internal static class EquivalencyEngine
         string actualMemberName,
         EquivalencyOptions options)
     {
+        RecordExpectedPathHelperProbe(ref _resolveExpectedMemberPathProbeCount);
+
         if (options.TryGetMappedExpectedMemberPath(actualMemberPath, out var expectedMemberPath))
         {
             return expectedMemberPath;
@@ -738,6 +970,8 @@ internal static class EquivalencyEngine
         string expectedMemberName,
         EquivalencyOptions options)
     {
+        RecordExpectedPathHelperProbe(ref _resolveActualMemberPathProbeCount);
+
         if (options.TryGetMappedActualMemberPath(expectedMemberPath, out var actualMemberPath))
         {
             return actualMemberPath;
@@ -748,16 +982,20 @@ internal static class EquivalencyEngine
 
     private static string AppendPath(string parentPath, string childSegment)
     {
+        RecordExpectedPathHelperProbe(ref _appendPathProbeCount);
         return parentPath.Length == 0 ? childSegment : $"{parentPath}.{childSegment}";
     }
 
     private static string AppendIndex(string path, int index)
     {
+        RecordExpectedPathHelperProbe(ref _appendIndexProbeCount);
         return path.Length == 0 ? $"[{index}]" : $"{path}[{index}]";
     }
 
     private static string GetDirectChildMemberName(string fullPath, string parentPath)
     {
+        RecordExpectedPathHelperProbe(ref _getDirectChildMemberNameProbeCount);
+
         if (parentPath.Length == 0)
         {
             return ExtractFirstMemberSegment(fullPath);
@@ -776,6 +1014,16 @@ internal static class EquivalencyEngine
     {
         var separatorIndex = path.IndexOf('.');
         return separatorIndex >= 0 ? path[..separatorIndex] : path;
+    }
+
+    private static void RecordExpectedPathHelperProbe(ref int counter)
+    {
+        if (!_expectedPathHelperProbeEnabled)
+        {
+            return;
+        }
+
+        Interlocked.Increment(ref counter);
     }
 
     private static Type? GetSharedComparisonType(Type actualType, Type expectedType)
@@ -820,6 +1068,32 @@ internal static class EquivalencyEngine
 
         // Delegate is only built for compatible types, so these casts are intentional and safe here.
         return comparer.Equals((T)actual, (T)expected);
+    }
+
+    private static void AddDifference(
+        List<EquivalencyDifference> differences,
+        string path,
+        string expectedPath,
+        object? expected,
+        object? actual,
+        EquivalencyDifferenceKind kind,
+        string? detail = null)
+    {
+        differences.Add(new EquivalencyDifference(path, expectedPath, expected, actual, kind, detail));
+    }
+
+    private static string BuildStringMismatchDetail(
+        string expected,
+        string actual,
+        StringComparison comparison)
+    {
+        var detail = StringDifferenceDiagnostics.BuildEqualityFailureDetail(expected, actual);
+        if (comparison == StringComparison.Ordinal)
+        {
+            return detail;
+        }
+
+        return $"comparison {comparison}; {detail}";
     }
 
     private static Dictionary<string, Func<object, object?>> GetComparableMembers(Type type, EquivalencyOptions options)

@@ -58,7 +58,8 @@ public sealed class BeEquivalentToOptionsTests
             actual.Should().BeEquivalentTo(expected, options => options.MaxDifferences = 2));
 
         Assert.Contains("but found 4 difference(s):", ex.Message, StringComparison.Ordinal);
-        Assert.Contains("+ 2 more difference(s).", ex.Message, StringComparison.Ordinal);
+        Assert.Contains("additional difference(s) omitted", ex.Message, StringComparison.Ordinal);
+        Assert.Contains("MaxDifferences = 2", ex.Message, StringComparison.Ordinal);
     }
 
     [Fact]

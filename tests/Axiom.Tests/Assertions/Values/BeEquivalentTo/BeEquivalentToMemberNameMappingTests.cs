@@ -38,7 +38,7 @@ public sealed class BeEquivalentToMemberNameMappingTests
                 }));
 
         Assert.Contains("actual.GivenName", ex.Message, StringComparison.Ordinal);
-        Assert.Contains("String values differ.", ex.Message, StringComparison.Ordinal);
+        Assert.Contains("string mismatch;", ex.Message, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -128,8 +128,8 @@ public sealed class BeEquivalentToMemberNameMappingTests
                 expected,
                 options => options.RequireStrictRuntimeTypes = false));
 
-        Assert.Contains("Values differ.", ex.Message, StringComparison.Ordinal);
-        Assert.DoesNotContain("Runtime types differ", ex.Message, StringComparison.Ordinal);
+        Assert.Contains("values differ", ex.Message, StringComparison.Ordinal);
+        Assert.DoesNotContain("runtime types differ", ex.Message, StringComparison.Ordinal);
     }
 
     private sealed class ActualPerson

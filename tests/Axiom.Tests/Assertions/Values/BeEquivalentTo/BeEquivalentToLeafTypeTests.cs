@@ -13,7 +13,7 @@ public sealed class BeEquivalentToLeafTypeTests
 
         var ex = Assert.Throws<InvalidOperationException>(() => actual.Should().BeEquivalentTo(expected));
 
-        Assert.Contains("Values differ.", ex.Message, StringComparison.Ordinal);
+        Assert.Contains("values differ", ex.Message, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -24,7 +24,7 @@ public sealed class BeEquivalentToLeafTypeTests
 
         var ex = Assert.Throws<InvalidOperationException>(() => actual.Should().BeEquivalentTo(expected));
 
-        Assert.Contains("Values differ.", ex.Message, StringComparison.Ordinal);
+        Assert.Contains("values differ", ex.Message, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -35,7 +35,7 @@ public sealed class BeEquivalentToLeafTypeTests
 
         var ex = Assert.Throws<InvalidOperationException>(() => actual.Should().BeEquivalentTo(expected));
 
-        Assert.Contains("Values differ.", ex.Message, StringComparison.Ordinal);
+        Assert.Contains("values differ", ex.Message, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -46,7 +46,7 @@ public sealed class BeEquivalentToLeafTypeTests
 
         var ex = Assert.Throws<InvalidOperationException>(() => actual.Should().BeEquivalentTo(expected));
 
-        Assert.Contains("Values differ.", ex.Message, StringComparison.Ordinal);
+        Assert.Contains("values differ", ex.Message, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -57,7 +57,7 @@ public sealed class BeEquivalentToLeafTypeTests
 
         var ex = Assert.Throws<InvalidOperationException>(() => actual.Should().BeEquivalentTo(expected));
 
-        Assert.Contains("actual -> expected", ex.Message, StringComparison.Ordinal);
+        Assert.Contains("actual: expected", ex.Message, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -68,6 +68,6 @@ public sealed class BeEquivalentToLeafTypeTests
 
         var ex = Assert.Throws<InvalidOperationException>(() => actual.Should().BeEquivalentTo(expected));
 
-        Assert.Contains("actual -> expected", ex.Message, StringComparison.Ordinal);
+        Assert.Contains("actual: expected", ex.Message, StringComparison.Ordinal);
     }
 }
