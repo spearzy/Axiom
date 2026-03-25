@@ -45,7 +45,7 @@ If you want vector and embedding-focused assertions:
 dotnet add package Axiom.Vectors
 ```
 
-If you only want the diagnostics as a standalone package:
+Install `Axiom.Analyzers` separately only if you want the diagnostics without the runtime assertion library:
 
 ```bash
 dotnet add package Axiom.Analyzers

@@ -37,22 +37,13 @@ cat > "$nuget_config" <<EOF
   <packageSources>
     <clear />
     <add key="local" value="$package_source" />
-    <add key="nuget.org" value="https://api.nuget.org/v3/index.json" />
   </packageSources>
-  <packageSourceMapping>
-    <packageSource key="local">
-      <package pattern="Axiom.Analyzers" />
-    </packageSource>
-    <packageSource key="nuget.org">
-      <package pattern="*" />
-    </packageSource>
-  </packageSourceMapping>
 </configuration>
 EOF
 
 dotnet new classlib -n Axiom.Analyzers.Smoke -f net10.0 -o "$consumer_project" --no-restore >/dev/null
 
-dotnet add "$consumer_project/Axiom.Analyzers.Smoke.csproj" package Axiom.Analyzers --version "$package_version" --source "$package_source" >/dev/null
+dotnet add "$consumer_project/Axiom.Analyzers.Smoke.csproj" package Axiom.Analyzers --version "$package_version" --source "$package_source" --no-restore >/dev/null
 
 cat > "$consumer_project/AxiomAssertionStubs.cs" <<'EOF'
 using System;
@@ -98,7 +89,7 @@ public sealed class Smoke
 EOF
 
 set +e
-build_output="$(dotnet build "$consumer_project/Axiom.Analyzers.Smoke.csproj" --configfile "$nuget_config" -p:RestorePackagesPath="$local_packages_cache" -warnaserror:AXM0001 2>&1)"
+build_output="$(dotnet build "$consumer_project/Axiom.Analyzers.Smoke.csproj" --configfile "$nuget_config" --packages "$local_packages_cache" -warnaserror:AXM0001 2>&1)"
 build_exit_code=$?
 set -e
 

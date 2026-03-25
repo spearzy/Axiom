@@ -1,8 +1,18 @@
 # Analyzers
 
-Installing `Axiom.Assertions` gives you the Axiom Roslyn analyzers/code fixes automatically.
+Installing `Axiom.Assertions` gives you the Axiom Roslyn analyzers/code fixes automatically. That is the default install path for most users.
 
 `Axiom.Analyzers` still exists as an optional standalone package if you only want the diagnostics without the runtime assertion library.
+
+```bash
+dotnet add package Axiom.Assertions
+```
+
+Install the standalone package only if you want the diagnostics on their own:
+
+```bash
+dotnet add package Axiom.Analyzers
+```
 
 The current rules focus on two high-value Axiom mistakes:
 

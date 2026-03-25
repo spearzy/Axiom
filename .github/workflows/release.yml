@@ -54,6 +54,9 @@ jobs:
       - name: Test (net8.0)
         run: dotnet test tests/Axiom.Tests/Axiom.Tests.csproj -c Release -f net8.0 --no-build
 
+      - name: Test analyzers
+        run: dotnet test tests/Axiom.Analyzers.Tests/Axiom.Analyzers.Tests.csproj -c Release --no-build
+
       - name: Pack Axiom.Core
         run: >
           dotnet pack src/Axiom.Core/Axiom.Core.csproj
@@ -69,6 +72,19 @@ jobs:
           --no-build
           --output artifacts/packages
           /p:PackageVersion=${{ steps.version.outputs.version }}
+
+      - name: Pack Axiom.Analyzers
+        run: >
+          dotnet pack src/Axiom.Analyzers/Axiom.Analyzers.csproj
+          -c Release
+          --no-build
+          --output artifacts/packages
+          /p:PackageVersion=${{ steps.version.outputs.version }}
+
+      - name: Consumer analyzer smoke test (standalone)
+        run: >
+          bash eng/ci/run-analyzers-package-smoke.sh
+          "$GITHUB_WORKSPACE/artifacts/packages"
 
       - name: Consumer smoke test (xUnit)
         run: >
@@ -90,6 +106,12 @@ jobs:
           "$GITHUB_WORKSPACE/artifacts/packages"
           "${{ steps.version.outputs.version }}"
           mstest
+
+      - name: Consumer analyzer smoke test (bundled)
+        run: >
+          bash eng/ci/run-assertions-analyzer-smoke.sh
+          "$GITHUB_WORKSPACE/artifacts/packages"
+          "${{ steps.version.outputs.version }}"
 
       - name: Upload package artefacts
         uses: actions/upload-artifact@v7
