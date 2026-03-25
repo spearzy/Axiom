@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project follows [Semantic Versioning](https://semver.org/).
 
+## [0.7.1] - 2026-03-25
+
+### Added
+
+- Publish `Axiom.Analyzers` as a standalone NuGet package on tagged releases.
+
+### Changed
+
+- Updated release automation and smoke coverage so both:
+  - bundled analyzers through `Axiom.Assertions`
+  - standalone `Axiom.Analyzers`
+  are validated and published consistently.
+- Clarified docs so `Axiom.Assertions` remains the default package and `Axiom.Analyzers` is documented as an optional standalone package.
+
 ## [0.7.0] - 2026-03-25
 
 ### Added
