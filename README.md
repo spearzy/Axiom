@@ -15,9 +15,11 @@
 
 `Axiom.Analyzers`  
 [![Version](https://img.shields.io/nuget/v/Axiom.Analyzers?label=version)](https://www.nuget.org/packages/Axiom.Analyzers)
+[![Downloads](https://img.shields.io/nuget/dt/Axiom.Analyzers?label=downloads)](https://www.nuget.org/packages/Axiom.Analyzers)
 
 `Axiom.Vectors`  
 [![Version](https://img.shields.io/nuget/v/Axiom.Vectors?label=version)](https://www.nuget.org/packages/Axiom.Vectors)
+[![Downloads](https://img.shields.io/nuget/dt/Axiom.Vectors?label=downloads)](https://www.nuget.org/packages/Axiom.Vectors)
 
 Axiom is a fluent assertion library for modern .NET tests. It is designed around deterministic failure output, explicit batch aggregation, low pass-path overhead, and configurable equivalency.
 

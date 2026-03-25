@@ -4,6 +4,27 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project follows [Semantic Versioning](https://semver.org/).
 
+## [0.8.0] - 2026-03-25
+
+### Added
+
+- First `Axiom.Vectors` package release for vector and embedding-style assertions, including:
+  - `HaveDimension(...)`
+  - `NotContainNaNOrInfinity()`
+  - `BeApproximatelyEqualTo(...)`
+  - `HaveCosineSimilarityTo(...).AtLeast(...)`
+  - `BeNormalized(...)`
+- Vector `Should()` entry points for:
+  - `float[]`
+  - `double[]`
+  - `ReadOnlyMemory<float>`
+  - `ReadOnlyMemory<double>`
+
+### Changed
+
+- Updated release automation and package smoke coverage so `Axiom.Vectors` is packed, validated, and published alongside the other Axiom packages.
+- Expanded release-facing docs and the assertion reference to treat `Axiom.Vectors` as a shipped optional package rather than a planned addition.
+
 ## [0.7.1] - 2026-03-25
 
 ### Added
