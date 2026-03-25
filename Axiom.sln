@@ -19,6 +19,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Axiom.Analyzers.CodeFixes",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Axiom.Analyzers.Tests", "tests\Axiom.Analyzers.Tests\Axiom.Analyzers.Tests.csproj", "{F6766FC8-5E4E-4E34-B0FF-207CD1FFF741}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Axiom.Vectors", "src\Axiom.Vectors\Axiom.Vectors.csproj", "{3C4E87C0-B51A-4A08-8B06-BF1A15E1E3B2}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -101,6 +103,18 @@ Global
 		{F6766FC8-5E4E-4E34-B0FF-207CD1FFF741}.Release|x64.Build.0 = Release|Any CPU
 		{F6766FC8-5E4E-4E34-B0FF-207CD1FFF741}.Release|x86.ActiveCfg = Release|Any CPU
 		{F6766FC8-5E4E-4E34-B0FF-207CD1FFF741}.Release|x86.Build.0 = Release|Any CPU
+		{3C4E87C0-B51A-4A08-8B06-BF1A15E1E3B2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3C4E87C0-B51A-4A08-8B06-BF1A15E1E3B2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3C4E87C0-B51A-4A08-8B06-BF1A15E1E3B2}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{3C4E87C0-B51A-4A08-8B06-BF1A15E1E3B2}.Debug|x64.Build.0 = Debug|Any CPU
+		{3C4E87C0-B51A-4A08-8B06-BF1A15E1E3B2}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{3C4E87C0-B51A-4A08-8B06-BF1A15E1E3B2}.Debug|x86.Build.0 = Debug|Any CPU
+		{3C4E87C0-B51A-4A08-8B06-BF1A15E1E3B2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3C4E87C0-B51A-4A08-8B06-BF1A15E1E3B2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3C4E87C0-B51A-4A08-8B06-BF1A15E1E3B2}.Release|x64.ActiveCfg = Release|Any CPU
+		{3C4E87C0-B51A-4A08-8B06-BF1A15E1E3B2}.Release|x64.Build.0 = Release|Any CPU
+		{3C4E87C0-B51A-4A08-8B06-BF1A15E1E3B2}.Release|x86.ActiveCfg = Release|Any CPU
+		{3C4E87C0-B51A-4A08-8B06-BF1A15E1E3B2}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -112,5 +126,6 @@ Global
 		{58A67A14-1540-43A7-B396-99837FCA68AE} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 		{8CF22574-7D4D-4461-8F1A-CF25B3CCFAD9} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 		{F6766FC8-5E4E-4E34-B0FF-207CD1FFF741} = {0AB3BF05-4346-4AA6-1389-037BE0695223}
+		{3C4E87C0-B51A-4A08-8B06-BF1A15E1E3B2} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 	EndGlobalSection
 EndGlobal

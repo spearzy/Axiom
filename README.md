@@ -16,6 +16,9 @@
 `Axiom.Analyzers`  
 [![Version](https://img.shields.io/nuget/v/Axiom.Analyzers?label=version)](https://www.nuget.org/packages/Axiom.Analyzers)
 
+`Axiom.Vectors`  
+[![Version](https://img.shields.io/nuget/v/Axiom.Vectors?label=version)](https://www.nuget.org/packages/Axiom.Vectors)
+
 Axiom is a fluent assertion library for modern .NET tests. It is designed around deterministic failure output, explicit batch aggregation, low pass-path overhead, and configurable equivalency.
 
 Target frameworks: `net8.0`, `net9.0`, and `net10.0`.
@@ -34,6 +37,12 @@ If you only need the core primitives:
 
 ```bash
 dotnet add package Axiom.Core
+```
+
+If you want vector and embedding-focused assertions:
+
+```bash
+dotnet add package Axiom.Vectors
 ```
 
 If you only want the diagnostics as a standalone package:
@@ -286,6 +295,20 @@ MyWrappedStream<User> stream = GetUsers();
 
 await stream.ShouldAsyncEnumerable()
     .ContainSingleAsync(user => user.Id == 42);
+```
+
+### Vector And Embedding Assertions
+
+`Axiom.Vectors` is an optional package for vector and embedding-style test scenarios.
+
+```csharp
+using Axiom.Vectors;
+
+embedding.Should().HaveDimension(1536);
+embedding.Should().NotContainNaNOrInfinity();
+embedding.Should().BeApproximatelyEqualTo(expected, tolerance: 1e-5f);
+embedding.Should().HaveCosineSimilarityTo(expected).AtLeast(0.995f);
+embedding.Should().BeNormalized(tolerance: 1e-5f);
 ```
 
 ### Collections And Dictionaries
