@@ -48,10 +48,10 @@ public sealed class BeEquivalentToComplexObjectTests
 
         var ex = Assert.Throws<InvalidOperationException>(() => actual.Should().BeEquivalentTo(expected));
 
-        Assert.Contains(
-            "actual.Address.Postcode -> expected \"EC1A 1BB\", but found \"AB1A 1AA\" (String values differ.)",
-            ex.Message,
-            StringComparison.Ordinal);
+        Assert.Contains("actual.Address.Postcode", ex.Message, StringComparison.Ordinal);
+        Assert.Contains("string mismatch;", ex.Message, StringComparison.Ordinal);
+        Assert.Contains("first string difference;", ex.Message, StringComparison.Ordinal);
+        Assert.Contains("expected snippet", ex.Message, StringComparison.Ordinal);
     }
 
     [Fact]

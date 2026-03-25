@@ -14,7 +14,7 @@ public sealed class BeEquivalentToMemberPresenceTests
             actual.Should().BeEquivalentTo(expected, options => options.RequireStrictRuntimeTypes = false));
 
         Assert.Contains("actual.Email", ex.Message, StringComparison.Ordinal);
-        Assert.Contains("Member missing on actual type.", ex.Message, StringComparison.Ordinal);
+        Assert.Contains("member is missing on actual", ex.Message, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -43,7 +43,7 @@ public sealed class BeEquivalentToMemberPresenceTests
             actual.Should().BeEquivalentTo(expected, options => options.RequireStrictRuntimeTypes = false));
 
         Assert.Contains("actual.Email", ex.Message, StringComparison.Ordinal);
-        Assert.Contains("Member missing on expected type.", ex.Message, StringComparison.Ordinal);
+        Assert.Contains("member is present on actual but missing on expected", ex.Message, StringComparison.Ordinal);
     }
 
     [Fact]

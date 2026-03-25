@@ -82,7 +82,7 @@ public sealed class BeEquivalentToPerCallTypeComparerTests : IDisposable
                     options.StringComparison = StringComparison.Ordinal;
                 }));
 
-        Assert.Contains("String values differ.", ex.Message, StringComparison.Ordinal);
+        Assert.Contains("string mismatch;", ex.Message, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -111,7 +111,7 @@ public sealed class BeEquivalentToPerCallTypeComparerTests : IDisposable
         var ex = Assert.Throws<InvalidOperationException>(() =>
             actual.Should().BeEquivalentTo(5, options => options.UseComparerForType<int>(new AlwaysFalseIntComparer())));
 
-        Assert.Contains("Values differ.", ex.Message, StringComparison.Ordinal);
+        Assert.Contains("values differ", ex.Message, StringComparison.Ordinal);
     }
 
     private sealed class NumberWrapper

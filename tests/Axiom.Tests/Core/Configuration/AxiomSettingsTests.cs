@@ -46,7 +46,7 @@ public sealed class AxiomSettingsTests : IDisposable
         var expected = new ExpectedShape { Name = "Bob" };
 
         var ex = Assert.Throws<InvalidOperationException>(() => actual.Should().BeEquivalentTo(expected));
-        Assert.Contains("Runtime types differ", ex.Message, StringComparison.Ordinal);
+        Assert.Contains("runtime types differ", ex.Message, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -78,7 +78,7 @@ public sealed class AxiomSettingsTests : IDisposable
         Assert.Equal(TimeSpan.FromMilliseconds(900), AxiomServices.Configuration.RegexMatchTimeout);
 
         var strictEx = Assert.Throws<InvalidOperationException>(() => actual.Should().BeEquivalentTo(expected));
-        Assert.Contains("Runtime types differ", strictEx.Message, StringComparison.Ordinal);
+        Assert.Contains("runtime types differ", strictEx.Message, StringComparison.Ordinal);
     }
 
     private sealed class ActualShape

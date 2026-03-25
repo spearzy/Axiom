@@ -52,7 +52,7 @@ public sealed class BeEquivalentToTypedMemberMappingTests
 
         Assert.Contains("actual.Address.Postcode", ex.Message, StringComparison.Ordinal);
         Assert.DoesNotContain("actual.Location.ZipCode", ex.Message, StringComparison.Ordinal);
-        Assert.Contains("String values differ.", ex.Message, StringComparison.Ordinal);
+        Assert.Contains("string mismatch;", ex.Message, StringComparison.Ordinal);
     }
 
     [Fact]

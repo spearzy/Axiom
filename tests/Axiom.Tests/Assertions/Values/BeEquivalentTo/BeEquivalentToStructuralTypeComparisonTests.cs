@@ -28,7 +28,7 @@ public sealed class BeEquivalentToStructuralTypeComparisonTests
                 options => options.RequireStrictRuntimeTypes = false));
 
         Assert.Contains("actual.Name", ex.Message, StringComparison.Ordinal);
-        Assert.Contains("String values differ.", ex.Message, StringComparison.Ordinal);
+        Assert.Contains("string mismatch;", ex.Message, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -79,8 +79,8 @@ public sealed class BeEquivalentToStructuralTypeComparisonTests
                 expected,
                 options => options.RequireStrictRuntimeTypes = false));
 
-        Assert.Contains("Member missing on expected type.", ex.Message, StringComparison.Ordinal);
-        Assert.Contains("Member missing on actual type.", ex.Message, StringComparison.Ordinal);
+        Assert.Contains("member is present on actual but missing on expected", ex.Message, StringComparison.Ordinal);
+        Assert.Contains("member is missing on actual", ex.Message, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -98,7 +98,7 @@ public sealed class BeEquivalentToStructuralTypeComparisonTests
                     options.MatchMemberName(nameof(ActualPerson.Name), nameof(RenamedPerson.FirstName));
                 }));
 
-        Assert.Contains("Runtime types differ", ex.Message, StringComparison.Ordinal);
+        Assert.Contains("runtime types differ", ex.Message, StringComparison.Ordinal);
     }
 
     private sealed class ActualPerson

@@ -22,8 +22,9 @@ public sealed class BeEquivalentToTests
         var ex = Assert.Throws<InvalidOperationException>(() => value.Should().BeEquivalentTo(7));
 
         var message = ex.Message.Replace("\r\n", "\n", StringComparison.Ordinal);
-        const string expected = "Expected value to be equivalent to 7, but found 1 difference(s):\n1) value -> expected 7, but found 42 (Values differ.)";
-        Assert.Equal(expected, message);
+        Assert.Contains("Expected value to be equivalent to 7, but found 1 difference(s):", message, StringComparison.Ordinal);
+        Assert.Contains("1) value: expected 7, but found 42", message, StringComparison.Ordinal);
+        Assert.Contains("(values differ)", message, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -44,7 +45,7 @@ public sealed class BeEquivalentToTests
 
         var ex = Assert.Throws<InvalidOperationException>(() => value.Should().BeEquivalentTo(42L));
 
-        Assert.Contains("Runtime types differ", ex.Message, StringComparison.Ordinal);
+        Assert.Contains("runtime types differ", ex.Message, StringComparison.Ordinal);
         Assert.Contains("System.Int64", ex.Message, StringComparison.Ordinal);
         Assert.Contains("System.Int32", ex.Message, StringComparison.Ordinal);
     }

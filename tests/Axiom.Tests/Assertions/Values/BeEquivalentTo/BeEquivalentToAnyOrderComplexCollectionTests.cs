@@ -64,7 +64,7 @@ public sealed class BeEquivalentToAnyOrderComplexCollectionTests
             actual.Should().BeEquivalentTo(expected, options => options.CollectionOrder = EquivalencyCollectionOrder.Any));
 
         Assert.Contains("actual[1]", ex.Message, StringComparison.Ordinal);
-        Assert.Contains("Expected item was not found in actual collection.", ex.Message, StringComparison.Ordinal);
+        Assert.Contains("expected collection item was not found in actual collection", ex.Message, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -84,7 +84,7 @@ public sealed class BeEquivalentToAnyOrderComplexCollectionTests
             actual.Should().BeEquivalentTo(expected, options => options.CollectionOrder = EquivalencyCollectionOrder.Any));
 
         Assert.Contains("actual[1]", ex.Message, StringComparison.Ordinal);
-        Assert.Contains("Actual collection contains an extra item.", ex.Message, StringComparison.Ordinal);
+        Assert.Contains("actual collection contains an extra item", ex.Message, StringComparison.Ordinal);
     }
 
     private sealed class LineItem

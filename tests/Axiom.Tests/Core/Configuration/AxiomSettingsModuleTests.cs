@@ -108,7 +108,7 @@ public sealed class AxiomSettingsModuleTests : IDisposable
 
         var ex = Assert.Throws<InvalidOperationException>(() => actual.Should().BeEquivalentTo(expected));
 
-        Assert.Contains("Runtime types differ", ex.Message, StringComparison.Ordinal);
+        Assert.Contains("runtime types differ", ex.Message, StringComparison.Ordinal);
     }
 
     private sealed class ApiTestSettingsModule : IAxiomSettingsModule
