@@ -255,6 +255,12 @@ loadedUser.WhoseResult.Email.Should().Contain("@");
 
 Func<ValueTask<int>> loadCount = () => ValueTask.FromResult(3);
 await loadCount.Should().NotThrowAsync();
+
+IAsyncEnumerable<Order> orders = orderRepository.StreamRecentAsync();
+await orders.Should().NotBeEmptyAsync();
+
+var priorityOrder = await orders.Should().ContainSingleAsync(order => order.IsPriority);
+priorityOrder.SingleItem.Total.Should().BeGreaterThan(0m);
 ```
 
 Async exception and completion assertions are supported on:
@@ -269,6 +275,17 @@ Async exception and completion assertions are supported on:
 - `ValueTask<T>`
 
 Direct task subjects also support outcome assertions such as `Succeed()`, `SucceedWithin(...)`, `BeCanceled()`, and `BeFaultedWith<TException>()`.
+
+Axiom also supports `IAsyncEnumerable<T>` directly, so you can assert async streams without materializing them into a list first.
+
+If you have a concrete wrapper type that implements `IAsyncEnumerable<T>` and `.Should()` binds to the generic value assertion entry point, use `.ShouldAsyncEnumerable()` to force async-stream assertions:
+
+```csharp
+MyWrappedStream<User> stream = GetUsers();
+
+await stream.ShouldAsyncEnumerable()
+    .ContainSingleAsync(user => user.Id == 42);
+```
 
 ### Collections And Dictionaries
 
@@ -375,7 +392,7 @@ This README focuses on common workflows rather than listing every method in the 
 - Values: equality, nullability, type/reference checks, numeric comparisons, ranges, predicates, approximate numeric checks, equivalency
 - Strings: exact equality, null/empty/whitespace checks, prefix/suffix/contain, regex, case-aware comparisons
 - Exceptions and async: throw, exact throw, message/parameter/inner-exception checks, delegate-based async assertions, async function result assertions, direct task completion and outcome assertions
-- Collections and dictionaries: containment, sequence checks, ordering, uniqueness, count/empty checks, single-item extraction, key/value extraction
+- Collections and dictionaries: containment, sequence checks, ordering, uniqueness, count/empty checks, single-item extraction, key/value extraction, direct `IAsyncEnumerable<T>` assertions
 - Temporal values: before, after, and within-tolerance checks
 - Custom assertions: supported authoring on top of `ValueAssertions<T>` via `AssertionContext.Create(...)`
 
@@ -394,7 +411,7 @@ High-level categories:
 - Values: `Be`, `NotBe`, `BeOneOf`, nullability, type/reference checks, ranges, predicates, numeric approximation, structural equivalency
 - Strings: exact equality, null/empty/whitespace checks, `StartWith`, `EndWith`, `Contain`, regex, comparison-aware matching
 - Exceptions and async: `Throw`, `ThrowExactly`, `WithMessage`, `WithParamName`, `WithInnerException`, `CompleteWithin`, `NotCompleteWithin`
-- Collections: containment, exact sequence, count and emptiness, subset and superset checks, uniqueness, `ContainSingle`, `OnlyContain`, `AllSatisfy`, `SatisfyRespectively`, ordering
+- Collections: containment, exact sequence, count and emptiness, subset and superset checks, uniqueness, `ContainSingle`, `OnlyContain`, `AllSatisfy`, `SatisfyRespectively`, ordering, direct async-stream assertions such as `ContainAsync` and `ContainSingleAsync`
 - Dictionaries: `ContainKey`, `ContainValue`, `ContainEntry`, plus value extraction through `WhoseValue`
 - Temporal: `BeBefore`, `BeAfter`, and `BeWithin`
 

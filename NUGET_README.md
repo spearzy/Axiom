@@ -142,7 +142,13 @@ continuation.WhoseResult.Should().Be("pricing-api");
 Func<Task<User>> loadUser = () => userClient.LoadAsync("ada");
 var loadedUser = await loadUser.Should().SucceedWithin(TimeSpan.FromMilliseconds(250));
 loadedUser.WhoseResult.Email.Should().Contain("@");
+
+IAsyncEnumerable<Order> orders = orderRepository.StreamRecentAsync();
+var priorityOrder = await orders.Should().ContainSingleAsync(order => order.IsPriority);
+priorityOrder.SingleItem.Total.Should().BeGreaterThan(0m);
 ```
+
+If a concrete wrapper type implements `IAsyncEnumerable<T>` and `.Should()` binds to generic value assertions, use `.ShouldAsyncEnumerable()` to force the async-stream assertion surface.
 
 ### Custom Assertions
 
@@ -188,7 +194,7 @@ Axiom currently includes:
 - value assertions: equality, nullability, type/reference checks, numeric comparisons, ranges, predicates, approximate numeric checks, equivalency
 - string assertions: exact equality, null/empty/whitespace checks, prefix/suffix/contain, regex, comparison-aware matching
 - exceptions and async: throw, exact throw, message/parameter/inner-exception checks, delegate-based async assertions, async function result assertions, direct task completion and outcome assertions
-- collections and dictionaries: containment, exact sequence, count/empty checks, ordering, uniqueness, single-item extraction, key/value extraction
+- collections and dictionaries: containment, exact sequence, count/empty checks, ordering, uniqueness, single-item extraction, key/value extraction, direct `IAsyncEnumerable<T>` assertions
 - temporal assertions: before, after, and within-tolerance checks
 - custom assertion authoring: `AssertionContext.Create(...)` for domain assertions on `ValueAssertions<T>`
 
