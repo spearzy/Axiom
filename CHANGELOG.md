@@ -4,6 +4,31 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project follows [Semantic Versioning](https://semver.org/).
 
+## [0.7.0] - 2026-03-25
+
+### Added
+
+- Initial `Axiom.Analyzers` rule set with:
+  - `AXM0001` for ignored async Axiom assertion results
+  - `AXM0002` for `Batch` instances created without being disposed
+- Direct `IAsyncEnumerable<T>` assertions via `AsyncEnumerableAssertions<T>`, including:
+  - `BeEmptyAsync()`
+  - `NotBeEmptyAsync()`
+  - `HaveCountAsync(...)`
+  - `ContainAsync(...)`
+  - `OnlyContainAsync(...)`
+  - `ContainSingleAsync(...)`
+- `ShouldAsyncEnumerable()` as an explicit async-stream entry point for concrete wrapper types that would otherwise bind to generic value assertions.
+
+### Changed
+
+- Improved equivalency diagnostics with:
+  - clearer missing-member vs extra-member reporting
+  - typed mapping path context on failures
+  - richer string mismatch detail inside equivalency failures
+  - explicit omitted-difference summaries when `MaxDifferences` truncates output
+- Bundled the Axiom analyzers/code fixes into `Axiom.Assertions` so the default consumer package lights up diagnostics automatically.
+
 ## [0.6.0] - 2026-03-23
 
 ### Added
