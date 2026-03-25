@@ -201,6 +201,7 @@ Current equivalency configuration supports:
 - per-path, per-member, and per-type comparers
 - missing and extra member controls
 - numeric and temporal tolerances
+- diagnostics that distinguish missing vs extra members and show mapped expected-side paths on failures
 - global defaults via `EquivalencyDefaults.Configure(...)`
 
 For cross-type renames, prefer the typed mapping API:
