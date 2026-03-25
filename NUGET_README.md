@@ -26,6 +26,12 @@ Install `Axiom.Core` directly only when you want low-level primitives such as `B
 dotnet add package Axiom.Core
 ```
 
+Install `Axiom.Vectors` when you want vector and embedding-focused assertions on top of the main Axiom assertion library:
+
+```bash
+dotnet add package Axiom.Vectors
+```
+
 ## Why Axiom
 
 - Deterministic failure messages that stay stable in CI and code review.
@@ -196,6 +202,7 @@ Axiom currently includes:
 - exceptions and async: throw, exact throw, message/parameter/inner-exception checks, delegate-based async assertions, async function result assertions, direct task completion and outcome assertions
 - collections and dictionaries: containment, exact sequence, count/empty checks, ordering, uniqueness, single-item extraction, key/value extraction, direct `IAsyncEnumerable<T>` assertions
 - temporal assertions: before, after, and within-tolerance checks
+- vector assertions: dimension checks, NaN/infinity validation, approximate equality, cosine similarity thresholds, normalization
 - custom assertion authoring: `AssertionContext.Create(...)` for domain assertions on `ValueAssertions<T>`
 
 ## Documentation
@@ -206,3 +213,4 @@ Axiom currently includes:
 - [Custom assertions guide](https://github.com/spearzy/Axiom/blob/main/docs/custom-assertions.md)
 - [Equivalency guide](https://github.com/spearzy/Axiom/blob/main/docs/equivalency.md)
 - [Analyzer guide](https://github.com/spearzy/Axiom/blob/main/docs/analyzers.md)
+- [Vectors guide](https://github.com/spearzy/Axiom/blob/main/docs/vectors.md)
