@@ -40,16 +40,7 @@ cat > "$nuget_config" <<EOF
   <packageSources>
     <clear />
     <add key="local" value="$package_source" />
-    <add key="nuget.org" value="https://api.nuget.org/v3/index.json" />
   </packageSources>
-  <packageSourceMapping>
-    <packageSource key="local">
-      <package pattern="Axiom.*" />
-    </packageSource>
-    <packageSource key="nuget.org">
-      <package pattern="*" />
-    </packageSource>
-  </packageSourceMapping>
 </configuration>
 EOF
 

@@ -2,7 +2,7 @@
   <PropertyGroup>
     <PackageId>Axiom.Analyzers</PackageId>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <Description>Roslyn analyzers for common Axiom assertion mistakes.</Description>
+    <Description>Roslyn analyzers and code fixes for common Axiom assertion mistakes.</Description>
     <IncludeBuildOutput>false</IncludeBuildOutput>
     <NoPackageAnalysis>true</NoPackageAnalysis>
     <IsRoslynComponent>true</IsRoslynComponent>
@@ -10,6 +10,7 @@
     <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
     <NoWarn>$(NoWarn);RS2007;RS2008</NoWarn>
     <IncludeSymbols>false</IncludeSymbols>
+    <PackageTags>analyzers;roslyn;testing;dotnet;assertions</PackageTags>
   </PropertyGroup>
 
   <ItemGroup>

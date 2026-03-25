@@ -110,6 +110,9 @@ jobs:
       - name: Consumer analyzer smoke test
         run: bash eng/ci/run-assertions-analyzer-smoke.sh "$GITHUB_WORKSPACE/artifacts/packages"
 
+      - name: Standalone analyzer smoke test
+        run: bash eng/ci/run-analyzers-package-smoke.sh "$GITHUB_WORKSPACE/artifacts/packages"
+
       - name: Consumer smoke test (NUnit)
         run: bash eng/ci/run-consumer-smoke.sh "$GITHUB_WORKSPACE/artifacts/packages" nunit
 
