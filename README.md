@@ -279,6 +279,8 @@ priorityOrder.SingleItem.Total.Should().BeGreaterThan(0m);
 await orders.Should().SatisfyRespectivelyAsync(
     first => first.Total.Should().Be(10m),
     second => second.Total.Should().Be(20m));
+
+await orders.Should().HaveUniqueItemsByAsync(order => order.Id);
 ```
 
 Async exception and completion assertions are supported on:

@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using Axiom.Assertions.AssertionTypes;
 using Axiom.Assertions.Chaining;
@@ -162,12 +163,25 @@ public static class CollectionValueAssertionExtensions
     {
         ArgumentNullException.ThrowIfNull(assertions);
 
-        CollectionAssertionEngine.AssertHaveUniqueItems(
-            assertions.Subject,
-            assertions.SubjectExpression,
-            because,
-            callerFilePath,
-            callerLineNumber);
+        var dispatcher = HaveUniqueItemsGenericDispatcherCache<TCollection>.Dispatcher;
+        if (dispatcher is not null)
+        {
+            dispatcher(
+                assertions.Subject,
+                assertions.SubjectExpression,
+                because,
+                callerFilePath,
+                callerLineNumber);
+        }
+        else
+        {
+            CollectionAssertionEngine.AssertHaveUniqueItems(
+                assertions.Subject,
+                assertions.SubjectExpression,
+                because,
+                callerFilePath,
+                callerLineNumber);
+        }
 
         return new AndContinuation<ValueAssertions<TCollection>>(assertions);
     }
@@ -1134,5 +1148,65 @@ public static class CollectionValueAssertionExtensions
             callerLineNumber);
 
         return new AndContinuation<ValueAssertions<TCollection>>(assertions);
+    }
+
+    private static void AssertHaveUniqueItemsGeneric<TCollection, TItem>(
+        TCollection subject,
+        string? subjectExpression,
+        string? because,
+        string? callerFilePath,
+        int callerLineNumber)
+        where TCollection : IEnumerable<TItem>
+    {
+        CollectionAssertionEngine.AssertHaveUniqueItems<TItem>(
+            subject,
+            subjectExpression,
+            because,
+            callerFilePath,
+            callerLineNumber);
+    }
+
+    private static Type? FindEnumerableItemType(Type type)
+    {
+        if (type.IsArray)
+        {
+            return type.GetElementType();
+        }
+
+        if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(IEnumerable<>))
+        {
+            return type.GetGenericArguments()[0];
+        }
+
+        foreach (var interfaceType in type.GetInterfaces())
+        {
+            if (interfaceType.IsGenericType && interfaceType.GetGenericTypeDefinition() == typeof(IEnumerable<>))
+            {
+                return interfaceType.GetGenericArguments()[0];
+            }
+        }
+
+        return null;
+    }
+
+    private static class HaveUniqueItemsGenericDispatcherCache<TCollection>
+    {
+        public static readonly Action<TCollection, string?, string?, string?, int>? Dispatcher = BuildDispatcher();
+
+        private static Action<TCollection, string?, string?, string?, int>? BuildDispatcher()
+        {
+            var itemType = FindEnumerableItemType(typeof(TCollection));
+            if (itemType is null)
+            {
+                return null;
+            }
+
+            var method = typeof(CollectionValueAssertionExtensions)
+                .GetMethod(nameof(AssertHaveUniqueItemsGeneric), BindingFlags.NonPublic | BindingFlags.Static)!
+                .MakeGenericMethod(typeof(TCollection), itemType);
+
+            return (Action<TCollection, string?, string?, string?, int>)method.CreateDelegate(
+                typeof(Action<TCollection, string?, string?, string?, int>));
+        }
     }
 }

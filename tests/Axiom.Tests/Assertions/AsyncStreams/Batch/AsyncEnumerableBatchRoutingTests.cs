@@ -51,6 +51,31 @@ public sealed class AsyncEnumerableBatchRoutingTests
         Assert.Contains("async stream had fewer items than assertions (expected 3, found 2)", disposeEx.Message);
     }
 
+    [Fact]
+    public async Task HaveUniqueItemsAsync_OutsideBatch_ThrowsImmediately()
+    {
+        var values = CreateAsyncSequence(1, 2, 2, 3);
+
+        await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+            await values.Should().HaveUniqueItemsAsync());
+    }
+
+    [Fact]
+    public async Task HaveUniqueItemsAsync_InsideBatch_DoesNotThrowAtAssertionCallSite()
+    {
+        var values = CreateAsyncSequence(1, 2, 2, 3);
+
+        using var batch = new Axiom.Core.Batch();
+        var callEx = await Record.ExceptionAsync(async () =>
+            await values.Should().HaveUniqueItemsAsync());
+
+        Assert.Null(callEx);
+
+        var disposeEx = Assert.Throws<InvalidOperationException>(() => batch.Dispose());
+        Assert.Contains("Expected values to have unique items", disposeEx.Message);
+        Assert.Contains("first duplicate item at index 2: 2", disposeEx.Message);
+    }
+
     private static async IAsyncEnumerable<T> CreateAsyncSequence<T>(params T[] items)
     {
         foreach (var item in items)

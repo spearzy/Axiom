@@ -247,6 +247,49 @@ internal static class CollectionAssertionEngine
         }
     }
 
+    public static void AssertHaveUniqueItems<T>(
+        IEnumerable<T>? subject,
+        string? subjectExpression,
+        string? because,
+        string? callerFilePath,
+        int callerLineNumber)
+    {
+        var subjectLabel = SubjectLabel(subjectExpression);
+        if (subject is null)
+        {
+            var nullFailure = new Failure(
+                subjectLabel,
+                new Expectation("to have unique items", IncludeExpectedValue: false),
+                subject,
+                because);
+            AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(nullFailure), callerFilePath, callerLineNumber);
+            return;
+        }
+
+        var comparer = GetComparer<T>();
+        _ = subject.TryGetNonEnumeratedCount(out var initialCapacity);
+        var seen = initialCapacity > 0
+            ? new HashSet<T>(initialCapacity, comparer)
+            : new HashSet<T>(comparer);
+        var index = 0;
+        foreach (var item in subject)
+        {
+            if (seen.Add(item))
+            {
+                index++;
+                continue;
+            }
+
+            var duplicateItemFailure = new Failure(
+                subjectLabel,
+                new Expectation("to have unique items", IncludeExpectedValue: false),
+                new RenderedText($"first duplicate item at index {index}: {FormatSingleValue(item)}"),
+                because);
+            AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(duplicateItemFailure), callerFilePath, callerLineNumber);
+            return;
+        }
+    }
+
     public static void AssertHaveUniqueItemsBy<TItem, TKey>(
         IEnumerable<TItem>? subject,
         string? subjectExpression,

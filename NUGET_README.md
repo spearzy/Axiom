@@ -164,6 +164,8 @@ priorityOrder.SingleItem.Total.Should().BeGreaterThan(0m);
 await orders.Should().SatisfyRespectivelyAsync(
     first => first.Total.Should().Be(10m),
     second => second.Total.Should().Be(20m));
+
+await orders.Should().HaveUniqueItemsByAsync(order => order.Id);
 ```
 
 If a concrete wrapper type implements `IAsyncEnumerable<T>` and `.Should()` binds to generic value assertions, use `.ShouldAsyncEnumerable()` to force the async-stream assertion surface.
