@@ -225,6 +225,9 @@ OnlyContainAsync(predicate)
 ContainSingleAsync()
 ContainSingleAsync(predicate)
 SatisfyRespectivelyAsync(assertionsForItems)
+HaveUniqueItemsAsync()
+HaveUniqueItemsByAsync(keySelector)
+HaveUniqueItemsByAsync(keySelector, comparer)
 ```
 
 `ContainSingleAsync()` and `ContainSingleAsync(predicate)` return:
@@ -242,6 +245,14 @@ Use them when you want to assert an async stream directly instead of materializi
 await orders.Should().SatisfyRespectivelyAsync(
     first => first.Total.Should().Be(10m),
     second => second.Total.Should().Be(20m));
+```
+
+`HaveUniqueItemsAsync()` and `HaveUniqueItemsByAsync(...)` let you assert direct async-stream uniqueness without materializing the sequence first.
+
+```csharp
+await users.Should().HaveUniqueItemsAsync();
+await users.Should().HaveUniqueItemsByAsync(user => user.Id);
+await users.Should().HaveUniqueItemsByAsync(user => user.Email, StringComparer.OrdinalIgnoreCase);
 ```
 
 ## Vector Assertions
