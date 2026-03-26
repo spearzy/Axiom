@@ -34,4 +34,40 @@ public sealed class VectorBatchRoutingTests
         Assert.Contains("Expected actual to be approximately equal to expected within tolerance 0.001", message);
         Assert.Contains("Expected actual to have dimension 3", message);
     }
+
+    [Fact]
+    public void CosineSimilarityThresholdAssertion_InsideBatch_DoesNotThrowAtAssertionCallSite()
+    {
+        float[] embedding = [1f, 0f];
+        float[] expected = [1f, 0f];
+
+        using var batch = new Axiom.Core.Batch();
+        var callEx = Record.Exception(() =>
+            embedding.Should().HaveCosineSimilarityWith(expected).AtMost(0.2f));
+
+        Assert.Null(callEx);
+
+        var disposeEx = Assert.Throws<InvalidOperationException>(() => batch.Dispose());
+        Assert.Contains("Expected embedding to have cosine similarity with expected at most 0.2", disposeEx.Message);
+        Assert.Contains("computed cosine similarity 1", disposeEx.Message);
+    }
+
+    [Fact]
+    public void CosineSimilarityUnavailableAssertion_InsideBatch_DoesNotThrowAtAssertionCallSite()
+    {
+        float[] embedding = [0f, 0f];
+        float[] expected = [0f, 0f];
+
+        using var batch = new Axiom.Core.Batch();
+        var callEx = Record.Exception(() =>
+            embedding.Should().HaveCosineSimilarityWith(expected).Between(-0.1f, 0.1f));
+
+        Assert.Null(callEx);
+
+        var disposeEx = Assert.Throws<InvalidOperationException>(() => batch.Dispose());
+        Assert.Contains(
+            "Expected embedding to have cosine similarity with expected between -0.1 and 0.1 inclusive",
+            disposeEx.Message);
+        Assert.Contains("actual and expected vectors both have zero magnitude", disposeEx.Message);
+    }
 }

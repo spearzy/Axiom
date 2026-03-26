@@ -172,13 +172,22 @@ public sealed class VectorAssertions<TNumeric>
         return new AndContinuation<VectorAssertions<TNumeric>>(this);
     }
 
-    public CosineSimilarityAssertions<TNumeric> HaveCosineSimilarityTo(TNumeric[] expected)
+    public CosineSimilarityAssertions<TNumeric> HaveCosineSimilarityWith(TNumeric[] expected)
     {
         ArgumentNullException.ThrowIfNull(expected);
-        return HaveCosineSimilarityTo((ReadOnlyMemory<TNumeric>)expected);
+        return HaveCosineSimilarityWith((ReadOnlyMemory<TNumeric>)expected);
     }
 
+    public CosineSimilarityAssertions<TNumeric> HaveCosineSimilarityWith(ReadOnlyMemory<TNumeric> expected)
+        => CreateCosineSimilarityAssertions(expected);
+
+    public CosineSimilarityAssertions<TNumeric> HaveCosineSimilarityTo(TNumeric[] expected)
+        => HaveCosineSimilarityWith(expected);
+
     public CosineSimilarityAssertions<TNumeric> HaveCosineSimilarityTo(ReadOnlyMemory<TNumeric> expected)
+        => HaveCosineSimilarityWith(expected);
+
+    private CosineSimilarityAssertions<TNumeric> CreateCosineSimilarityAssertions(ReadOnlyMemory<TNumeric> expected)
     {
         if (!_hasSubject)
         {
@@ -305,7 +314,7 @@ public sealed class VectorAssertions<TNumeric>
     internal string BuildCosineSimilarityUnavailableMessage(string? unavailableActualDetail)
         => BuildFailureMessage(
             SubjectLabel,
-            "to have cosine similarity to expected",
+            "to have cosine similarity with expected",
             unavailableActualDetail ?? "cosine similarity could not be computed",
             because: null);
 
@@ -317,6 +326,24 @@ public sealed class VectorAssertions<TNumeric>
         if (!TNumeric.IsFinite(threshold) || threshold < -TNumeric.One || threshold > TNumeric.One)
         {
             throw new ArgumentOutOfRangeException(nameof(threshold), "threshold must be a finite value between -1 and 1.");
+        }
+    }
+
+    internal static void ValidateSimilarityRange(TNumeric minimumThreshold, TNumeric maximumThreshold)
+    {
+        if (!TNumeric.IsFinite(minimumThreshold) || minimumThreshold < -TNumeric.One || minimumThreshold > TNumeric.One)
+        {
+            throw new ArgumentOutOfRangeException(nameof(minimumThreshold), "minimumThreshold must be a finite value between -1 and 1.");
+        }
+
+        if (!TNumeric.IsFinite(maximumThreshold) || maximumThreshold < -TNumeric.One || maximumThreshold > TNumeric.One)
+        {
+            throw new ArgumentOutOfRangeException(nameof(maximumThreshold), "maximumThreshold must be a finite value between -1 and 1.");
+        }
+
+        if (minimumThreshold > maximumThreshold)
+        {
+            throw new ArgumentException("minimumThreshold must be less than or equal to maximumThreshold.", nameof(minimumThreshold));
         }
     }
 

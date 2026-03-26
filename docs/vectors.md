@@ -16,7 +16,9 @@ using Axiom.Vectors;
 embedding.Should().HaveDimension(1536);
 embedding.Should().NotContainNaNOrInfinity();
 embedding.Should().BeApproximatelyEqualTo(expected, tolerance: 1e-5f);
-embedding.Should().HaveCosineSimilarityTo(expected).AtLeast(0.995f);
+embedding.Should().HaveCosineSimilarityWith(expected).AtLeast(0.995f).And.BeNormalized();
+embedding.Should().HaveCosineSimilarityWith(unrelated).AtMost(0.2f);
+embedding.Should().HaveCosineSimilarityWith(expected).Between(0.98f, 0.999f);
 embedding.Should().BeNormalized(tolerance: 1e-5f);
 ```
 
@@ -62,13 +64,15 @@ Approximate equality fails on the first value outside tolerance and reports:
 ## Cosine Similarity
 
 ```csharp
-embedding.Should().HaveCosineSimilarityTo(expected).AtLeast(0.995f);
+embedding.Should().HaveCosineSimilarityWith(expected).AtLeast(0.995f);
+embedding.Should().HaveCosineSimilarityWith(unrelated).AtMost(0.2f);
+embedding.Should().HaveCosineSimilarityWith(expected).Between(0.98f, 0.999f).And.BeNormalized();
 ```
 
-`HaveCosineSimilarityTo(...)` computes the similarity once and exposes it through `ActualSimilarity` if you want to inspect it directly:
+`HaveCosineSimilarityWith(...)` computes the similarity once and exposes it through `ActualSimilarity` if you want to inspect it directly:
 
 ```csharp
-var similarity = embedding.Should().HaveCosineSimilarityTo(expected).ActualSimilarity;
+var similarity = embedding.Should().HaveCosineSimilarityWith(expected).ActualSimilarity;
 ```
 
 Zero vectors are handled explicitly and produce deterministic failures instead of ambiguous `NaN` output.
@@ -77,6 +81,10 @@ The returned continuation exposes:
 
 - `ActualSimilarity`
 - `AtLeast(threshold)`
+- `AtMost(threshold)`
+- `Between(minimumThreshold, maximumThreshold)`
+
+`HaveCosineSimilarityTo(...)` is still available as a compatibility alias, but `HaveCosineSimilarityWith(...)` is the preferred form for new code.
 
 ## Normalization
 

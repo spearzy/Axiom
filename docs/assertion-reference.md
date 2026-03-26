@@ -256,17 +256,22 @@ Entry points live in `Axiom.Vectors.ShouldExtensions` and currently support:
 HaveDimension(expectedDimension)
 NotContainNaNOrInfinity()
 BeApproximatelyEqualTo(expected, tolerance)
+HaveCosineSimilarityWith(expected)
 HaveCosineSimilarityTo(expected)
 BeNormalized()
 BeNormalized(tolerance)
 ```
 
-`HaveCosineSimilarityTo(expected)` returns `CosineSimilarityAssertions<TNumeric>`, which exposes:
+`HaveCosineSimilarityWith(expected)` returns `CosineSimilarityAssertions<TNumeric>`, which exposes:
 
 ```csharp
 ActualSimilarity
 AtLeast(threshold)
+AtMost(threshold)
+Between(minimumThreshold, maximumThreshold)
 ```
+
+`HaveCosineSimilarityTo(expected)` is retained as a compatibility alias, but `HaveCosineSimilarityWith(expected)` is the preferred form for new code.
 
 Typical usage:
 
@@ -276,7 +281,9 @@ using Axiom.Vectors;
 embedding.Should().HaveDimension(1536);
 embedding.Should().NotContainNaNOrInfinity();
 embedding.Should().BeApproximatelyEqualTo(expected, tolerance: 1e-5f);
-embedding.Should().HaveCosineSimilarityTo(expected).AtLeast(0.995f);
+embedding.Should().HaveCosineSimilarityWith(expected).AtLeast(0.995f).And.BeNormalized();
+embedding.Should().HaveCosineSimilarityWith(unrelated).AtMost(0.2f);
+embedding.Should().HaveCosineSimilarityWith(expected).Between(0.98f, 0.999f);
 embedding.Should().BeNormalized(tolerance: 1e-5f);
 ```
 

@@ -92,7 +92,7 @@ actual.Should().BeEquivalentTo(expected, options =>
 using Axiom.Vectors;
 
 embedding.Should().HaveDimension(1536);
-embedding.Should().HaveCosineSimilarityTo(expected).AtLeast(0.995f);
+embedding.Should().HaveCosineSimilarityWith(expected).AtLeast(0.995f);
 ```
 
 ## Next Steps
