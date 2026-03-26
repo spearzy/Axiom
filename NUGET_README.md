@@ -4,6 +4,8 @@ Axiom is a fluent assertion library for modern .NET tests. It is designed around
 
 Target frameworks: `net8.0`, `net9.0`, and `net10.0`.
 
+Documentation: [spearzy.github.io/Axiom](https://spearzy.github.io/Axiom/)
+
 ## Install
 
 Most test projects should install `Axiom.Assertions`:
@@ -209,10 +211,11 @@ Axiom currently includes:
 
 ## Documentation
 
+- [Docs site](https://spearzy.github.io/Axiom/)
 - [GitHub repository](https://github.com/spearzy/Axiom)
-- [Main README](https://github.com/spearzy/Axiom/blob/main/README.md)
-- [Assertion reference](https://github.com/spearzy/Axiom/blob/main/docs/assertion-reference.md)
-- [Custom assertions guide](https://github.com/spearzy/Axiom/blob/main/docs/custom-assertions.md)
-- [Equivalency guide](https://github.com/spearzy/Axiom/blob/main/docs/equivalency.md)
-- [Analyzer guide](https://github.com/spearzy/Axiom/blob/main/docs/analyzers.md)
-- [Vectors guide](https://github.com/spearzy/Axiom/blob/main/docs/vectors.md)
+- [Getting Started](https://spearzy.github.io/Axiom/getting-started/)
+- [Assertion reference](https://spearzy.github.io/Axiom/assertion-reference/)
+- [Custom assertions guide](https://spearzy.github.io/Axiom/custom-assertions/)
+- [Equivalency guide](https://spearzy.github.io/Axiom/equivalency/)
+- [Analyzer guide](https://spearzy.github.io/Axiom/analyzers/)
+- [Vectors guide](https://spearzy.github.io/Axiom/vectors/)
