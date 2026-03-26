@@ -25,6 +25,8 @@ Axiom is a fluent assertion library for modern .NET tests. It is designed around
 
 Target frameworks: `net8.0`, `net9.0`, and `net10.0`.
 
+Documentation: [spearzy.github.io/Axiom](https://spearzy.github.io/Axiom/)
+
 ## Packages
 
 Most test projects should reference `Axiom.Assertions`. It contains the fluent `Should()` API, pulls in `Axiom.Core` automatically, and bundles the Axiom analyzers/code fixes so editor and build diagnostics light up without extra package setup. The bundled rules currently cover ignored async Axiom assertions and `Batch` instances that are created without being disposed.
@@ -235,7 +237,7 @@ Equality precedence inside `BeEquivalentTo(...)` is:
 5. global comparer provider
 6. default equality
 
-For the full configuration guide, precedence rules, and practical recipes, see [docs/equivalency.md](docs/equivalency.md).
+For the full configuration guide, precedence rules, and practical recipes, see the [Equivalency guide](https://spearzy.github.io/Axiom/equivalency/).
 
 ### Exception And Async Assertions
 
@@ -313,7 +315,7 @@ embedding.Should().HaveCosineSimilarityTo(expected).AtLeast(0.995f);
 embedding.Should().BeNormalized(tolerance: 1e-5f);
 ```
 
-For the full vectors guide, see [docs/vectors.md](docs/vectors.md).
+For the full vectors guide, see the [Vectors guide](https://spearzy.github.io/Axiom/vectors/).
 
 ### Collections And Dictionaries
 
@@ -426,13 +428,13 @@ This README focuses on common workflows rather than listing every method in the 
 
 ## Assertion Reference
 
-For the complete current method catalog, see [docs/assertion-reference.md](docs/assertion-reference.md). That page is the API-discovery layer for consumers who want to evaluate Axiom without opening the source or relying on IDE completion.
+For the complete current method catalog, see the [Assertion Reference](https://spearzy.github.io/Axiom/assertion-reference/). That page is the API-discovery layer for consumers who want to evaluate Axiom without opening the source or relying on IDE completion.
 
-For practical guidance on building domain-specific assertions, see [docs/custom-assertions.md](docs/custom-assertions.md).
+For practical guidance on building domain-specific assertions, see the [Custom Assertions guide](https://spearzy.github.io/Axiom/custom-assertions/).
 
-For deeper guidance on structural comparison, configuration precedence, and common equivalency recipes, see [docs/equivalency.md](docs/equivalency.md).
+For deeper guidance on structural comparison, configuration precedence, and common equivalency recipes, see the [Equivalency guide](https://spearzy.github.io/Axiom/equivalency/).
 
-For the current analyzer rules and examples, see [docs/analyzers.md](docs/analyzers.md).
+For the current analyzer rules and examples, see the [Analyzers guide](https://spearzy.github.io/Axiom/analyzers/).
 
 High-level categories:
 
