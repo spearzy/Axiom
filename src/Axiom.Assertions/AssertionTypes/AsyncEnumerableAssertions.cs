@@ -1,4 +1,5 @@
 using System.Runtime.CompilerServices;
+using System.Text;
 using Axiom.Assertions.Chaining;
 using Axiom.Core;
 using Axiom.Core.Configuration;
@@ -348,6 +349,140 @@ public sealed class AsyncEnumerableAssertions<T>(IAsyncEnumerable<T>? subject, s
         return new AndContinuation<AsyncEnumerableAssertions<T>>(this);
     }
 
+    public async ValueTask<AndContinuation<AsyncEnumerableAssertions<T>>> ContainInOrderAsync(
+        IEnumerable<T> expectedSequence,
+        string? because = null,
+        bool allowGaps = true,
+        [CallerFilePath] string? callerFilePath = null,
+        [CallerLineNumber] int callerLineNumber = 0)
+    {
+        ArgumentNullException.ThrowIfNull(expectedSequence);
+
+        var expectedItems = MaterialiseExpectedSequence(expectedSequence);
+        var expectationText = BuildContainInOrderExpectationText(allowGaps, usesSelectedKey: false);
+        var subject = Subject;
+        if (subject is null)
+        {
+            Fail(
+                new Failure(
+                    SubjectLabel(),
+                    new Expectation(expectationText, new RenderedText(FormatSequence(expectedItems))),
+                    subject,
+                    because),
+                callerFilePath,
+                callerLineNumber);
+            return new AndContinuation<AsyncEnumerableAssertions<T>>(this);
+        }
+
+        if (expectedItems.Length == 0)
+        {
+            return new AndContinuation<AsyncEnumerableAssertions<T>>(this);
+        }
+
+        var comparer = GetComparer<T>();
+        var expectedIndex = 0;
+        var matched = false;
+        if (allowGaps)
+        {
+            var result = await ContainsInOrderAllowingGapsAsync(subject, expectedItems, comparer, item => item)
+                .ConfigureAwait(false);
+            matched = result.Matched;
+            expectedIndex = result.ExpectedIndex;
+        }
+        else
+        {
+            matched = await ContainsInOrderWithoutGapsAsync(subject, expectedItems, comparer, item => item)
+                .ConfigureAwait(false);
+        }
+
+        if (matched)
+        {
+            return new AndContinuation<AsyncEnumerableAssertions<T>>(this);
+        }
+
+        Fail(
+            new Failure(
+                SubjectLabel(),
+                new Expectation(expectationText, new RenderedText(FormatSequence(expectedItems))),
+                allowGaps
+                    ? new RenderedText(
+                        $"missing expected item at sequence index {expectedIndex}: {FormatValue(expectedItems[expectedIndex])}")
+                    : new RenderedText("missing adjacent ordered sequence"),
+                because),
+            callerFilePath,
+            callerLineNumber);
+
+        return new AndContinuation<AsyncEnumerableAssertions<T>>(this);
+    }
+
+    public async ValueTask<AndContinuation<AsyncEnumerableAssertions<T>>> ContainInOrderAsync<TKey>(
+        IEnumerable<TKey> expectedSequence,
+        Func<T, TKey> keySelector,
+        string? because = null,
+        bool allowGaps = true,
+        [CallerFilePath] string? callerFilePath = null,
+        [CallerLineNumber] int callerLineNumber = 0)
+    {
+        ArgumentNullException.ThrowIfNull(expectedSequence);
+        ArgumentNullException.ThrowIfNull(keySelector);
+
+        var expectedItems = MaterialiseExpectedSequence(expectedSequence);
+        var expectationText = BuildContainInOrderExpectationText(allowGaps, usesSelectedKey: true);
+        var subject = Subject;
+        if (subject is null)
+        {
+            Fail(
+                new Failure(
+                    SubjectLabel(),
+                    new Expectation(expectationText, new RenderedText(FormatSequence(expectedItems))),
+                    subject,
+                    because),
+                callerFilePath,
+                callerLineNumber);
+            return new AndContinuation<AsyncEnumerableAssertions<T>>(this);
+        }
+
+        if (expectedItems.Length == 0)
+        {
+            return new AndContinuation<AsyncEnumerableAssertions<T>>(this);
+        }
+
+        var comparer = GetComparer<TKey>();
+        var expectedIndex = 0;
+        var matched = false;
+        if (allowGaps)
+        {
+            var result = await ContainsInOrderAllowingGapsAsync(subject, expectedItems, comparer, keySelector)
+                .ConfigureAwait(false);
+            matched = result.Matched;
+            expectedIndex = result.ExpectedIndex;
+        }
+        else
+        {
+            matched = await ContainsInOrderWithoutGapsAsync(subject, expectedItems, comparer, keySelector)
+                .ConfigureAwait(false);
+        }
+
+        if (matched)
+        {
+            return new AndContinuation<AsyncEnumerableAssertions<T>>(this);
+        }
+
+        Fail(
+            new Failure(
+                SubjectLabel(),
+                new Expectation(expectationText, new RenderedText(FormatSequence(expectedItems))),
+                allowGaps
+                    ? new RenderedText(
+                        $"missing expected selected value at sequence index {expectedIndex}: {FormatValue(expectedItems[expectedIndex])}")
+                    : new RenderedText("missing adjacent ordered sequence for selected values"),
+                because),
+            callerFilePath,
+            callerLineNumber);
+
+        return new AndContinuation<AsyncEnumerableAssertions<T>>(this);
+    }
+
     public ValueTask<AndContinuation<AsyncEnumerableAssertions<T>>> HaveUniqueItemsByAsync<TKey>(
         Func<T, TKey> keySelector,
         string? because = null,
@@ -646,6 +781,78 @@ public sealed class AsyncEnumerableAssertions<T>(IAsyncEnumerable<T>? subject, s
         AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
     }
 
+    private static string BuildContainInOrderExpectationText(bool allowGaps, bool usesSelectedKey)
+    {
+        var baseExpectation = usesSelectedKey
+            ? "to contain selected values in order"
+            : "to contain items in order";
+
+        return allowGaps
+            ? baseExpectation
+            : $"{baseExpectation} with no gaps";
+    }
+
+    private static async ValueTask<OrderedContainmentResult> ContainsInOrderAllowingGapsAsync<TExpected>(
+        IAsyncEnumerable<T> subject,
+        IReadOnlyList<TExpected> expectedItems,
+        IEqualityComparer<TExpected> comparer,
+        Func<T, TExpected> selector)
+    {
+        var expectedIndex = 0;
+        await using var enumerator = subject.GetAsyncEnumerator();
+        while (await enumerator.MoveNextAsync().ConfigureAwait(false))
+        {
+            var selectedValue = selector(enumerator.Current);
+            if (!comparer.Equals(selectedValue, expectedItems[expectedIndex]))
+            {
+                continue;
+            }
+
+            expectedIndex++;
+            if (expectedIndex == expectedItems.Count)
+            {
+                return new OrderedContainmentResult(Matched: true, ExpectedIndex: expectedIndex);
+            }
+        }
+
+        return new OrderedContainmentResult(Matched: false, ExpectedIndex: expectedIndex);
+    }
+
+    private static async ValueTask<bool> ContainsInOrderWithoutGapsAsync<TExpected>(
+        IAsyncEnumerable<T> subject,
+        IReadOnlyList<TExpected> expectedItems,
+        IEqualityComparer<TExpected> comparer,
+        Func<T, TExpected> selector)
+    {
+        // Intentionally mirrors the sync ordered-sequence matcher, but stays local here
+        // so async streams keep a self-contained, single-pass implementation.
+        var fallbackTable = BuildFallbackTable(expectedItems, comparer);
+        var matchedCount = 0;
+
+        await using var enumerator = subject.GetAsyncEnumerator();
+        while (await enumerator.MoveNextAsync().ConfigureAwait(false))
+        {
+            var selectedValue = selector(enumerator.Current);
+            while (matchedCount > 0 && !comparer.Equals(selectedValue, expectedItems[matchedCount]))
+            {
+                matchedCount = fallbackTable[matchedCount - 1];
+            }
+
+            if (!comparer.Equals(selectedValue, expectedItems[matchedCount]))
+            {
+                continue;
+            }
+
+            matchedCount++;
+            if (matchedCount == expectedItems.Count)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     private string SubjectLabel()
     {
         return string.IsNullOrWhiteSpace(SubjectExpression) ? "<subject>" : SubjectExpression;
@@ -685,10 +892,77 @@ public sealed class AsyncEnumerableAssertions<T>(IAsyncEnumerable<T>? subject, s
         return AxiomServices.Configuration.ValueFormatter.Format(value);
     }
 
+    private static TExpected[] MaterialiseExpectedSequence<TExpected>(IEnumerable<TExpected> expectedSequence)
+    {
+        if (expectedSequence is TExpected[] array)
+        {
+            return array;
+        }
+
+        var buffer = new List<TExpected>();
+        foreach (var item in expectedSequence)
+        {
+            buffer.Add(item);
+        }
+
+        return buffer.ToArray();
+    }
+
+    private static int[] BuildFallbackTable<TValue>(IReadOnlyList<TValue> pattern, IEqualityComparer<TValue> comparer)
+    {
+        var fallbackTable = new int[pattern.Count];
+        var prefixLength = 0;
+
+        for (var i = 1; i < pattern.Count; i++)
+        {
+            while (prefixLength > 0 && !comparer.Equals(pattern[i], pattern[prefixLength]))
+            {
+                prefixLength = fallbackTable[prefixLength - 1];
+            }
+
+            if (comparer.Equals(pattern[i], pattern[prefixLength]))
+            {
+                prefixLength++;
+            }
+
+            fallbackTable[i] = prefixLength;
+        }
+
+        return fallbackTable;
+    }
+
+    private static string FormatSequence<TValue>(IReadOnlyList<TValue> values)
+    {
+        var formatter = AxiomServices.Configuration.ValueFormatter;
+        if (values.Count == 0)
+        {
+            return "[]";
+        }
+
+        var builder = new StringBuilder();
+        builder.Append('[');
+        for (var i = 0; i < values.Count; i++)
+        {
+            if (i > 0)
+            {
+                builder.Append(", ");
+            }
+
+            builder.Append(formatter.Format(values[i]));
+        }
+
+        builder.Append(']');
+        return builder.ToString();
+    }
+
     private readonly record struct ContainSingleResult(
         bool HasSingleItem,
         T SingleItem,
         string? FailureMessage);
+
+    private readonly record struct OrderedContainmentResult(
+        bool Matched,
+        int ExpectedIndex);
 
     private sealed class NoMatchingItemToken
     {

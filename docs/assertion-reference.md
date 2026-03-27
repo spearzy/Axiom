@@ -228,6 +228,8 @@ SatisfyRespectivelyAsync(assertionsForItems)
 HaveUniqueItemsAsync()
 HaveUniqueItemsByAsync(keySelector)
 HaveUniqueItemsByAsync(keySelector, comparer)
+ContainInOrderAsync(expectedSequence, allowGaps = true)
+ContainInOrderAsync(expectedSequence, keySelector, allowGaps = true)
 ```
 
 `ContainSingleAsync()` and `ContainSingleAsync(predicate)` return:
@@ -253,6 +255,16 @@ await orders.Should().SatisfyRespectivelyAsync(
 await users.Should().HaveUniqueItemsAsync();
 await users.Should().HaveUniqueItemsByAsync(user => user.Id);
 await users.Should().HaveUniqueItemsByAsync(user => user.Email, StringComparer.OrdinalIgnoreCase);
+```
+
+`ContainInOrderAsync(...)` mirrors the synchronous ordered-sequence assertions for async streams. With the default `allowGaps: true`, the expected sequence must appear in order as a subsequence. With `allowGaps: false`, the expected sequence must appear as an adjacent ordered run.
+
+```csharp
+await statuses.Should().ContainInOrderAsync([WorkflowStep.Started, WorkflowStep.Completed]);
+await events.Should().ContainInOrderAsync(
+    [WorkflowStep.Started, WorkflowStep.Completed],
+    evt => evt.Step);
+await stepIds.Should().ContainInOrderAsync([2, 3], allowGaps: false);
 ```
 
 ## Vector Assertions

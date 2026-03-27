@@ -281,6 +281,8 @@ await orders.Should().SatisfyRespectivelyAsync(
     second => second.Total.Should().Be(20m));
 
 await orders.Should().HaveUniqueItemsByAsync(order => order.Id);
+await stepIds.Should().ContainInOrderAsync([WorkflowStep.Started, WorkflowStep.Completed]);
+await orders.Should().ContainInOrderAsync([10m, 20m], order => order.Total, allowGaps: false);
 ```
 
 Async exception and completion assertions are supported on:
@@ -297,6 +299,8 @@ Async exception and completion assertions are supported on:
 Direct task subjects also support outcome assertions such as `Succeed()`, `SucceedWithin(...)`, `BeCanceled()`, and `BeFaultedWith<TException>()`.
 
 Axiom also supports `IAsyncEnumerable<T>` directly, so you can assert async streams without materializing them into a list first.
+
+`ContainInOrderAsync(...)` checks ordered subsequences by default and can require an adjacent run with `allowGaps: false`.
 
 If you have a concrete wrapper type that implements `IAsyncEnumerable<T>` and `.Should()` binds to the generic value assertion entry point, use `.ShouldAsyncEnumerable()` to force async-stream assertions:
 

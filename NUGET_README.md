@@ -166,6 +166,7 @@ await orders.Should().SatisfyRespectivelyAsync(
     second => second.Total.Should().Be(20m));
 
 await orders.Should().HaveUniqueItemsByAsync(order => order.Id);
+await stepIds.Should().ContainInOrderAsync([WorkflowStep.Started, WorkflowStep.Completed]);
 ```
 
 If a concrete wrapper type implements `IAsyncEnumerable<T>` and `.Should()` binds to generic value assertions, use `.ShouldAsyncEnumerable()` to force the async-stream assertion surface.

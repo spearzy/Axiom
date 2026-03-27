@@ -159,6 +159,52 @@ public sealed class AsyncEnumerableBatchRoutingTests
         Assert.Contains("first duplicate item at index 2: 2", disposeEx.Message);
     }
 
+    [Fact]
+    public async Task ContainInOrderAsync_OutsideBatch_ThrowsImmediately()
+    {
+        var values = CreateAsyncSequence(1, 2, 3);
+
+        await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+            await values.Should().ContainInOrderAsync([1, 3, 2]));
+    }
+
+    [Fact]
+    public async Task ContainInOrderAsync_InsideBatch_DoesNotThrowAtAssertionCallSite()
+    {
+        var values = CreateAsyncSequence(1, 2, 3);
+
+        using var batch = new Axiom.Core.Batch();
+        var callEx = await Record.ExceptionAsync(async () =>
+            await values.Should().ContainInOrderAsync([1, 3, 2]));
+
+        Assert.Null(callEx);
+
+        var disposeEx = Assert.Throws<InvalidOperationException>(() => batch.Dispose());
+        Assert.Contains("Expected values to contain items in order [1, 3, 2]", disposeEx.Message);
+        Assert.Contains("missing expected item at sequence index 2: 2", disposeEx.Message);
+    }
+
+    [Fact]
+    public async Task ContainInOrderAsync_ByKey_InsideBatch_DoesNotThrowAtAssertionCallSite()
+    {
+        var values = CreateAsyncSequence(
+            new WorkflowEvent(WorkflowStep.Started, "start"),
+            new WorkflowEvent(WorkflowStep.Running, "run"),
+            new WorkflowEvent(WorkflowStep.Completed, "done"));
+
+        using var batch = new Axiom.Core.Batch();
+        var callEx = await Record.ExceptionAsync(async () =>
+            await values.Should().ContainInOrderAsync(
+                [WorkflowStep.Started, WorkflowStep.Completed, WorkflowStep.Running],
+                evt => evt.Step));
+
+        Assert.Null(callEx);
+
+        var disposeEx = Assert.Throws<InvalidOperationException>(() => batch.Dispose());
+        Assert.Contains("Expected values to contain selected values in order [Started, Completed, Running]", disposeEx.Message);
+        Assert.Contains("missing expected selected value at sequence index 2: Running", disposeEx.Message);
+    }
+
     private static async IAsyncEnumerable<T> CreateAsyncSequence<T>(params T[] items)
     {
         foreach (var item in items)
@@ -167,4 +213,13 @@ public sealed class AsyncEnumerableBatchRoutingTests
             yield return item;
         }
     }
+
+    private enum WorkflowStep
+    {
+        Started,
+        Running,
+        Completed
+    }
+
+    private sealed record WorkflowEvent(WorkflowStep Step, string Name);
 }
