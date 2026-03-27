@@ -4,6 +4,23 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project follows [Semantic Versioning](https://semver.org/).
 
+## [0.9.0] - 2026-03-27
+
+### Added
+
+- Expanded async-stream assertions with:
+  - `SatisfyRespectivelyAsync(...)`
+  - `HaveUniqueItemsAsync()`
+  - `HaveUniqueItemsByAsync(...)`
+  - `ContainInOrderAsync(...)`
+
+### Changed
+
+- Improved `SatisfyRespectivelyAsync(...)` failure wrapping so ordered item assertions preserve wrapper-level failing-index context and `because` under `Batch`.
+- Aligned sync `HaveUniqueItems()` comparer behavior for generic collections with the async uniqueness assertions.
+- Improved the vector cosine similarity API with preferred `HaveCosineSimilarityWith(...)` naming and richer threshold assertions such as `AtMost(...)` and `Between(...)`.
+- Added and polished the GitHub Pages documentation site, including getting-started guidance and built-in light/dark mode support.
+
 ## [0.8.0] - 2026-03-25
 
 ### Added
