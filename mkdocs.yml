@@ -30,6 +30,7 @@ nav:
   - Custom Assertions: custom-assertions.md
   - Analyzers: analyzers.md
   - Vectors: vectors.md
+  - Benchmarks: benchmarks.md
 markdown_extensions:
   - admonition
   - tables
