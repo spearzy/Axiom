@@ -72,8 +72,6 @@ That means the rows are not interchangeable "speed scores." They represent diffe
 
 ## Interpreting The Numbers
 
-A few guardrails matter:
-
 - These are per-scenario microbenchmarks, not end-to-end test-suite timings.
 - They are useful for spotting Axiom regressions and understanding where Axiom spends work.
 - They were collected on one machine, one runtime, and one BenchmarkDotNet job shape.
@@ -102,9 +100,3 @@ dotnet run -c Release --project benchmarks/Axiom.Benchmarks/Axiom.Benchmarks.csp
 ```
 
 BenchmarkDotNet writes reports to `BenchmarkDotNet.Artifacts/results/` from the repo root when you run that command there.
-
-## Caveats
-
-- The published numbers above come from `ShortRun`, which is a pragmatic regression-tracking job, not a lab-grade long-run benchmark configuration.
-- macOS could not elevate the benchmark process priority in this run, so the results should be read as practical local numbers rather than tightly controlled lab measurements.
-- Future benchmark waves may add more scenarios, but this page will stay intentionally small and representative.
