@@ -56,7 +56,7 @@ internal static class XunitAssertMigrationMatcher
             return false;
         }
 
-        if (!IsSafeSupportedOverload(invocation.TargetMethod, spec, symbols))
+        if (!IsSafeSupportedOverload(invocation, spec, symbols))
         {
             return false;
         }
@@ -97,15 +97,17 @@ internal static class XunitAssertMigrationMatcher
     }
 
     private static bool IsSafeSupportedOverload(
-        IMethodSymbol method,
+        IInvocationOperation invocation,
         XunitAssertMigrationSpec spec,
         XunitAssertMigrationSymbols symbols)
     {
+        var method = invocation.TargetMethod;
+
         switch (spec.Kind)
         {
             case XunitAssertMigrationKind.Be:
             case XunitAssertMigrationKind.NotBe:
-                return IsSupportedEqualityOverload(method, symbols);
+                return IsSupportedEqualityOverload(invocation, symbols);
 
             case XunitAssertMigrationKind.BeTrue:
             case XunitAssertMigrationKind.BeFalse:
@@ -139,16 +141,35 @@ internal static class XunitAssertMigrationMatcher
     }
 
     private static bool IsSupportedEqualityOverload(
-        IMethodSymbol method,
+        IInvocationOperation invocation,
         XunitAssertMigrationSymbols symbols)
     {
-        if (method.Parameters.Length != 2)
+        if (invocation.Arguments.Length != 2)
         {
             return false;
         }
 
-        return !IsUnsupportedEqualityType(method.Parameters[0].Type, symbols) &&
-               !IsUnsupportedEqualityType(method.Parameters[1].Type, symbols);
+        var expectedType = GetArgumentType(invocation.Arguments[0]);
+        var actualType = GetArgumentType(invocation.Arguments[1]);
+        if (expectedType is null || actualType is null)
+        {
+            return false;
+        }
+
+        return !IsUnsupportedEqualityType(expectedType, symbols) &&
+               !IsUnsupportedEqualityType(actualType, symbols) &&
+               !symbols.IsSpecializedShouldReceiverForEquality(actualType);
+    }
+
+    private static ITypeSymbol? GetArgumentType(IArgumentOperation argument)
+    {
+        var operation = argument.Value;
+        while (operation is IConversionOperation conversion)
+        {
+            operation = conversion.Operand;
+        }
+
+        return operation.Type ?? argument.Parameter?.Type;
     }
 
     private static bool IsUnsupportedEqualityType(

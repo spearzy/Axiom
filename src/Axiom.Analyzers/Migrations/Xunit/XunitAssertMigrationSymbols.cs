@@ -13,6 +13,11 @@ internal sealed class XunitAssertMigrationSymbols
         INamedTypeSymbol? readOnlyDictionaryType,
         INamedTypeSymbol? nonGenericDictionaryType,
         INamedTypeSymbol? actionType,
+        INamedTypeSymbol? funcType,
+        INamedTypeSymbol? taskType,
+        INamedTypeSymbol? genericTaskType,
+        INamedTypeSymbol? valueTaskType,
+        INamedTypeSymbol? genericValueTaskType,
         INamedTypeSymbol? spanType,
         INamedTypeSymbol? readOnlySpanType,
         INamedTypeSymbol? memoryType,
@@ -26,6 +31,11 @@ internal sealed class XunitAssertMigrationSymbols
         ReadOnlyDictionaryType = readOnlyDictionaryType;
         NonGenericDictionaryType = nonGenericDictionaryType;
         ActionType = actionType;
+        FuncType = funcType;
+        TaskType = taskType;
+        GenericTaskType = genericTaskType;
+        ValueTaskType = valueTaskType;
+        GenericValueTaskType = genericValueTaskType;
         SpanType = spanType;
         ReadOnlySpanType = readOnlySpanType;
         MemoryType = memoryType;
@@ -41,6 +51,11 @@ internal sealed class XunitAssertMigrationSymbols
     private INamedTypeSymbol? ReadOnlyDictionaryType { get; }
     private INamedTypeSymbol? NonGenericDictionaryType { get; }
     public INamedTypeSymbol? ActionType { get; }
+    private INamedTypeSymbol? FuncType { get; }
+    private INamedTypeSymbol? TaskType { get; }
+    private INamedTypeSymbol? GenericTaskType { get; }
+    private INamedTypeSymbol? ValueTaskType { get; }
+    private INamedTypeSymbol? GenericValueTaskType { get; }
     private INamedTypeSymbol? SpanType { get; }
     private INamedTypeSymbol? ReadOnlySpanType { get; }
     private INamedTypeSymbol? MemoryType { get; }
@@ -59,6 +74,11 @@ internal sealed class XunitAssertMigrationSymbols
             compilation.GetTypeByMetadataName("System.Collections.Generic.IReadOnlyDictionary`2"),
             compilation.GetTypeByMetadataName("System.Collections.IDictionary"),
             compilation.GetTypeByMetadataName("System.Action"),
+            compilation.GetTypeByMetadataName("System.Func`1"),
+            compilation.GetTypeByMetadataName("System.Threading.Tasks.Task"),
+            compilation.GetTypeByMetadataName("System.Threading.Tasks.Task`1"),
+            compilation.GetTypeByMetadataName("System.Threading.Tasks.ValueTask"),
+            compilation.GetTypeByMetadataName("System.Threading.Tasks.ValueTask`1"),
             compilation.GetTypeByMetadataName("System.Span`1"),
             compilation.GetTypeByMetadataName("System.ReadOnlySpan`1"),
             compilation.GetTypeByMetadataName("System.Memory`1"),
@@ -150,6 +170,27 @@ internal sealed class XunitAssertMigrationSymbols
                SymbolEqualityComparer.Default.Equals(originalDefinition, ReadOnlyMemoryType);
     }
 
+    public bool IsSpecializedShouldReceiverForEquality(ITypeSymbol type)
+    {
+        if (type.SpecialType == SpecialType.System_String)
+        {
+            return false;
+        }
+
+        if (ActionType is not null &&
+            SymbolEqualityComparer.Default.Equals(type, ActionType))
+        {
+            return true;
+        }
+
+        if (IsTaskLike(type) || IsAsyncEnumerableLike(type))
+        {
+            return true;
+        }
+
+        return IsFuncReturningTaskLike(type);
+    }
+
     public bool IsDictionaryLike(ITypeSymbol type)
     {
         if (NonGenericDictionaryType is not null &&
@@ -171,6 +212,43 @@ internal sealed class XunitAssertMigrationSymbols
         return ImplementsInterface(type, NonGenericDictionaryType) ||
                ImplementsInterface(type, DictionaryType) ||
                ImplementsInterface(type, ReadOnlyDictionaryType);
+    }
+
+    private bool IsTaskLike(ITypeSymbol type)
+    {
+        if (TaskType is not null &&
+            SymbolEqualityComparer.Default.Equals(type, TaskType))
+        {
+            return true;
+        }
+
+        if (ValueTaskType is not null &&
+            SymbolEqualityComparer.Default.Equals(type, ValueTaskType))
+        {
+            return true;
+        }
+
+        if (type is not INamedTypeSymbol namedType)
+        {
+            return false;
+        }
+
+        var originalDefinition = namedType.OriginalDefinition;
+        return (GenericTaskType is not null && SymbolEqualityComparer.Default.Equals(originalDefinition, GenericTaskType)) ||
+               (GenericValueTaskType is not null && SymbolEqualityComparer.Default.Equals(originalDefinition, GenericValueTaskType));
+    }
+
+    private bool IsFuncReturningTaskLike(ITypeSymbol type)
+    {
+        if (FuncType is null ||
+            type is not INamedTypeSymbol namedType ||
+            !SymbolEqualityComparer.Default.Equals(namedType.OriginalDefinition, FuncType) ||
+            namedType.TypeArguments.Length != 1)
+        {
+            return false;
+        }
+
+        return IsTaskLike(namedType.TypeArguments[0]);
     }
 
     private static bool ImplementsInterface(ITypeSymbol type, INamedTypeSymbol? interfaceType)

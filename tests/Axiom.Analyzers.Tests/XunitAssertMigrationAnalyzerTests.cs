@@ -196,6 +196,39 @@ public sealed class XunitAssertMigrationAnalyzerTests
     }
 
     [Fact]
+    public async Task StringAssertEqual_IsFlagged_AndFixed()
+    {
+        const string source =
+            """
+            using Xunit;
+
+            public sealed class Sample
+            {
+                public void Check(string expected, string actual)
+                {
+                    {|AXM1001:Assert.Equal(expected, actual)|};
+                }
+            }
+            """;
+
+        const string fixedSource =
+            """
+            using Xunit;
+            using Axiom.Assertions;
+
+            public sealed class Sample
+            {
+                public void Check(string expected, string actual)
+                {
+                    actual.Should().Be(expected);
+                }
+            }
+            """;
+
+        await AnalyzerVerifier.VerifyCodeFixAsync<XunitAssertMigrationAnalyzer, XunitAssertMigrationCodeFixProvider>(source, fixedSource);
+    }
+
+    [Fact]
     public async Task AssertNull_IsFlagged_AndFixed()
     {
         const string source =
@@ -1082,6 +1115,88 @@ public sealed class XunitAssertMigrationAnalyzerTests
             public sealed class Sample
             {
                 public void Check(IEnumerable<int> expected, IEnumerable<int> actual)
+                {
+                    Assert.Equal(expected, actual);
+                }
+            }
+            """;
+
+        await AnalyzerVerifier.VerifyAnalyzerAsync<XunitAssertMigrationAnalyzer>(source);
+    }
+
+    [Fact]
+    public async Task ActionEqualityOverload_IsNotFlagged()
+    {
+        const string source =
+            """
+            using System;
+            using Xunit;
+
+            public sealed class Sample
+            {
+                public void Check(object expected, Action actual)
+                {
+                    Assert.Equal(expected, actual);
+                }
+            }
+            """;
+
+        await AnalyzerVerifier.VerifyAnalyzerAsync<XunitAssertMigrationAnalyzer>(source);
+    }
+
+    [Fact]
+    public async Task AsyncActionEqualityOverload_IsNotFlagged()
+    {
+        const string source =
+            """
+            using System;
+            using System.Threading.Tasks;
+            using Xunit;
+
+            public sealed class Sample
+            {
+                public void Check(object expected, Func<Task> actual)
+                {
+                    Assert.Equal(expected, actual);
+                }
+            }
+            """;
+
+        await AnalyzerVerifier.VerifyAnalyzerAsync<XunitAssertMigrationAnalyzer>(source);
+    }
+
+    [Fact]
+    public async Task AsyncFunctionEqualityOverload_IsNotFlagged()
+    {
+        const string source =
+            """
+            using System;
+            using System.Threading.Tasks;
+            using Xunit;
+
+            public sealed class Sample
+            {
+                public void Check(object expected, Func<Task<int>> actual)
+                {
+                    Assert.Equal(expected, actual);
+                }
+            }
+            """;
+
+        await AnalyzerVerifier.VerifyAnalyzerAsync<XunitAssertMigrationAnalyzer>(source);
+    }
+
+    [Fact]
+    public async Task TaskEqualityOverload_IsNotFlagged()
+    {
+        const string source =
+            """
+            using System.Threading.Tasks;
+            using Xunit;
+
+            public sealed class Sample
+            {
+                public void Check(object expected, Task actual)
                 {
                     Assert.Equal(expected, actual);
                 }
