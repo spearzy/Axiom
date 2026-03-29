@@ -62,7 +62,19 @@ public sealed class BeEquivalentToDiagnosticsTests
             "actual.Address.Postcode (compared with expected.Location.ZipCode)",
             ex.Message,
             StringComparison.Ordinal);
+        Assert.Contains("expected \"ZZ9 9ZZ\", but found \"AB1 2CD\"", ex.Message, StringComparison.Ordinal);
         Assert.Contains("string mismatch;", ex.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void GivenOrderedCollectionMismatch_WhenEquivalencyFails_ThenMessageShowsIndexAndComparedValues()
+    {
+        var actual = new[] { 3, 1, 2 };
+        var expected = new[] { 1, 2, 3 };
+
+        var ex = Assert.Throws<InvalidOperationException>(() => actual.Should().BeEquivalentTo(expected));
+
+        Assert.Contains("actual[0]: expected 1, but found 3", ex.Message, StringComparison.Ordinal);
     }
 
     [Fact]

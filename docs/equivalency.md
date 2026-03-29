@@ -1,8 +1,50 @@
 # Equivalency
 
-`BeEquivalentTo(...)` and `NotBeEquivalentTo(...)` let you compare object graphs structurally instead of relying on direct equality. This is the part of Axiom you use when two values should be considered the same because their shape and members match, even if they are different instances.
+Use `Be(...)` when direct equality is the thing you care about.
 
-## Basic Usage
+Use `BeEquivalentTo(...)` when you care about the shape and values of an object graph.
+
+That usually means DTOs, API responses, snapshots, projections, and other values where instance identity does not matter but member-by-member comparison does.
+
+## When To Use `Be(...)` vs `BeEquivalentTo(...)`
+
+Use `Be(...)` for simple values and for types that already define the exact equality semantics you want.
+
+```csharp
+order.Total.Should().Be(129.48m);
+status.Should().Be(OrderStatus.Submitted);
+```
+
+Use `BeEquivalentTo(...)` when spelling the assertion as many scalar checks would be noisy or would hide the real comparison shape.
+
+```csharp
+actual.Should().BeEquivalentTo(expected);
+```
+
+A good rule is:
+
+- if the important question is "are these two values equal?", use `Be(...)`
+- if the important question is "does this object graph match the expected shape and values?", use `BeEquivalentTo(...)`
+
+## Default Rules
+
+Axiom starts from a strict baseline.
+
+By default:
+
+- runtime types must match exactly
+- collection order matters
+- public properties and public fields participate
+- missing members on actual fail the assertion
+- extra members on actual fail the assertion
+- string leaves use `StringComparison.Ordinal`
+- numeric and temporal leaves require exact equality unless a tolerance is configured
+
+That means `BeEquivalentTo(...)` does not try to guess what you meant. You loosen the rules explicitly when the test needs it.
+
+## A Normal First Equivalency Assertion
+
+This is a typical first use:
 
 ```csharp
 using Axiom.Assertions;
@@ -29,181 +71,27 @@ actual.Should().BeEquivalentTo(expected, options =>
 });
 ```
 
-Use `NotBeEquivalentTo(...)` when you want the inverse assertion under the same equivalency rules.
+This keeps the assertion at the level of the object graph while making the two deliberate exceptions obvious:
 
-## Default Behavior
-
-Out of the box, Axiom equivalency uses these defaults:
-
-- strict runtime type matching
-- strict collection ordering
-- public properties and public fields are included
-- missing members on the actual value fail the assertion
-- extra members on the actual value fail the assertion
-- string comparison is `StringComparison.Ordinal`
-- numeric and temporal values require exact equality unless a tolerance is configured
-
-That means `BeEquivalentTo(...)` starts from a conservative, explicit baseline and only relaxes behavior when you ask it to.
-
-## Where To Configure It
-
-Per assertion:
-
-```csharp
-actual.Should().BeEquivalentTo(expected, options =>
-{
-    options.IgnorePath("actual.UpdatedAt");
-    options.CollectionOrder = EquivalencyCollectionOrder.Any;
-});
-```
-
-When you are configuring equivalency for a named subject type, prefer expression selectors over string paths:
-
-```csharp
-actual.Should().BeEquivalentTo(expected, options =>
-{
-    options.Ignore<OrderSnapshot>(x => x.UpdatedAt);
-    options.OnlyCompare<OrderSnapshot>(x => x.Id, x => x.Total);
-    options.UseComparer<OrderSnapshot>(x => x.Code, StringComparer.OrdinalIgnoreCase);
-});
-```
-
-String paths still matter when:
-
-- you are working with anonymous types
-- you need cross-shape member mapping rules
-- you want to target a path outside the current subject type expression model
-
-Project-wide defaults:
-
-```csharp
-EquivalencyDefaults.Configure(options =>
-{
-    options.CollectionOrder = EquivalencyCollectionOrder.Any;
-    options.FailOnExtraMembers = false;
-});
-```
-
-For most test projects, prefer `AxiomSettings.Configure(...)` for shared setup and use `EquivalencyDefaults.Configure(...)` when you intentionally want to work with the equivalency defaults in isolation.
-
-Reset project-wide defaults:
-
-```csharp
-EquivalencyDefaults.Reset();
-```
-
-Per-call configuration always overrides global defaults for that assertion.
-
-## Comparison Precedence
-
-When Axiom compares one leaf value against another, it applies configuration in this order:
-
-1. configured tolerance for the leaf type
-2. configured path comparer
-3. `StringComparison` for string leaves
-4. configured per-call type comparer
-5. global comparer provider from `AxiomServices`
-6. default equality
-
-This order matters. A few practical consequences follow from it:
-
-- tolerances win over path comparers on the same numeric or temporal leaf
-- `UseComparerForPath(...)` and `UseComparerForMember(...)` can override string behavior for a specific member
-- `UseComparerForType<string>(...)` is not the general way to control string leaf comparison; use `StringComparison` for broad string behavior or a path/member comparer for a specific string member
-
-## Selecting What To Compare
-
-### Ignore One Member Everywhere
-
-Use `IgnoreMember(...)` when a member should be ignored regardless of where it appears in the object graph.
-
-```csharp
-actual.Should().BeEquivalentTo(expected, options =>
-    options.IgnoreMember("UpdatedAt"));
-```
-
-### Ignore One Branch Or Path
-
-Use `IgnorePath(...)` when you want to ignore a specific branch. Ignoring a path also ignores its children.
-
-```csharp
-actual.Should().BeEquivalentTo(expected, options =>
-    options.IgnorePath("actual.Address"));
-```
-
-`IgnorePath(...)` uses the rooted graph path form such as `actual.Address`, and child paths under that branch are ignored automatically.
-
-For named types, you can avoid hard-coded paths:
-
-```csharp
-actual.Should().BeEquivalentTo(expected, options =>
-    options.Ignore<Person>(x => x.Address));
-```
-
-### Compare Only Selected Members
-
-Use `OnlyCompareMember(...)` or `OnlyCompareMembers(...)` when you want equivalency to focus on a small part of the object.
-
-```csharp
-actual.Should().BeEquivalentTo(expected, options =>
-    options.OnlyCompareMember("Name"));
-
-actual.Should().BeEquivalentTo(expected, options =>
-    options.OnlyCompareMembers(
-        "Name",
-        "Address.Postcode"));
-```
-
-This is useful when a test only cares about a stable subset of the graph and you want the assertion to ignore everything else.
-
-For named types, use selector-based includes instead of string paths:
-
-```csharp
-actual.Should().BeEquivalentTo(expected, options =>
-    options.OnlyCompare<Person>(x => x.Name, x => x.Address!.Postcode));
-```
-
-### Control Whether Properties And Fields Participate
-
-By default, Axiom compares public properties and public fields. You can opt out of either:
-
-```csharp
-actual.Should().BeEquivalentTo(expected, options =>
-{
-    options.IncludePublicProperties = true;
-    options.IncludePublicFields = false;
-});
-```
+- collection order does not matter here
+- a one-second timestamp difference is acceptable here
 
 ## Comparing Different Shapes
 
-### Allow Assignable Runtime Types
+### Cross-Type Comparison With The Same Member Names
 
-By default, runtime types must match exactly. If you want to compare across a base/derived boundary, disable strict runtime type enforcement:
-
-```csharp
-actual.Should().BeEquivalentTo(expected, options =>
-    options.RequireStrictRuntimeTypes = false);
-```
-
-### Map Members With Different Names
-
-When two types represent the same concept but use different member names, you have three levels of matching available.
-
-#### Same-Name Structural Matching
-
-If member names already line up, you do not need any rename configuration at all:
+If the two values are different runtime types but the member names already line up, start here:
 
 ```csharp
 actual.Should().BeEquivalentTo(expected, options =>
     options.RequireStrictRuntimeTypes = false);
 ```
 
-Use this first. It is the simplest setup and keeps the comparison shape obvious.
+This is the simplest cross-type setup.
 
-#### Typed Cross-Type Member Mapping
+### Renamed Members
 
-Prefer typed mapping when the types are known at compile time and one or more members were renamed.
+If the types represent the same concept but some members were renamed, use typed member mapping.
 
 ```csharp
 actual.Should().BeEquivalentTo(expected, options =>
@@ -214,28 +102,9 @@ actual.Should().BeEquivalentTo(expected, options =>
 });
 ```
 
-This is the most precise rename option because:
+Prefer `MatchMember<TActual, TExpected>(...)` when the types are known at compile time. It is the clearest option and it fails early for invalid selectors.
 
-- it supports nested paths
-- invalid selectors fail early
-- the comparison still reports failures using the actual-side path
-- ignore/include/path-comparer configuration still remains anchored to the actual object graph
-
-Nested-path example:
-
-```csharp
-actual.Should().BeEquivalentTo(expected, options =>
-{
-    options.RequireStrictRuntimeTypes = false;
-    options.MatchMember<OrderSnapshot, ApiOrderDto>(x => x.Customer.Address.Postcode, x => x.CustomerLocation.ZipCode);
-});
-```
-
-That tells Axiom to compare `actual.Customer.Address.Postcode` with `expected.CustomerLocation.ZipCode`, while keeping rendered failure paths rooted on the actual side.
-
-#### Legacy Name-Based Mapping
-
-Use `MatchMemberName(...)` when expression-based mapping is not practical, for example with string-driven configuration:
+Use `MatchMemberName(...)` when the mapping has to come from strings:
 
 ```csharp
 actual.Should().BeEquivalentTo(expected, options =>
@@ -245,140 +114,50 @@ actual.Should().BeEquivalentTo(expected, options =>
 });
 ```
 
-This tells Axiom to compare `actual.GivenName` with `expected.FirstName`.
-
-#### Member-Mapping Precedence
-
-When Axiom resolves which expected member should be compared with an actual member, it uses this order:
+Member mapping precedence is:
 
 1. typed `MatchMember<TActual, TExpected>(...)`
 2. `MatchMemberName(...)`
-3. same-name structural matching
+3. same-name matching
 
-If both typed and name-based mapping could apply to the same member, typed mapping wins.
+If both typed and name-based mappings could apply, typed mapping wins.
 
-## Reading Failures
+## Choosing What To Compare
 
-Equivalency failures stay rooted on the actual-side path, but the report now makes it clearer what kind of mismatch happened.
+### Ignore A Branch Or Member
 
-- value mismatches show the actual-side path first
-- missing members say explicitly whether the member was missing on actual or missing on expected
-- typed member mappings add the expected-side path when that is what Axiom compared
-- string leaf mismatches include the first differing index and short snippets
-- when `MaxDifferences` truncates the report, the summary tells you how many differences were omitted
-
-Typed mapping example:
+Use ignore rules when part of the graph is volatile and not relevant to the test.
 
 ```csharp
 actual.Should().BeEquivalentTo(expected, options =>
-{
-    options.RequireStrictRuntimeTypes = false;
-    options.MatchMember<ActualUser, ExpectedUser>(x => x.Address.Postcode, x => x.Location.ZipCode);
-});
+    options.Ignore<OrderSnapshot>(x => x.Metadata.RequestId));
 ```
 
-If those values differ, the failure report keeps the actual-side path and adds a short mapping note:
-
-```text
-actual.Address.Postcode (compared with expected.Location.ZipCode): expected "EC1A 1BB", but found "AB1A 1AA" (string mismatch; ...)
-```
-
-Missing and extra members are also explicit:
-
-```text
-actual.Email: member is missing on actual; expected "bob@example.com"
-actual.Email: member is present on actual but missing on expected; actual "bob@example.com"
-```
-
-`MaxDifferences` still preserves deterministic ordering. When the report is truncated, Axiom tells you exactly what was omitted:
-
-```text
-+ 2 additional difference(s) omitted after reaching MaxDifferences = 2.
-```
-
-## Custom Equality Rules
-
-### Compare All Leaves Of A Type With One Rule
-
-Use `UseComparerForType<T>(...)` when all leaves of a type should be compared with the same custom rule.
+You can also ignore by path:
 
 ```csharp
 actual.Should().BeEquivalentTo(expected, options =>
-    options.UseComparerForType<int>(new OddEvenMatchIntComparer()));
+    options.IgnorePath("actual.Metadata.RequestId"));
 ```
 
-This is a per-assertion rule. It does not change global comparer behavior.
+For named types, prefer expression selectors. They survive renames better than string paths.
 
-### Compare One Specific Path
+### Compare Only A Stable Subset
 
-Use `UseComparerForPath(...)` when only one location in the graph needs special handling.
+Use `OnlyCompare(...)` when the test intentionally cares about only part of the graph.
 
 ```csharp
 actual.Should().BeEquivalentTo(expected, options =>
-    options.UseComparerForPath("actual.Name", StringComparer.OrdinalIgnoreCase));
+    options.OnlyCompare<OrderSnapshot>(x => x.Id, x => x.Total, x => x.Status));
 ```
 
-Both absolute and relative paths are supported:
-
-```csharp
-options.UseComparerForPath("actual.Name", StringComparer.OrdinalIgnoreCase);
-options.UseComparerForPath("Name", StringComparer.OrdinalIgnoreCase);
-```
-
-For named types, prefer the selector-based form:
-
-```csharp
-actual.Should().BeEquivalentTo(expected, options =>
-    options.UseComparer<Person>(x => x.Name, StringComparer.OrdinalIgnoreCase));
-```
-
-### Compare One Specific Member
-
-`UseComparerForMember(...)` is an alias for path-based comparison that reads better when the intent is member-focused:
-
-```csharp
-actual.Should().BeEquivalentTo(expected, options =>
-    options.UseComparerForMember("Name", StringComparer.OrdinalIgnoreCase));
-```
-
-### Compare Items Inside One Collection By A Custom Rule
-
-Use `UseCollectionItemComparerForPath(...)` when a collection should be matched by item identity rather than full structural equality.
-
-```csharp
-actual.Should().BeEquivalentTo(expected, options =>
-    options.UseCollectionItemComparerForPath("actual.Items", new LineItemSkuComparer()));
-```
-
-This is useful when collection items contain volatile details but one key member defines logical identity.
-
-Selector-based configuration is also available for collection members on named types:
-
-```csharp
-actual.Should().BeEquivalentTo(expected, options =>
-    options.UseCollectionItemComparer<Order>(x => x.Items, new LineItemSkuComparer()));
-```
-
-## Collection Behavior
-
-### Collection Order
-
-`CollectionOrder` controls whether collection order matters:
-
-```csharp
-actual.Should().BeEquivalentTo(expected, options =>
-    options.CollectionOrder = EquivalencyCollectionOrder.Strict);
-
-actual.Should().BeEquivalentTo(expected, options =>
-    options.CollectionOrder = EquivalencyCollectionOrder.Any);
-```
-
-- `Strict` requires element order to match
-- `Any` allows reordered collections to compare as equivalent
+This is often clearer than comparing the whole graph and ignoring many unrelated members.
 
 ### Missing And Extra Members
 
-When `RequireStrictRuntimeTypes = false`, different shapes can still fail because one side has members the other does not. Use these options to relax that behavior:
+When you disable strict runtime type matching, shape differences can still fail because one side has members the other side does not.
+
+If that strictness is not useful for a specific test, loosen it explicitly:
 
 ```csharp
 actual.Should().BeEquivalentTo(expected, options =>
@@ -389,44 +168,65 @@ actual.Should().BeEquivalentTo(expected, options =>
 });
 ```
 
-- `FailOnMissingMembers = false` ignores members present on the expected type but missing on the actual type
-- `FailOnExtraMembers = false` ignores members present on the actual type but missing on the expected type
+This is a common fit for cross-type DTO comparisons where the graph shapes are similar but not identical.
 
-## Null Handling
+## Comparers, Strings, And Tolerances
 
-These options let you ignore null-valued members on one side:
+Axiom applies leaf-level rules in this order:
 
-```csharp
-actual.Should().BeEquivalentTo(expected, options =>
-    options.IgnoreExpectedNullMembers());
+1. configured tolerance for the leaf type
+2. configured path comparer
+3. `StringComparison` for string leaves
+4. configured per-call type comparer
+5. global comparer provider from `AxiomServices`
+6. default equality
 
-actual.Should().BeEquivalentTo(expected, options =>
-    options.IgnoreActualNullMembers());
-```
+The order is significant. Later rules do not override earlier ones.
 
-- `IgnoreExpectedNullMembers()` skips members where the expected value is `null`
-- `IgnoreActualNullMembers()` skips members where the actual value is `null`
+### String Comparison
 
-These options also affect missing-member scenarios when the missing side would have contributed a null value.
-
-## String Comparison
-
-String leaves are compared using `EquivalencyOptions.StringComparison`:
+Use `StringComparison` when one string rule should apply across the whole graph.
 
 ```csharp
 actual.Should().BeEquivalentTo(expected, options =>
     options.StringComparison = StringComparison.OrdinalIgnoreCase);
 ```
 
-Use this when you want one string rule across the whole graph.
+If you only want special handling for one member, use a member or path comparer instead.
 
-If you only want special handling for one string member, prefer `UseComparerForPath(...)` or `UseComparerForMember(...)`.
+```csharp
+actual.Should().BeEquivalentTo(expected, options =>
+    options.UseComparer<Person>(x => x.Name, StringComparer.OrdinalIgnoreCase));
+```
 
-## Tolerances
+### Type, Member, And Path Comparers
 
-### Available Tolerances
+Use these when the equality rule is domain-specific and narrower than the whole graph:
 
-You can configure tolerances for:
+```csharp
+actual.Should().BeEquivalentTo(expected, options =>
+    options.UseComparerForType<int>(new OddEvenMatchIntComparer()));
+
+actual.Should().BeEquivalentTo(expected, options =>
+    options.UseComparerForMember("Name", StringComparer.OrdinalIgnoreCase));
+
+actual.Should().BeEquivalentTo(expected, options =>
+    options.UseComparerForPath("actual.Name", StringComparer.OrdinalIgnoreCase));
+```
+
+### Tolerances
+
+Use tolerances when the value really is approximate.
+
+```csharp
+actual.Should().BeEquivalentTo(expected, options =>
+{
+    options.DoubleTolerance = 0.01d;
+    options.DateTimeTolerance = TimeSpan.FromSeconds(1);
+});
+```
+
+Available tolerance options include:
 
 - `FloatTolerance`
 - `DoubleTolerance`
@@ -438,107 +238,110 @@ You can configure tolerances for:
 - `TimeOnlyTolerance`
 - `TimeSpanTolerance`
 
-Example:
+## Collection Behavior
+
+`CollectionOrder` controls whether collections are compared strictly by position or as any-order sets of items.
 
 ```csharp
 actual.Should().BeEquivalentTo(expected, options =>
-{
-    options.DoubleTolerance = 0.01d;
-    options.DateTimeTolerance = TimeSpan.FromSeconds(1);
-});
-```
+    options.CollectionOrder = EquivalencyCollectionOrder.Strict);
 
-### Numeric And Temporal Tolerance Rules
-
-A few rules are worth knowing:
-
-- if the absolute difference equals the configured tolerance, the values are treated as equivalent
-- negative tolerances are normalized to their absolute value
-- `TimeSpan.MinValue` is rejected for temporal tolerance options
-- `NaN` only matches `NaN`
-- `+Infinity` only matches `+Infinity`
-- `-Infinity` only matches `-Infinity`
-
-## Limiting Report Size
-
-Use `MaxDifferences` to cap how many differences are rendered before the report is truncated:
-
-```csharp
-actual.Should().BeEquivalentTo(expected, options =>
-    options.MaxDifferences = 5);
-```
-
-This is useful when large graphs would otherwise produce noisy failure output.
-
-## Recipes
-
-### Ignore Audit Fields
-
-```csharp
-actual.Should().BeEquivalentTo(expected, options =>
-{
-    options.IgnoreMember("CreatedAt");
-    options.IgnoreMember("UpdatedAt");
-});
-```
-
-### Compare DTOs With Different Member Names
-
-```csharp
-actual.Should().BeEquivalentTo(expected, options =>
-{
-    options.RequireStrictRuntimeTypes = false;
-    options.MatchMemberName("GivenName", "FirstName");
-    options.MatchMemberName("FamilyName", "LastName");
-});
-```
-
-### Compare Collections Without Caring About Order
-
-```csharp
 actual.Should().BeEquivalentTo(expected, options =>
     options.CollectionOrder = EquivalencyCollectionOrder.Any);
 ```
 
-### Compare One Member Case-Insensitively
+Use `Strict` when the order itself is part of the behavior.
+
+Use `Any` when the collection is logically unordered and position is noise.
+
+For collection members that need item identity rules instead of full structural matching, use a collection-item comparer:
 
 ```csharp
 actual.Should().BeEquivalentTo(expected, options =>
+    options.UseCollectionItemComparer<Order>(x => x.Items, new LineItemSkuComparer()));
+```
+
+## Representative Failure Output
+
+These snippets show what Axiom reports when equivalency fails.
+
+### Nested Member Mismatch
+
+A plain nested mismatch stays rooted on the actual-side path.
+
+```text
+Expected actual to be equivalent to expected, but found 1 difference(s):
+1) actual.Address.Postcode: expected "ZZ9 9ZZ", but found "AB1 2CD" (string mismatch; ...)
+```
+
+### Renamed Member Mapping Mismatch
+
+When a typed mapping is involved, Axiom keeps the actual-side path and adds the expected-side path it was compared against.
+
+```text
+Expected actual to be equivalent to expected, but found 1 difference(s):
+1) actual.Address.Postcode (compared with expected.Location.ZipCode): expected "ZZ9 9ZZ", but found "AB1 2CD" (string mismatch; ...)
+```
+
+### Ordered Collection Mismatch
+
+With strict ordering, the report points at the element index that diverged.
+
+```text
+Expected actual to be equivalent to expected, but found 3 difference(s):
+1) actual[0]: expected 1, but found 3
+```
+
+### `MaxDifferences` Truncation
+
+When the report is truncated, the truncation is explicit.
+
+```text
+Expected actual to be equivalent to expected, but found 4 difference(s):
+1) actual.Age: expected 30, but found 31
+2) actual.Name: expected "Bob", but found "Alice" (string mismatch; ...)
++ 2 additional difference(s) omitted after reaching MaxDifferences = 2.
+```
+
+## Reading The Report
+
+A few things are worth knowing when you read an equivalency failure:
+
+- paths are reported from the actual-side graph
+- mapped members show the expected-side path only when it differs from the actual-side path
+- missing and extra members say explicitly which side is missing what
+- string mismatches include extra detail instead of only saying the values differ
+- `MaxDifferences` keeps the report deterministic and tells you what was omitted
+
+If the graph is large, start with the first reported difference. The report is ordered and stable, so the first few lines usually explain the real problem quickly.
+
+## Project-Wide Defaults
+
+Per-call configuration is usually the clearest place to start.
+
+If a team keeps applying the same equivalency rules in many tests, move them into shared defaults:
+
+```csharp
+AxiomSettings.Configure(options =>
 {
-    options.StringComparison = StringComparison.Ordinal;
-    options.UseComparerForMember("Name", StringComparer.OrdinalIgnoreCase);
+    options.Equivalency.CollectionOrder = EquivalencyCollectionOrder.Any;
+    options.Equivalency.StringComparison = StringComparison.OrdinalIgnoreCase;
+    options.Equivalency.FailOnExtraMembers = false;
 });
 ```
 
-### Compare Only The Stable Parts Of A Response
+`EquivalencyDefaults.Configure(...)` is still available when you want to work with equivalency defaults in isolation, but `AxiomSettings.Configure(...)` is the better general entry point for shared project configuration.
 
-```csharp
-actual.Should().BeEquivalentTo(expected, options =>
-    options.OnlyCompareMembers("Status", "Payload.Id", "Payload.Version"));
-```
+## Practical Migration Notes
 
-### Set Project-Wide Defaults
+If you are moving tests from another assertion style:
 
-```csharp
-EquivalencyDefaults.Configure(options =>
-{
-    options.CollectionOrder = EquivalencyCollectionOrder.Any;
-    options.StringComparison = StringComparison.OrdinalIgnoreCase;
-    options.FailOnExtraMembers = false;
-});
-```
+- start with `actual.Should().BeEquivalentTo(expected)`
+- add `RequireStrictRuntimeTypes = false` only when the types really are different shapes of the same concept
+- add `MatchMember(...)` only for the members that were renamed
+- loosen member-presence rules only when the shape difference is intentional
+- use tolerances and comparers to model real domain semantics, not to hide unclear expectations
 
-Then tighten behavior for one test:
+For broader migration guidance, see [Migrating to Axiom](migrating-to-axiom.md).
 
-```csharp
-actual.Should().BeEquivalentTo(expected, options =>
-{
-    options.CollectionOrder = EquivalencyCollectionOrder.Strict;
-    options.StringComparison = StringComparison.Ordinal;
-});
-```
-
-## Related Docs
-
-- [Getting Started](getting-started.md)
-- [assertion-reference.md](assertion-reference.md)
+For the full option catalog, see [assertion-reference.md](assertion-reference.md).

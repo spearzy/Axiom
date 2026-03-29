@@ -1,12 +1,12 @@
 # Migrating to Axiom
 
-This page is for teams moving an existing test suite onto Axiom a little at a time.
+This page is for teams moving an existing test suite onto Axiom in stages.
 
-The current migration tooling focuses on high-confidence xUnit `Assert.*` shapes that can be rewritten safely. The goal is to speed up routine migration work without guessing on overloads that change value flow or assertion semantics.
+The built-in migration analyzers help with a growing set of safe, mechanical rewrites. Structural assertions still need engineering judgment. That is normal. This guide tries to make that judgment simpler.
 
 ## What Can Be Migrated Automatically Today
 
-The built-in analyzers and code fixes currently cover these xUnit shapes:
+The current analyzer and code-fix wave focuses on high-confidence xUnit `Assert.*` shapes.
 
 | Source style | Axiom style |
 | --- | --- |
@@ -25,95 +25,164 @@ The built-in analyzers and code fixes currently cover these xUnit shapes:
 | `Assert.NotSame(expected, actual)` | `actual.Should().NotBeSameAs(expected)` |
 | `Assert.Throws<TException>(() => work())` | `new Action(() => work()).Should().Throw<TException>()` |
 
-These suggestions are shipped as Roslyn diagnostics and code fixes in:
+These suggestions ship in:
 
 - `Axiom.Assertions` by default
 - `Axiom.Analyzers` if you only want the diagnostics
 
 ## What Still Needs Manual Migration
 
-The current migration tooling intentionally skips shapes where the rewrite is not obviously semantics-preserving yet.
+The migration tooling is conservative on purpose.
 
-That currently includes:
+It skips cases where the rewrite is not obviously semantics-preserving yet, including:
 
-- `Assert.Contains` and `Assert.DoesNotContain` string overloads
+- string-specific containment overloads
 - dictionary-key containment overloads
 - overloads with custom comparers, precision, inspectors, or messages
 - `Assert.Single(...)` when you use the returned value
 - `Assert.Throws<TException>(...)` when you use the returned exception
+- most structural-comparison assertions
 
-That means the migration tooling is conservative by design. If a suggestion appears, it is intended to be one you can trust in a real codebase.
+If a code fix appears, it is meant to be a safe one. If it does not appear, treat the migration as a normal test rewrite rather than a missed trick.
 
-## Example: Moving a Small Test
+## Choosing Between Scalar And Structural Migration
 
-Before:
+A simple rule helps here.
 
-```csharp
-using Xunit;
-
-public sealed class UserTests
-{
-    [Fact]
-    public void Creates_admin_user()
-    {
-        var user = CreateUser();
-
-        Assert.NotNull(user);
-        Assert.Equal("admin", user.Role);
-        Assert.Contains("read", user.Permissions);
-        Assert.Single(user.Tenants);
-    }
-}
-```
-
-After:
+If the original test is checking one fact at a time, migrate it to scalar Axiom assertions.
 
 ```csharp
-using Axiom.Assertions;
-using Axiom.Assertions.Extensions;
-
-public sealed class UserTests
-{
-    [Fact]
-    public void Creates_admin_user()
-    {
-        var user = CreateUser();
-
-        user.Should().NotBeNull();
-        user.Role.Should().Be("admin");
-        user.Permissions.Should().Contain("read");
-        user.Tenants.Should().ContainSingle();
-    }
-}
+actual.Name.Should().Be("Ada");
+actual.Email.Should().Contain("@");
 ```
 
-## Structural Comparison Maps To `BeEquivalentTo(...)`
-
-When you are migrating tests that compare object graphs rather than scalars, the usual Axiom target is `BeEquivalentTo(...)`.
+If the original test is really comparing one object graph with another, move it to `BeEquivalentTo(...)` instead of rewriting it into many scalar assertions.
 
 ```csharp
 actual.Should().BeEquivalentTo(expected);
 ```
 
-When types do not line up member-for-member, use Axiom's typed member mapping support rather than flattening the test back to many scalar asserts.
+That keeps the test aligned with the shape of the behavior you actually care about.
+
+## Migrating Structural Assertions
+
+### Simple Object-Graph Comparison
+
+If the original assertion is conceptually "these two objects should match member-for-member", start here:
+
+```csharp
+actual.Should().BeEquivalentTo(expected);
+```
+
+Do this before adding options. The defaults are strict and easy to reason about.
+
+### Cross-Type Comparison
+
+If the types differ but they represent the same concept and the member names already line up, disable strict runtime type matching:
+
+```csharp
+actual.Should().BeEquivalentTo(expected, options =>
+    options.RequireStrictRuntimeTypes = false);
+```
+
+That is the normal Axiom target for DTO-to-domain or snapshot-to-response comparisons when the shapes are mostly the same.
+
+### Renamed Members
+
+If the shapes are the same but some member names changed, add only the mappings you need.
 
 ```csharp
 actual.Should().BeEquivalentTo(expected, options =>
 {
-    options.MatchMember<ActualUser, ExpectedUser>(a => a.DisplayName, e => e.Name);
+    options.RequireStrictRuntimeTypes = false;
+    options.MatchMember<ActualUser, ExpectedUser>(x => x.GivenName, x => x.FirstName);
+    options.MatchMember<ActualUser, ExpectedUser>(x => x.Address.Postcode, x => x.Location.ZipCode);
 });
 ```
 
-See [Equivalency](equivalency.md) for the fuller object-graph guidance and diagnostics model.
+Use typed mappings when you can. They are easier to read and safer to refactor.
+
+If the mapping has to come from strings, use `MatchMemberName(...)` instead.
+
+### Custom Comparers, Ordering, And Tolerances
+
+If the original test used domain-specific comparison rules, carry those rules over directly instead of flattening the test.
+
+Examples:
+
+```csharp
+actual.Should().BeEquivalentTo(expected, options =>
+    options.CollectionOrder = EquivalencyCollectionOrder.Any);
+
+actual.Should().BeEquivalentTo(expected, options =>
+    options.DateTimeTolerance = TimeSpan.FromSeconds(1));
+
+actual.Should().BeEquivalentTo(expected, options =>
+    options.UseComparer<OrderSnapshot>(x => x.Code, StringComparer.OrdinalIgnoreCase));
+```
+
+This is usually the right migration shape when the structural comparison is still the core idea and only a few comparison rules need to change.
+
+## When Manual Migration Is Better
+
+Some structural assertions should stay manual even if they look close to a possible automation target.
+
+Keep the migration manual when:
+
+- the original assertion mixes many domain-specific comparison rules
+- the original test intentionally compares only a small stable subset of the graph
+- the original assertion relies on custom comparers or tolerances that need review
+- the original test is easier to understand as a few scalar assertions than as a broad graph comparison
+- the structural comparison has unclear semantics and needs a test-design decision, not a syntax rewrite
+
+That last point matters. A manual migration is often the right move when the old test itself was not very explicit.
+
+## Example: Rewriting A Structural Test
+
+Before:
+
+```csharp
+Assert.Equal(expected.Name, actual.Name);
+Assert.Equal(expected.Email, actual.Email);
+Assert.Equal(expected.Address.Postcode, actual.Address.Postcode);
+Assert.Equal(expected.Address.CountryCode, actual.Address.CountryCode);
+```
+
+After:
+
+```csharp
+actual.Should().BeEquivalentTo(expected);
+```
+
+If one member was renamed:
+
+```csharp
+actual.Should().BeEquivalentTo(expected, options =>
+{
+    options.RequireStrictRuntimeTypes = false;
+    options.MatchMember<ActualUser, ExpectedUser>(x => x.GivenName, x => x.FirstName);
+});
+```
+
+If order does not matter for one collection:
+
+```csharp
+actual.Should().BeEquivalentTo(expected, options =>
+    options.CollectionOrder = EquivalencyCollectionOrder.Any);
+```
 
 ## Recommended Migration Flow
 
-For most teams, the smoothest approach is:
+For most teams, the smoothest sequence is:
 
 1. Install `Axiom.Assertions`.
-2. Let the built-in migration diagnostics suggest safe rewrites.
-3. Apply the obvious code fixes first.
-4. Migrate more complex structural comparisons manually to `BeEquivalentTo(...)`.
-5. Keep the unsupported edge cases manual until Axiom ships broader migration coverage.
+2. Apply the obvious analyzer-driven rewrites first.
+3. Move structural comparisons to `BeEquivalentTo(...)` manually.
+4. Add only the minimum equivalency options needed for that test.
+5. Keep unclear or overloaded cases manual until the intended semantics are explicit.
 
-That keeps the migration tooling helpful without asking it to guess.
+That keeps the migration trustworthy.
+
+## Where To Go Next
+
+For the structural-comparison rules, defaults, and failure-output examples, read [Equivalency](equivalency.md).
