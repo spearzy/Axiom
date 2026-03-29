@@ -4,6 +4,32 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project follows [Semantic Versioning](https://semver.org/).
 
+## [0.10.0] - 2026-03-29
+
+### Added
+
+- xUnit migration analyzers and code fixes for high-confidence `Assert.*` patterns, covering:
+  - `Equal`, `NotEqual`
+  - `Null`, `NotNull`
+  - `True`, `False`
+  - `Empty`, `NotEmpty`
+  - `Contains`, `DoesNotContain`
+  - `Single`
+  - `Same`, `NotSame`
+  - `Throws<TException>(...)` when the returned exception is not consumed
+- BenchmarkDotNet-based benchmark harness for representative Axiom scenarios.
+- Benchmarks docs page and migration guide docs.
+
+### Changed
+
+- Axiom now auto-detects the default test-framework failure strategy for xUnit, NUnit, and MSTest.
+- Onboarding docs now treat setup and configuration as optional instead of required for the normal install-and-use path.
+- Equivalency docs and migration guidance were tightened with clearer defaults, examples, tradeoffs, and representative diagnostics.
+
+### Fixed
+
+- Narrowed xUnit equality and reference migration suggestions so diagnostics are only offered when the generated Axiom fluent API is valid for the receiver type.
+
 ## [0.9.0] - 2026-03-27
 
 ### Added
