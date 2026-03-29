@@ -67,12 +67,23 @@ public sealed class XunitAssertMigrationCodeFixProvider : CodeFixProvider
             return document;
         }
 
-        var replacementExpression = BuildReplacementExpression(match)
+        var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+        if (semanticModel is null)
+        {
+            return document;
+        }
+
+        var replacementExpression = BuildReplacementExpression(match, semanticModel)
             .WithTriviaFrom(match.InvocationSyntax)
             .WithAdditionalAnnotations(Formatter.Annotation);
 
         var rewrittenRoot = compilationUnit.ReplaceNode(match.InvocationSyntax, replacementExpression);
         rewrittenRoot = AddUsingIfMissing(rewrittenRoot, "Axiom.Assertions");
+
+        if (RequiresSystemNamespace(match, semanticModel))
+        {
+            rewrittenRoot = AddUsingIfMissing(rewrittenRoot, "System");
+        }
 
         if (match.RequiresAssertionsExtensionsNamespace)
         {
@@ -101,11 +112,13 @@ public sealed class XunitAssertMigrationCodeFixProvider : CodeFixProvider
                 .WithAdditionalAnnotations(Formatter.Annotation));
     }
 
-    private static ExpressionSyntax BuildReplacementExpression(XunitAssertMigrationMatch match)
+    private static ExpressionSyntax BuildReplacementExpression(
+        XunitAssertMigrationMatch match,
+        SemanticModel semanticModel)
     {
         if (match.Spec.Kind is XunitAssertMigrationKind.Throw)
         {
-            return BuildThrowReplacementExpression(match);
+            return BuildThrowReplacementExpression(match, semanticModel);
         }
 
         var subjectExpression = PrepareSubjectExpression(match.SubjectExpression);
@@ -130,10 +143,14 @@ public sealed class XunitAssertMigrationCodeFixProvider : CodeFixProvider
                         SyntaxFactory.Argument(match.ExpectedExpression.WithoutTrivia()))));
     }
 
-    private static ExpressionSyntax BuildThrowReplacementExpression(XunitAssertMigrationMatch match)
+    private static ExpressionSyntax BuildThrowReplacementExpression(
+        XunitAssertMigrationMatch match,
+        SemanticModel semanticModel)
     {
-        var actionObjectCreation = SyntaxFactory.ObjectCreationExpression(
-                SyntaxFactory.ParseTypeName("global::System.Action"),
+        var actionExpression = CanUseDirectThrowReceiver(match.SubjectExpression, semanticModel)
+            ? PrepareSubjectExpression(match.SubjectExpression)
+            : SyntaxFactory.ObjectCreationExpression(
+                SyntaxFactory.IdentifierName("Action"),
                 SyntaxFactory.ArgumentList(
                     SyntaxFactory.SingletonSeparatedList(
                         SyntaxFactory.Argument(match.SubjectExpression.WithoutTrivia()))),
@@ -142,7 +159,7 @@ public sealed class XunitAssertMigrationCodeFixProvider : CodeFixProvider
         var shouldInvocation = SyntaxFactory.InvocationExpression(
             SyntaxFactory.MemberAccessExpression(
                 SyntaxKind.SimpleMemberAccessExpression,
-                actionObjectCreation,
+                actionExpression,
                 SyntaxFactory.IdentifierName("Should")),
             SyntaxFactory.ArgumentList());
 
@@ -155,6 +172,36 @@ public sealed class XunitAssertMigrationCodeFixProvider : CodeFixProvider
                     SyntaxFactory.SingletonSeparatedList(match.TypeArgumentSyntax!.WithoutTrivia()))));
 
         return SyntaxFactory.InvocationExpression(throwMethod, SyntaxFactory.ArgumentList());
+    }
+
+    private static bool CanUseDirectThrowReceiver(
+        ExpressionSyntax subjectExpression,
+        SemanticModel semanticModel)
+    {
+        var symbolInfo = semanticModel.GetSymbolInfo(subjectExpression);
+        if (symbolInfo.Symbol is IMethodSymbol ||
+            symbolInfo.CandidateSymbols.Any(static symbol => symbol is IMethodSymbol))
+        {
+            return false;
+        }
+
+        var typeInfo = semanticModel.GetTypeInfo(subjectExpression);
+        var actionType = semanticModel.Compilation.GetTypeByMetadataName("System.Action");
+        if (actionType is null)
+        {
+            return false;
+        }
+
+        return SymbolEqualityComparer.Default.Equals(typeInfo.Type, actionType) ||
+               SymbolEqualityComparer.Default.Equals(typeInfo.ConvertedType, actionType);
+    }
+
+    private static bool RequiresSystemNamespace(
+        XunitAssertMigrationMatch match,
+        SemanticModel semanticModel)
+    {
+        return match.Spec.Kind is XunitAssertMigrationKind.Throw &&
+               !CanUseDirectThrowReceiver(match.SubjectExpression, semanticModel);
     }
 
     private static ExpressionSyntax PrepareSubjectExpression(ExpressionSyntax subjectExpression)
