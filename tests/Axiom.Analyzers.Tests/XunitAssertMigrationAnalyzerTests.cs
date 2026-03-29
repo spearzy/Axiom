@@ -262,6 +262,39 @@ public sealed class XunitAssertMigrationAnalyzerTests
     }
 
     [Fact]
+    public async Task StringAssertNull_IsFlagged_AndFixed()
+    {
+        const string source =
+            """
+            using Xunit;
+
+            public sealed class Sample
+            {
+                public void Check(string? value)
+                {
+                    {|AXM1003:Assert.Null(value)|};
+                }
+            }
+            """;
+
+        const string fixedSource =
+            """
+            using Xunit;
+            using Axiom.Assertions;
+
+            public sealed class Sample
+            {
+                public void Check(string? value)
+                {
+                    value.Should().BeNull();
+                }
+            }
+            """;
+
+        await AnalyzerVerifier.VerifyCodeFixAsync<XunitAssertMigrationAnalyzer, XunitAssertMigrationCodeFixProvider>(source, fixedSource);
+    }
+
+    [Fact]
     public async Task AssertNotNull_IsFlagged_AndFixed()
     {
         const string source =
@@ -285,6 +318,39 @@ public sealed class XunitAssertMigrationAnalyzerTests
             public sealed class Sample
             {
                 public void Check(object? value)
+                {
+                    value.Should().NotBeNull();
+                }
+            }
+            """;
+
+        await AnalyzerVerifier.VerifyCodeFixAsync<XunitAssertMigrationAnalyzer, XunitAssertMigrationCodeFixProvider>(source, fixedSource);
+    }
+
+    [Fact]
+    public async Task StringAssertNotNull_IsFlagged_AndFixed()
+    {
+        const string source =
+            """
+            using Xunit;
+
+            public sealed class Sample
+            {
+                public void Check(string? value)
+                {
+                    {|AXM1004:Assert.NotNull(value)|};
+                }
+            }
+            """;
+
+        const string fixedSource =
+            """
+            using Xunit;
+            using Axiom.Assertions;
+
+            public sealed class Sample
+            {
+                public void Check(string? value)
                 {
                     value.Should().NotBeNull();
                 }
@@ -612,6 +678,25 @@ public sealed class XunitAssertMigrationAnalyzerTests
     }
 
     [Fact]
+    public async Task AssertSame_StringActual_IsNotFlagged()
+    {
+        const string source =
+            """
+            using Xunit;
+
+            public sealed class Sample
+            {
+                public void Check(string expected, string actual)
+                {
+                    Assert.Same(expected, actual);
+                }
+            }
+            """;
+
+        await AnalyzerVerifier.VerifyAnalyzerAsync<XunitAssertMigrationAnalyzer>(source);
+    }
+
+    [Fact]
     public async Task AssertNotSame_IsFlagged_AndFixed()
     {
         const string source =
@@ -642,6 +727,26 @@ public sealed class XunitAssertMigrationAnalyzerTests
             """;
 
         await AnalyzerVerifier.VerifyCodeFixAsync<XunitAssertMigrationAnalyzer, XunitAssertMigrationCodeFixProvider>(source, fixedSource);
+    }
+
+    [Fact]
+    public async Task AssertNotSame_TaskActual_IsNotFlagged()
+    {
+        const string source =
+            """
+            using System.Threading.Tasks;
+            using Xunit;
+
+            public sealed class Sample
+            {
+                public void Check(object expected, Task actual)
+                {
+                    Assert.NotSame(expected, actual);
+                }
+            }
+            """;
+
+        await AnalyzerVerifier.VerifyAnalyzerAsync<XunitAssertMigrationAnalyzer>(source);
     }
 
     [Fact]
@@ -1187,6 +1292,26 @@ public sealed class XunitAssertMigrationAnalyzerTests
     }
 
     [Fact]
+    public async Task ValueTaskEqualityOverload_IsNotFlagged()
+    {
+        const string source =
+            """
+            using System.Threading.Tasks;
+            using Xunit;
+
+            public sealed class Sample
+            {
+                public void Check(object expected, ValueTask actual)
+                {
+                    Assert.Equal(expected, actual);
+                }
+            }
+            """;
+
+        await AnalyzerVerifier.VerifyAnalyzerAsync<XunitAssertMigrationAnalyzer>(source);
+    }
+
+    [Fact]
     public async Task TaskEqualityOverload_IsNotFlagged()
     {
         const string source =
@@ -1199,6 +1324,66 @@ public sealed class XunitAssertMigrationAnalyzerTests
                 public void Check(object expected, Task actual)
                 {
                     Assert.Equal(expected, actual);
+                }
+            }
+            """;
+
+        await AnalyzerVerifier.VerifyAnalyzerAsync<XunitAssertMigrationAnalyzer>(source);
+    }
+
+    [Fact]
+    public async Task ActionNullOverload_IsNotFlagged()
+    {
+        const string source =
+            """
+            using System;
+            using Xunit;
+
+            public sealed class Sample
+            {
+                public void Check(Action value)
+                {
+                    Assert.Null(value);
+                }
+            }
+            """;
+
+        await AnalyzerVerifier.VerifyAnalyzerAsync<XunitAssertMigrationAnalyzer>(source);
+    }
+
+    [Fact]
+    public async Task TaskNotNullOverload_IsNotFlagged()
+    {
+        const string source =
+            """
+            using System.Threading.Tasks;
+            using Xunit;
+
+            public sealed class Sample
+            {
+                public void Check(Task value)
+                {
+                    Assert.NotNull(value);
+                }
+            }
+            """;
+
+        await AnalyzerVerifier.VerifyAnalyzerAsync<XunitAssertMigrationAnalyzer>(source);
+    }
+
+    [Fact]
+    public async Task AsyncEnumerableNotNullOverload_IsNotFlagged()
+    {
+        const string source =
+            """
+            using System.Collections.Generic;
+            using Xunit;
+
+            public sealed class Sample
+            {
+                public void Check(IAsyncEnumerable<int> value)
+                {
+                    Assert.NotNull(value);
                 }
             }
             """;

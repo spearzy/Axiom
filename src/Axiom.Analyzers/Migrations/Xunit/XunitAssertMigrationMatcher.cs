@@ -117,6 +117,10 @@ internal static class XunitAssertMigrationMatcher
             case XunitAssertMigrationKind.NotBeEmpty:
                 return !symbols.IsAsyncEnumerableLike(method.Parameters[0].Type);
 
+            case XunitAssertMigrationKind.BeNull:
+            case XunitAssertMigrationKind.NotBeNull:
+                return IsSupportedNullOverload(invocation, symbols);
+
             case XunitAssertMigrationKind.Contain:
             case XunitAssertMigrationKind.NotContain:
                 return IsSupportedCollectionContainmentOverload(method, symbols);
@@ -126,14 +130,10 @@ internal static class XunitAssertMigrationMatcher
 
             case XunitAssertMigrationKind.BeSameAs:
             case XunitAssertMigrationKind.NotBeSameAs:
-                return true;
+                return IsSupportedReferenceEqualityOverload(invocation, symbols);
 
             case XunitAssertMigrationKind.Throw:
                 return IsSupportedThrowsOverload(method, symbols);
-
-            case XunitAssertMigrationKind.BeNull:
-            case XunitAssertMigrationKind.NotBeNull:
-                return true;
 
             default:
                 return false;
@@ -158,7 +158,7 @@ internal static class XunitAssertMigrationMatcher
 
         return !IsUnsupportedEqualityType(expectedType, symbols) &&
                !IsUnsupportedEqualityType(actualType, symbols) &&
-               !symbols.IsSpecializedShouldReceiverForEquality(actualType);
+               symbols.SupportsEqualityMigrationReceiver(actualType);
     }
 
     private static ITypeSymbol? GetArgumentType(IArgumentOperation argument)
@@ -170,6 +170,27 @@ internal static class XunitAssertMigrationMatcher
         }
 
         return operation.Type ?? argument.Parameter?.Type;
+    }
+
+    private static bool IsSupportedNullOverload(
+        IInvocationOperation invocation,
+        XunitAssertMigrationSymbols symbols)
+    {
+        var subjectType = GetArgumentType(invocation.Arguments[0]);
+        return subjectType is not null && symbols.SupportsNullMigrationReceiver(subjectType);
+    }
+
+    private static bool IsSupportedReferenceEqualityOverload(
+        IInvocationOperation invocation,
+        XunitAssertMigrationSymbols symbols)
+    {
+        if (invocation.Arguments.Length != 2)
+        {
+            return false;
+        }
+
+        var actualType = GetArgumentType(invocation.Arguments[1]);
+        return actualType is not null && symbols.SupportsReferenceEqualityMigrationReceiver(actualType);
     }
 
     private static bool IsUnsupportedEqualityType(

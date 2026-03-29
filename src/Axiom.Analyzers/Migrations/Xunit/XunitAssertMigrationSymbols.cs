@@ -170,15 +170,30 @@ internal sealed class XunitAssertMigrationSymbols
                SymbolEqualityComparer.Default.Equals(originalDefinition, ReadOnlyMemoryType);
     }
 
-    public bool IsSpecializedShouldReceiverForEquality(ITypeSymbol type)
+    public bool SupportsEqualityMigrationReceiver(ITypeSymbol type)
     {
-        if (type.SpecialType == SpecialType.System_String)
-        {
-            return false;
-        }
+        return IsStringType(type) || !UsesSpecializedShouldReceiver(type);
+    }
 
+    public bool SupportsNullMigrationReceiver(ITypeSymbol type)
+    {
+        return IsStringType(type) || !UsesSpecializedShouldReceiver(type);
+    }
+
+    public bool SupportsReferenceEqualityMigrationReceiver(ITypeSymbol type)
+    {
+        return !UsesSpecializedShouldReceiver(type);
+    }
+
+    private bool UsesSpecializedShouldReceiver(ITypeSymbol type)
+    {
         if (ActionType is not null &&
             SymbolEqualityComparer.Default.Equals(type, ActionType))
+        {
+            return true;
+        }
+
+        if (IsStringType(type))
         {
             return true;
         }
@@ -190,6 +205,9 @@ internal sealed class XunitAssertMigrationSymbols
 
         return IsFuncReturningTaskLike(type);
     }
+
+    private static bool IsStringType(ITypeSymbol type)
+        => type.SpecialType == SpecialType.System_String;
 
     public bool IsDictionaryLike(ITypeSymbol type)
     {
