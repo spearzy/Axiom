@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project follows [Semantic Versioning](https://semver.org/).
 
+## [1.0.0] - 2026-03-29
+
+### Fixed
+
+- Cleaned up xUnit migration code-fix output so generated Axiom assertions avoid unnecessary fully qualified names.
+- Improved the `Assert.Throws<T>(...)` migration fix output to read more naturally.
+
 ## [0.10.0] - 2026-03-29
 
 ### Added
