@@ -4,6 +4,23 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project follows [Semantic Versioning](https://semver.org/).
 
+## [1.1.0] - 2026-04-01
+
+### Added
+
+- Expanded xUnit migration analyzers and code fixes for more high-confidence `Assert.*` shapes, including consumed-result continuations where Axiom has a matching fluent continuation.
+- Added xUnit dictionary-key containment migrations.
+- Added xUnit `Assert.Throws<TException>(paramName, Action)` migration support.
+- Added xUnit string `Assert.StartsWith(...)` and `Assert.EndsWith(...)` migration support.
+
+### Changed
+
+- Migration docs and analyzer docs now cover the broader xUnit migration surface.
+
+### Fixed
+
+- Tightened migration safety checks so suggestions only appear when the generated Axiom fluent API is valid for the actual receiver shape.
+
 ## [1.0.0] - 2026-03-29
 
 ### Fixed
