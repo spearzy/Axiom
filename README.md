@@ -28,6 +28,10 @@ Target frameworks: `net8.0`, `net9.0`, and `net10.0`.
 Documentation: [spearzy.github.io/Axiom](https://spearzy.github.io/Axiom/)
 Benchmarks: [spearzy.github.io/Axiom/benchmarks](https://spearzy.github.io/Axiom/benchmarks/)
 
+## Project Origin
+
+Axiom started as an exploration of assertion library design and has since been hardened into a maintained library for modern .NET. The project is tested, versioned, and released with semantic versioning but it is still early in its adoption curve. If you run into gaps or confusing behavior  please open an issue with a small repro.
+
 ## Packages
 
 Most test projects should reference `Axiom.Assertions`. It contains the fluent `Should()` API, pulls in `Axiom.Core` automatically, and bundles the Axiom analyzers/code fixes so editor and build diagnostics light up without extra package setup. The bundled rules currently cover ignored async Axiom assertions, `Batch` instances that are created without being disposed, and high-confidence xUnit `Assert.*` migration suggestions.
