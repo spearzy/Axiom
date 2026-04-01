@@ -31,6 +31,7 @@ The current analyzer and code-fix wave focuses on high-confidence xUnit `Assert.
 | `Assert.IsType<T>(actual)` | `actual.Should().BeOfType<T>()` |
 | `Assert.IsAssignableFrom<T>(actual)` | `actual.Should().BeAssignableTo<T>()` |
 | `Assert.Throws<TException>(() => work())` | `new Action(() => work()).Should().Throw<TException>()` |
+| `Assert.Throws<TException>("name", () => work())` with a non-null constant param name | `new Action(() => work()).Should().Throw<TException>().WithParamName("name")` or append `.Thrown` when you use the exception |
 
 For dictionary-key migration, the receiver has to fit Axiom's `ContainKey` / `NotContainKey` surface. The current support covers `IDictionary<TKey, TValue>`, `IReadOnlyDictionary<TKey, TValue>`, `Dictionary<TKey, TValue>`, `ReadOnlyDictionary<TKey, TValue>`, `ConcurrentDictionary<TKey, TValue>`, and `ImmutableDictionary<TKey, TValue>`.
 
@@ -47,7 +48,8 @@ It skips cases where the rewrite is not obviously semantics-preserving yet, incl
 
 - overloads with custom comparers, precision, inspectors, or messages
 - nongeneric `Assert.Single(subject)` when you use the returned value
-- `Assert.Throws<TException>(...)` when you use the returned exception
+- `Assert.Throws<TException>(...)` when you use the returned exception outside the `string? paramName, Action testCode` overload
+- `Assert.Throws<TException>(paramName, ...)` when `paramName` is not an obvious non-null constant string
 - most structural-comparison assertions
 
 If a code fix appears, it is meant to be a safe one. If it does not appear, treat the migration as a normal test rewrite rather than a missed trick.

@@ -165,7 +165,11 @@ internal static class AxiomAssertionStubs
                 public ValueTask<SuccessfulTaskContinuation<TaskAssertions<T>, T>> SucceedWithin(TimeSpan timeout) => default;
             }
 
-            public readonly struct ThrownExceptionAssertions<TParent, TException> where TException : Exception { }
+            public readonly struct ThrownExceptionAssertions<TParent, TException> where TException : Exception
+            {
+                public TException Thrown => throw null!;
+                public ThrownExceptionAssertions<TParent, TException> WithParamName(string expectedParamName) => default;
+            }
             public readonly struct SuccessfulTaskContinuation<TParent, TResult> { }
         }
 

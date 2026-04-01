@@ -16,7 +16,8 @@ internal sealed class XunitAssertMigrationMatch
         TypeSyntax? typeArgumentSyntax,
         bool requiresAssertionsExtensionsNamespace,
         bool appendSingleItem,
-        bool appendWhoseValue)
+        bool appendWhoseValue,
+        bool appendThrown)
     {
         Spec = spec;
         InvocationSyntax = invocationSyntax;
@@ -26,6 +27,7 @@ internal sealed class XunitAssertMigrationMatch
         RequiresAssertionsExtensionsNamespace = requiresAssertionsExtensionsNamespace;
         AppendSingleItem = appendSingleItem;
         AppendWhoseValue = appendWhoseValue;
+        AppendThrown = appendThrown;
     }
 
     public XunitAssertMigrationSpec Spec { get; }
@@ -36,6 +38,7 @@ internal sealed class XunitAssertMigrationMatch
     public bool RequiresAssertionsExtensionsNamespace { get; }
     public bool AppendSingleItem { get; }
     public bool AppendWhoseValue { get; }
+    public bool AppendThrown { get; }
 }
 
 internal static class XunitAssertMigrationMatcher
@@ -68,9 +71,9 @@ internal static class XunitAssertMigrationMatcher
         foreach (var spec in XunitAssertMigrationSpecs.GetByMethodName(invocation.TargetMethod.Name))
         {
             // If the basic shape does not match this rule, try the next rule.
-            if (invocation.TargetMethod.Parameters.Length != spec.RequiredArgumentCount ||
-                invocation.Arguments.Length != spec.RequiredArgumentCount ||
-                invocationSyntax.ArgumentList.Arguments.Count != spec.RequiredArgumentCount)
+            if (!MatchesArgumentCount(spec, invocation.TargetMethod.Parameters.Length) ||
+                !MatchesArgumentCount(spec, invocation.Arguments.Length) ||
+                !MatchesArgumentCount(spec, invocationSyntax.ArgumentList.Arguments.Count))
             {
                 continue;
             }
@@ -103,7 +106,8 @@ internal static class XunitAssertMigrationMatcher
                 typeArgumentSyntax,
                 RequiresAssertionsExtensionsNamespace(spec.Kind, GetSubjectType(spec.Kind, invocation.TargetMethod.Parameters)),
                 appendSingleItem: resultIsConsumed && spec.Kind is XunitAssertMigrationKind.ContainSingle or XunitAssertMigrationKind.ContainSingleMatching,
-                appendWhoseValue: resultIsConsumed && spec.Kind is XunitAssertMigrationKind.ContainKey);
+                appendWhoseValue: resultIsConsumed && spec.Kind is XunitAssertMigrationKind.ContainKey,
+                appendThrown: resultIsConsumed && spec.Kind is XunitAssertMigrationKind.Throw && expectedExpression is not null);
 
             return true;
         }
@@ -124,6 +128,12 @@ internal static class XunitAssertMigrationMatcher
         }
 
         return true;
+    }
+
+    private static bool MatchesArgumentCount(XunitAssertMigrationSpec spec, int count)
+    {
+        return count == spec.RequiredArgumentCount ||
+               (spec.AlternateArgumentCount is int alternateArgumentCount && count == alternateArgumentCount);
     }
 
     private static bool IsSafeSupportedOverload(
@@ -180,7 +190,7 @@ internal static class XunitAssertMigrationMatcher
                 return !resultIsConsumed && IsSupportedReferenceEqualityOverload(invocation, symbols);
 
             case XunitAssertMigrationKind.Throw:
-                return !resultIsConsumed && IsSupportedThrowsOverload(method, symbols);
+                return IsSupportedThrowsOverload(invocation, symbols, resultIsConsumed);
 
             case XunitAssertMigrationKind.BeOfType:
                 return !resultIsConsumed && IsSupportedIsTypeOverload(invocation, symbols);
@@ -425,14 +435,40 @@ internal static class XunitAssertMigrationMatcher
     }
 
     private static bool IsSupportedThrowsOverload(
-        IMethodSymbol method,
-        XunitAssertMigrationSymbols symbols)
+        IInvocationOperation invocation,
+        XunitAssertMigrationSymbols symbols,
+        bool resultIsConsumed)
     {
-        return method.IsGenericMethod &&
-               method.TypeArguments.Length == 1 &&
-               method.Parameters.Length == 1 &&
-               symbols.ActionType is not null &&
-               SymbolEqualityComparer.Default.Equals(method.Parameters[0].Type, symbols.ActionType);
+        var method = invocation.TargetMethod;
+        if (!method.IsGenericMethod ||
+            method.TypeArguments.Length != 1 ||
+            symbols.ActionType is null)
+        {
+            return false;
+        }
+
+        if (method.Parameters.Length == 1 &&
+            invocation.Arguments.Length == 1)
+        {
+            return !resultIsConsumed &&
+                   SymbolEqualityComparer.Default.Equals(method.Parameters[0].Type, symbols.ActionType);
+        }
+
+        return method.Parameters.Length == 2 &&
+               invocation.Arguments.Length == 2 &&
+               method.Parameters[0].Type.SpecialType == SpecialType.System_String &&
+               SymbolEqualityComparer.Default.Equals(method.Parameters[1].Type, symbols.ActionType) &&
+               IsSupportedThrowsParamNameExpression(invocation.Arguments[0]);
+    }
+
+    private static bool IsSupportedThrowsParamNameExpression(IArgumentOperation paramNameArgument)
+    {
+        // Keep this rewrite high-confidence. We only migrate param-name throws when the source
+        // param name is an obvious non-null constant string like "name" or nameof(name).
+        var operation = UnwrapConversions(paramNameArgument.Value);
+        var constantValue = operation.ConstantValue;
+
+        return constantValue.HasValue && constantValue.Value is string;
     }
 
     private static bool IsSupportedIsTypeOverload(
@@ -485,6 +521,8 @@ internal static class XunitAssertMigrationMatcher
                  XunitAssertMigrationKind.BeSameAs or
                  XunitAssertMigrationKind.NotBeSameAs
             ? arguments[1].Expression
+            : kind is XunitAssertMigrationKind.Throw && arguments.Count == 2
+                ? arguments[1].Expression
             : arguments[0].Expression;
 
     private static ITypeSymbol GetSubjectType(
@@ -502,6 +540,8 @@ internal static class XunitAssertMigrationMatcher
                  XunitAssertMigrationKind.BeSameAs or
                  XunitAssertMigrationKind.NotBeSameAs
             ? parameters[1].Type
+            : kind is XunitAssertMigrationKind.Throw && parameters.Length == 2
+                ? parameters[1].Type
             : parameters[0].Type;
 
     private static ExpressionSyntax? GetExpectedExpression(
@@ -519,6 +559,8 @@ internal static class XunitAssertMigrationMatcher
             XunitAssertMigrationKind.NotContainSubstring or
             XunitAssertMigrationKind.ContainKey or
             XunitAssertMigrationKind.NotContainKey
+                => arguments[0].Expression,
+            XunitAssertMigrationKind.Throw when arguments.Count == 2
                 => arguments[0].Expression,
             XunitAssertMigrationKind.ContainSingleMatching
                 => arguments[1].Expression,

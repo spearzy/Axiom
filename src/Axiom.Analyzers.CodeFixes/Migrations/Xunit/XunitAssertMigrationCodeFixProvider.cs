@@ -196,7 +196,32 @@ public sealed class XunitAssertMigrationCodeFixProvider : CodeFixProvider
                 SyntaxFactory.TypeArgumentList(
                     SyntaxFactory.SingletonSeparatedList(match.TypeArgumentSyntax!.WithoutTrivia()))));
 
-        return SyntaxFactory.InvocationExpression(throwMethod, SyntaxFactory.ArgumentList());
+        ExpressionSyntax rewrittenExpression =
+            SyntaxFactory.InvocationExpression(throwMethod, SyntaxFactory.ArgumentList());
+
+        if (match.ExpectedExpression is not null)
+        {
+            var withParamNameMethod = SyntaxFactory.MemberAccessExpression(
+                SyntaxKind.SimpleMemberAccessExpression,
+                rewrittenExpression,
+                SyntaxFactory.IdentifierName("WithParamName"));
+
+            rewrittenExpression = SyntaxFactory.InvocationExpression(
+                withParamNameMethod,
+                SyntaxFactory.ArgumentList(
+                    SyntaxFactory.SingletonSeparatedList(
+                        SyntaxFactory.Argument(match.ExpectedExpression.WithoutTrivia()))));
+        }
+
+        if (match.AppendThrown)
+        {
+            rewrittenExpression = SyntaxFactory.MemberAccessExpression(
+                SyntaxKind.SimpleMemberAccessExpression,
+                rewrittenExpression,
+                SyntaxFactory.IdentifierName("Thrown"));
+        }
+
+        return rewrittenExpression;
     }
 
     private static bool CanUseDirectThrowReceiver(
@@ -262,6 +287,16 @@ public sealed class XunitAssertMigrationCodeFixProvider : CodeFixProvider
         if (match.AppendWhoseValue && match.Spec.Kind is XunitAssertMigrationKind.ContainKey)
         {
             return "Convert to 'dictionary.Should().ContainKey(key).WhoseValue'";
+        }
+
+        if (match.AppendThrown && match.Spec.Kind is XunitAssertMigrationKind.Throw)
+        {
+            return "Convert to '.Should().Throw<TException>().WithParamName(...).Thrown'";
+        }
+
+        if (match.ExpectedExpression is not null && match.Spec.Kind is XunitAssertMigrationKind.Throw)
+        {
+            return "Convert to '.Should().Throw<TException>().WithParamName(...)'";
         }
 
         return match.Spec.CodeFixTitle;

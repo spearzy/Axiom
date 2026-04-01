@@ -98,7 +98,7 @@ Rules:
 - `AXM1011` for `Assert.Single(subject)`, appending `.SingleItem` when the single item is used
 - `AXM1012` for `Assert.Same(expected, actual)`
 - `AXM1013` for `Assert.NotSame(expected, actual)`
-- `AXM1014` for `Assert.Throws<TException>(...)` when the returned exception is not consumed
+- `AXM1014` for `Assert.Throws<TException>(...)`, including non-null constant `paramName` + `Action` overloads and appending `.Thrown` when the exception is used
 - `AXM1015` for `Assert.IsType<T>(actual)`
 - `AXM1016` for `Assert.IsAssignableFrom<T>(actual)`
 - `AXM1017` for `Assert.Contains(expectedSubstring, actualString)`
@@ -122,6 +122,7 @@ var found = Assert.Contains(key, lookup);
 var item = Assert.Single(values);
 var match = Assert.Single(values, value => value > 0);
 Assert.Throws<InvalidOperationException>(() => work());
+var ex = Assert.Throws<ArgumentNullException>("name", () => work());
 ```
 
 After:
@@ -137,6 +138,7 @@ var found = lookup.Should().ContainKey(key).WhoseValue;
 var item = values.Should().ContainSingle().SingleItem;
 var match = values.Should().ContainSingle(value => value > 0).SingleItem;
 new Action(() => work()).Should().Throw<InvalidOperationException>();
+var ex = new Action(() => work()).Should().Throw<ArgumentNullException>().WithParamName("name").Thrown;
 ```
 
 The migration suggestions use semantic matching, so they only target xUnit's real `Assert` API. They do not flag custom helper classes named `Assert`.
@@ -147,6 +149,7 @@ They also intentionally skip shapes that are not obviously semantics-preserving 
 
 - overloads with custom comparers, precision, inspectors, or user messages
 - nongeneric `Assert.Single(subject)` calls when the returned item is used
-- `Assert.Throws<TException>(...)` when the returned exception is consumed
+- `Assert.Throws<TException>(...)` consumed-result shapes outside the `string? paramName, Action testCode` overload
+- `Assert.Throws<TException>(paramName, ...)` when `paramName` is not an obvious non-null constant string
 
 For a broader mapping table and practical migration notes, see [Migrating to Axiom](migrating-to-axiom.md).
