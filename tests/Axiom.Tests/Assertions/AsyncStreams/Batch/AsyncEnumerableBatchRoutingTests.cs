@@ -160,6 +160,81 @@ public sealed class AsyncEnumerableBatchRoutingTests
     }
 
     [Fact]
+    public async Task ContainExactlyAsync_OutsideBatch_ThrowsImmediately()
+    {
+        var values = CreateAsyncSequence(1, 2, 3);
+
+        await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+            await values.Should().ContainExactlyAsync([1, 9, 3]));
+    }
+
+    [Fact]
+    public async Task ContainExactlyAsync_InsideBatch_DoesNotThrowAtAssertionCallSite()
+    {
+        var values = CreateAsyncSequence(1, 2, 3);
+
+        using var batch = new Axiom.Core.Batch();
+        var callEx = await Record.ExceptionAsync(async () =>
+            await values.Should().ContainExactlyAsync([1, 9, 3]));
+
+        Assert.Null(callEx);
+
+        var disposeEx = Assert.Throws<InvalidOperationException>(() => batch.Dispose());
+        Assert.Contains("Expected values to contain exactly [1, 9, 3]", disposeEx.Message);
+        Assert.Contains("item mismatch at index 1: expected 9 but found 2", disposeEx.Message);
+    }
+
+    [Fact]
+    public async Task ContainAnyAsync_OutsideBatch_ThrowsImmediately()
+    {
+        var values = CreateAsyncSequence(1, 2, 3);
+
+        await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+            await values.Should().ContainAnyAsync([9, 10]));
+    }
+
+    [Fact]
+    public async Task ContainAnyAsync_InsideBatch_DoesNotThrowAtAssertionCallSite()
+    {
+        var values = CreateAsyncSequence(1, 2, 3);
+
+        using var batch = new Axiom.Core.Batch();
+        var callEx = await Record.ExceptionAsync(async () =>
+            await values.Should().ContainAnyAsync([9, 10]));
+
+        Assert.Null(callEx);
+
+        var disposeEx = Assert.Throws<InvalidOperationException>(() => batch.Dispose());
+        Assert.Contains("Expected values to contain any of [9, 10]", disposeEx.Message);
+        Assert.Contains("none of the expected items were found", disposeEx.Message);
+    }
+
+    [Fact]
+    public async Task NotContainAnyAsync_OutsideBatch_ThrowsImmediately()
+    {
+        var values = CreateAsyncSequence(1, 2, 3);
+
+        await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+            await values.Should().NotContainAnyAsync([9, 2, 10]));
+    }
+
+    [Fact]
+    public async Task NotContainAnyAsync_InsideBatch_DoesNotThrowAtAssertionCallSite()
+    {
+        var values = CreateAsyncSequence(1, 2, 3);
+
+        using var batch = new Axiom.Core.Batch();
+        var callEx = await Record.ExceptionAsync(async () =>
+            await values.Should().NotContainAnyAsync([9, 2, 10]));
+
+        Assert.Null(callEx);
+
+        var disposeEx = Assert.Throws<InvalidOperationException>(() => batch.Dispose());
+        Assert.Contains("Expected values to not contain any of [9, 2, 10]", disposeEx.Message);
+        Assert.Contains("first matching item at subject index 1: 2", disposeEx.Message);
+    }
+
+    [Fact]
     public async Task ContainInOrderAsync_OutsideBatch_ThrowsImmediately()
     {
         var values = CreateAsyncSequence(1, 2, 3);

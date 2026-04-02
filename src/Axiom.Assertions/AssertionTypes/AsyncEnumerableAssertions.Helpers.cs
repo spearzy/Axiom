@@ -138,6 +138,22 @@ public sealed partial class AsyncEnumerableAssertions<T>
         return buffer.ToArray();
     }
 
+    private static bool ContainsItem<TValue>(
+        IReadOnlyList<TValue> values,
+        TValue candidate,
+        IEqualityComparer<TValue> comparer)
+    {
+        for (var i = 0; i < values.Count; i++)
+        {
+            if (comparer.Equals(values[i], candidate))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     private static int[] BuildFallbackTable<TValue>(IReadOnlyList<TValue> pattern, IEqualityComparer<TValue> comparer)
     {
         var fallbackTable = new int[pattern.Count];

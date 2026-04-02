@@ -221,6 +221,9 @@ NotBeEmptyAsync()
 HaveCountAsync(expectedCount)
 ContainAsync(expected)
 ContainAsync(predicate)
+ContainExactlyAsync(expectedSequence)
+ContainAnyAsync(expectedItems)
+NotContainAnyAsync(unexpectedItems)
 OnlyContainAsync(predicate)
 ContainSingleAsync()
 ContainSingleAsync(predicate)
@@ -240,6 +243,16 @@ SingleItem
 ```
 
 Use them when you want to assert an async stream directly instead of materializing it into a list first.
+
+`ContainExactlyAsync(...)` is the exact ordered async-stream assertion. The stream must match the expected sequence item-for-item in the same order, with no missing items and no extras.
+
+`ContainAnyAsync(...)` passes when the async stream contains at least one of the expected items. `NotContainAnyAsync(...)` passes when the stream contains none of the unexpected items.
+
+```csharp
+await stepIds.Should().ContainExactlyAsync([1, 2, 3]);
+await stepIds.Should().ContainAnyAsync([2, 9]);
+await stepIds.Should().NotContainAnyAsync([8, 9]);
+```
 
 `SatisfyRespectivelyAsync(...)` is the ordered async-stream workflow assertion. It applies each assertion action to the corresponding item, fails when the stream is too short or too long, and reports the first failing item index when an item assertion fails.
 
