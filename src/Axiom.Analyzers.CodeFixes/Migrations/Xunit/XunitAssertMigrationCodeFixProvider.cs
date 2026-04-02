@@ -116,134 +116,68 @@ public sealed class XunitAssertMigrationCodeFixProvider : CodeFixProvider
         XunitAssertMigrationMatch match,
         SemanticModel semanticModel)
     {
-        if (match.Spec.Kind is XunitAssertMigrationKind.Throw)
+        return match.Spec.Kind switch
         {
-            return BuildThrowReplacementExpression(match, semanticModel);
-        }
+            XunitAssertMigrationKind.Be or
+            XunitAssertMigrationKind.NotBe or
+            XunitAssertMigrationKind.BeNull or
+            XunitAssertMigrationKind.NotBeNull or
+            XunitAssertMigrationKind.BeTrue or
+            XunitAssertMigrationKind.BeFalse or
+            XunitAssertMigrationKind.BeEmpty or
+            XunitAssertMigrationKind.NotBeEmpty or
+            XunitAssertMigrationKind.BeSameAs or
+            XunitAssertMigrationKind.NotBeSameAs
+                => XunitScalarMigrationRewriter.BuildReplacementExpression(match),
 
-        var subjectExpression = PrepareSubjectExpression(match.SubjectExpression);
-        var shouldInvocation = SyntaxFactory.InvocationExpression(
-            SyntaxFactory.MemberAccessExpression(
-                SyntaxKind.SimpleMemberAccessExpression,
-                subjectExpression,
-                SyntaxFactory.IdentifierName("Should")),
-            SyntaxFactory.ArgumentList());
+            XunitAssertMigrationKind.Contain or
+            XunitAssertMigrationKind.NotContain or
+            XunitAssertMigrationKind.ContainSubstring or
+            XunitAssertMigrationKind.NotContainSubstring or
+            XunitAssertMigrationKind.StartWith or
+            XunitAssertMigrationKind.EndWith or
+            XunitAssertMigrationKind.ContainKey or
+            XunitAssertMigrationKind.NotContainKey
+                => XunitContainmentMigrationRewriter.BuildReplacementExpression(match),
 
-        var assertionMethodName = match.TypeArgumentSyntax is null
-            ? (SimpleNameSyntax)SyntaxFactory.IdentifierName(GetAxiomMethodName(match.Spec.Kind))
-            : SyntaxFactory.GenericName(
-                SyntaxFactory.Identifier(GetAxiomMethodName(match.Spec.Kind)),
-                SyntaxFactory.TypeArgumentList(
-                    SyntaxFactory.SingletonSeparatedList(match.TypeArgumentSyntax.WithoutTrivia())));
+            XunitAssertMigrationKind.ContainSingle or
+            XunitAssertMigrationKind.ContainSingleMatching
+                => XunitSingleMigrationRewriter.BuildReplacementExpression(match),
 
-        var assertionMethod = SyntaxFactory.MemberAccessExpression(
-            SyntaxKind.SimpleMemberAccessExpression,
-            shouldInvocation,
-            assertionMethodName);
+            XunitAssertMigrationKind.Throw
+                => XunitThrowsMigrationRewriter.BuildReplacementExpression(match, semanticModel),
 
-        ExpressionSyntax rewrittenExpression = match.ExpectedExpression is null
-            ? SyntaxFactory.InvocationExpression(assertionMethod, SyntaxFactory.ArgumentList())
-            : SyntaxFactory.InvocationExpression(
-                assertionMethod,
-                SyntaxFactory.ArgumentList(
-                    SyntaxFactory.SingletonSeparatedList(
-                        SyntaxFactory.Argument(GetAssertionArgumentExpression(match).WithoutTrivia()))));
+            XunitAssertMigrationKind.BeOfType or
+            XunitAssertMigrationKind.BeAssignableTo
+                => XunitTypeMigrationRewriter.BuildReplacementExpression(match),
 
-        if (match.AppendSingleItem)
-        {
-            rewrittenExpression = SyntaxFactory.MemberAccessExpression(
-                SyntaxKind.SimpleMemberAccessExpression,
-                rewrittenExpression,
-                SyntaxFactory.IdentifierName("SingleItem"));
-        }
-
-        if (match.AppendWhoseValue)
-        {
-            rewrittenExpression = SyntaxFactory.MemberAccessExpression(
-                SyntaxKind.SimpleMemberAccessExpression,
-                rewrittenExpression,
-                SyntaxFactory.IdentifierName("WhoseValue"));
-        }
-
-        return rewrittenExpression;
+            _ => throw new ArgumentOutOfRangeException(nameof(match)),
+        };
     }
 
-    private static ExpressionSyntax BuildThrowReplacementExpression(
-        XunitAssertMigrationMatch match,
-        SemanticModel semanticModel)
+    private static string GetCodeFixTitle(XunitAssertMigrationMatch match)
     {
-        var actionExpression = CanUseDirectThrowReceiver(match.SubjectExpression, semanticModel)
-            ? PrepareSubjectExpression(match.SubjectExpression)
-            : SyntaxFactory.ObjectCreationExpression(
-                SyntaxFactory.IdentifierName("Action"),
-                SyntaxFactory.ArgumentList(
-                    SyntaxFactory.SingletonSeparatedList(
-                        SyntaxFactory.Argument(match.SubjectExpression.WithoutTrivia()))),
-                initializer: null);
-
-        var shouldInvocation = SyntaxFactory.InvocationExpression(
-            SyntaxFactory.MemberAccessExpression(
-                SyntaxKind.SimpleMemberAccessExpression,
-                actionExpression,
-                SyntaxFactory.IdentifierName("Should")),
-            SyntaxFactory.ArgumentList());
-
-        var throwMethod = SyntaxFactory.MemberAccessExpression(
-            SyntaxKind.SimpleMemberAccessExpression,
-            shouldInvocation,
-            SyntaxFactory.GenericName(
-                SyntaxFactory.Identifier("Throw"),
-                SyntaxFactory.TypeArgumentList(
-                    SyntaxFactory.SingletonSeparatedList(match.TypeArgumentSyntax!.WithoutTrivia()))));
-
-        ExpressionSyntax rewrittenExpression =
-            SyntaxFactory.InvocationExpression(throwMethod, SyntaxFactory.ArgumentList());
-
-        if (match.ExpectedExpression is not null)
+        return match.Spec.Kind switch
         {
-            var withParamNameMethod = SyntaxFactory.MemberAccessExpression(
-                SyntaxKind.SimpleMemberAccessExpression,
-                rewrittenExpression,
-                SyntaxFactory.IdentifierName("WithParamName"));
+            XunitAssertMigrationKind.Contain or
+            XunitAssertMigrationKind.NotContain or
+            XunitAssertMigrationKind.ContainSubstring or
+            XunitAssertMigrationKind.NotContainSubstring or
+            XunitAssertMigrationKind.StartWith or
+            XunitAssertMigrationKind.EndWith or
+            XunitAssertMigrationKind.ContainKey or
+            XunitAssertMigrationKind.NotContainKey
+                => XunitContainmentMigrationRewriter.GetCodeFixTitle(match),
 
-            rewrittenExpression = SyntaxFactory.InvocationExpression(
-                withParamNameMethod,
-                SyntaxFactory.ArgumentList(
-                    SyntaxFactory.SingletonSeparatedList(
-                        SyntaxFactory.Argument(match.ExpectedExpression.WithoutTrivia()))));
-        }
+            XunitAssertMigrationKind.ContainSingle or
+            XunitAssertMigrationKind.ContainSingleMatching
+                => XunitSingleMigrationRewriter.GetCodeFixTitle(match),
 
-        if (match.AppendThrown)
-        {
-            rewrittenExpression = SyntaxFactory.MemberAccessExpression(
-                SyntaxKind.SimpleMemberAccessExpression,
-                rewrittenExpression,
-                SyntaxFactory.IdentifierName("Thrown"));
-        }
+            XunitAssertMigrationKind.Throw
+                => XunitThrowsMigrationRewriter.GetCodeFixTitle(match),
 
-        return rewrittenExpression;
-    }
-
-    private static bool CanUseDirectThrowReceiver(
-        ExpressionSyntax subjectExpression,
-        SemanticModel semanticModel)
-    {
-        var symbolInfo = semanticModel.GetSymbolInfo(subjectExpression);
-        if (symbolInfo.Symbol is IMethodSymbol ||
-            symbolInfo.CandidateSymbols.Any(static symbol => symbol is IMethodSymbol))
-        {
-            return false;
-        }
-
-        var typeInfo = semanticModel.GetTypeInfo(subjectExpression);
-        var actionType = semanticModel.Compilation.GetTypeByMetadataName("System.Action");
-        if (actionType is null)
-        {
-            return false;
-        }
-
-        return SymbolEqualityComparer.Default.Equals(typeInfo.Type, actionType) ||
-               SymbolEqualityComparer.Default.Equals(typeInfo.ConvertedType, actionType);
+            _ => match.Spec.CodeFixTitle,
+        };
     }
 
     private static bool RequiresSystemNamespace(
@@ -251,10 +185,76 @@ public sealed class XunitAssertMigrationCodeFixProvider : CodeFixProvider
         SemanticModel semanticModel)
     {
         return match.Spec.Kind is XunitAssertMigrationKind.Throw &&
-               !CanUseDirectThrowReceiver(match.SubjectExpression, semanticModel);
+               XunitThrowsMigrationRewriter.RequiresSystemNamespace(match, semanticModel);
     }
 
-    private static ExpressionSyntax PrepareSubjectExpression(ExpressionSyntax subjectExpression)
+    internal static ExpressionSyntax BuildShouldCall(
+        ExpressionSyntax subjectExpression,
+        string methodName,
+        ExpressionSyntax? argumentExpression = null,
+        TypeSyntax? typeArgumentSyntax = null)
+    {
+        var shouldInvocation = BuildShouldInvocation(subjectExpression);
+        var assertionMethod = SyntaxFactory.MemberAccessExpression(
+            SyntaxKind.SimpleMemberAccessExpression,
+            shouldInvocation,
+            BuildMethodName(methodName, typeArgumentSyntax));
+
+        return BuildInvocation(assertionMethod, argumentExpression);
+    }
+
+    internal static ExpressionSyntax BuildShouldInvocation(ExpressionSyntax subjectExpression)
+    {
+        return SyntaxFactory.InvocationExpression(
+            SyntaxFactory.MemberAccessExpression(
+                SyntaxKind.SimpleMemberAccessExpression,
+                PrepareSubjectExpression(subjectExpression),
+                SyntaxFactory.IdentifierName("Should")),
+            SyntaxFactory.ArgumentList());
+    }
+
+    internal static SimpleNameSyntax BuildMethodName(
+        string methodName,
+        TypeSyntax? typeArgumentSyntax = null)
+    {
+        if (typeArgumentSyntax is null)
+        {
+            return SyntaxFactory.IdentifierName(methodName);
+        }
+
+        return SyntaxFactory.GenericName(
+            SyntaxFactory.Identifier(methodName),
+            SyntaxFactory.TypeArgumentList(
+                SyntaxFactory.SingletonSeparatedList(typeArgumentSyntax.WithoutTrivia())));
+    }
+
+    internal static ExpressionSyntax BuildInvocation(
+        ExpressionSyntax targetExpression,
+        ExpressionSyntax? argumentExpression = null)
+    {
+        if (argumentExpression is null)
+        {
+            return SyntaxFactory.InvocationExpression(targetExpression, SyntaxFactory.ArgumentList());
+        }
+
+        return SyntaxFactory.InvocationExpression(
+            targetExpression,
+            SyntaxFactory.ArgumentList(
+                SyntaxFactory.SingletonSeparatedList(
+                    SyntaxFactory.Argument(argumentExpression.WithoutTrivia()))));
+    }
+
+    internal static ExpressionSyntax AppendMemberAccess(
+        ExpressionSyntax expression,
+        string memberName)
+    {
+        return SyntaxFactory.MemberAccessExpression(
+            SyntaxKind.SimpleMemberAccessExpression,
+            expression,
+            SyntaxFactory.IdentifierName(memberName));
+    }
+
+    internal static ExpressionSyntax PrepareSubjectExpression(ExpressionSyntax subjectExpression)
     {
         var withoutTrivia = subjectExpression.WithoutTrivia();
         if (NeedsParentheses(withoutTrivia))
@@ -263,43 +263,6 @@ public sealed class XunitAssertMigrationCodeFixProvider : CodeFixProvider
         }
 
         return withoutTrivia;
-    }
-
-    private static ExpressionSyntax GetAssertionArgumentExpression(XunitAssertMigrationMatch match)
-    {
-        // The matcher already filtered AXM1019 down to safe predicate shapes.
-        // At this point we can forward the source expression as-is.
-        return match.ExpectedExpression!;
-    }
-
-    private static string GetCodeFixTitle(XunitAssertMigrationMatch match)
-    {
-        if (match.AppendSingleItem && match.Spec.Kind is XunitAssertMigrationKind.ContainSingle)
-        {
-            return "Convert to 'subject.Should().ContainSingle().SingleItem'";
-        }
-
-        if (match.AppendSingleItem && match.Spec.Kind is XunitAssertMigrationKind.ContainSingleMatching)
-        {
-            return "Convert to 'subject.Should().ContainSingle(...).SingleItem'";
-        }
-
-        if (match.AppendWhoseValue && match.Spec.Kind is XunitAssertMigrationKind.ContainKey)
-        {
-            return "Convert to 'dictionary.Should().ContainKey(key).WhoseValue'";
-        }
-
-        if (match.AppendThrown && match.Spec.Kind is XunitAssertMigrationKind.Throw)
-        {
-            return "Convert to '.Should().Throw<TException>().WithParamName(...).Thrown'";
-        }
-
-        if (match.ExpectedExpression is not null && match.Spec.Kind is XunitAssertMigrationKind.Throw)
-        {
-            return "Convert to '.Should().Throw<TException>().WithParamName(...)'";
-        }
-
-        return match.Spec.CodeFixTitle;
     }
 
     private static bool NeedsParentheses(ExpressionSyntax expression)
@@ -318,36 +281,6 @@ public sealed class XunitAssertMigrationCodeFixProvider : CodeFixProvider
             LiteralExpressionSyntax => false,
             ParenthesizedExpressionSyntax => false,
             _ => true,
-        };
-    }
-
-    private static string GetAxiomMethodName(XunitAssertMigrationKind kind)
-    {
-        return kind switch
-        {
-            XunitAssertMigrationKind.Be => "Be",
-            XunitAssertMigrationKind.NotBe => "NotBe",
-            XunitAssertMigrationKind.BeNull => "BeNull",
-            XunitAssertMigrationKind.NotBeNull => "NotBeNull",
-            XunitAssertMigrationKind.BeTrue => "BeTrue",
-            XunitAssertMigrationKind.BeFalse => "BeFalse",
-            XunitAssertMigrationKind.BeEmpty => "BeEmpty",
-            XunitAssertMigrationKind.NotBeEmpty => "NotBeEmpty",
-            XunitAssertMigrationKind.Contain => "Contain",
-            XunitAssertMigrationKind.NotContain => "NotContain",
-            XunitAssertMigrationKind.ContainSubstring => "Contain",
-            XunitAssertMigrationKind.NotContainSubstring => "NotContain",
-            XunitAssertMigrationKind.StartWith => "StartWith",
-            XunitAssertMigrationKind.EndWith => "EndWith",
-            XunitAssertMigrationKind.ContainKey => "ContainKey",
-            XunitAssertMigrationKind.NotContainKey => "NotContainKey",
-            XunitAssertMigrationKind.ContainSingle => "ContainSingle",
-            XunitAssertMigrationKind.ContainSingleMatching => "ContainSingle",
-            XunitAssertMigrationKind.BeSameAs => "BeSameAs",
-            XunitAssertMigrationKind.NotBeSameAs => "NotBeSameAs",
-            XunitAssertMigrationKind.BeOfType => "BeOfType",
-            XunitAssertMigrationKind.BeAssignableTo => "BeAssignableTo",
-            _ => throw new ArgumentOutOfRangeException(nameof(kind)),
         };
     }
 }
