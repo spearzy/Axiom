@@ -27,4 +27,12 @@ public static class AxiomAnalyzerIds
     public const string MigrateXunitAssertDoesNotContainKey = "AXM1021";
     public const string MigrateXunitAssertStartsWith = "AXM1022";
     public const string MigrateXunitAssertEndsWith = "AXM1023";
+    public const string MigrateNunitAssertThatEqualTo = "AXM1024";
+    public const string MigrateNunitAssertThatNotEqualTo = "AXM1025";
+    public const string MigrateNunitAssertThatNull = "AXM1026";
+    public const string MigrateNunitAssertThatNotNull = "AXM1027";
+    public const string MigrateNunitAssertThatTrue = "AXM1028";
+    public const string MigrateNunitAssertThatFalse = "AXM1029";
+    public const string MigrateNunitAssertThatEmpty = "AXM1030";
+    public const string MigrateNunitAssertThatNotEmpty = "AXM1031";
 }

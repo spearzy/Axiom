@@ -6,7 +6,7 @@ The built-in migration analyzers help with a growing set of safe, mechanical rew
 
 ## What Can Be Migrated Automatically Today
 
-The current analyzer and code-fix wave focuses on high-confidence xUnit `Assert.*` shapes.
+The current analyzer and code-fix wave focuses on high-confidence xUnit `Assert.*` shapes plus a conservative first NUnit `Assert.That(...)` wave.
 
 | Source style | Axiom style |
 | --- | --- |
@@ -34,6 +34,14 @@ The current analyzer and code-fix wave focuses on high-confidence xUnit `Assert.
 | `Assert.IsAssignableFrom<T>(actual)` | `actual.Should().BeAssignableTo<T>()` |
 | `Assert.Throws<TException>(() => work())` | `new Action(() => work()).Should().Throw<TException>()` |
 | `Assert.Throws<TException>("name", () => work())` with a non-null constant param name | `new Action(() => work()).Should().Throw<TException>().WithParamName("name")` or append `.Thrown` when you use the exception |
+| `Assert.That(actual, Is.EqualTo(expected))` | `actual.Should().Be(expected)` |
+| `Assert.That(actual, Is.Not.EqualTo(expected))` | `actual.Should().NotBe(expected)` |
+| `Assert.That(value, Is.Null)` | `value.Should().BeNull()` |
+| `Assert.That(value, Is.Not.Null)` | `value.Should().NotBeNull()` |
+| `Assert.That(condition, Is.True)` | `condition.Should().BeTrue()` |
+| `Assert.That(condition, Is.False)` | `condition.Should().BeFalse()` |
+| `Assert.That(collection, Is.Empty)` | `collection.Should().BeEmpty()` |
+| `Assert.That(collection, Is.Not.Empty)` | `collection.Should().NotBeEmpty()` |
 
 For dictionary-key migration, the receiver has to fit Axiom's `ContainKey` / `NotContainKey` surface. The current support covers `IDictionary<TKey, TValue>`, `IReadOnlyDictionary<TKey, TValue>`, `Dictionary<TKey, TValue>`, `ReadOnlyDictionary<TKey, TValue>`, `ConcurrentDictionary<TKey, TValue>`, and `ImmutableDictionary<TKey, TValue>`.
 
@@ -41,6 +49,8 @@ These suggestions ship in:
 
 - `Axiom.Assertions` by default
 - `Axiom.Analyzers` if you only want the diagnostics
+
+The NUnit support is intentionally narrower than the xUnit support today. This first wave only handles the simple `Is.EqualTo`, `Is.Not.EqualTo`, `Is.Null`, `Is.Not.Null`, `Is.True`, `Is.False`, `Is.Empty`, and `Is.Not.Empty` forms.
 
 ## What Still Needs Manual Migration
 
@@ -54,6 +64,7 @@ It skips cases where the rewrite is not obviously semantics-preserving yet, incl
 - nongeneric `Assert.Single(subject)` when you use the returned value
 - `Assert.Throws<TException>(...)` when you use the returned exception outside the `string? paramName, Action testCode` overload
 - `Assert.Throws<TException>(paramName, ...)` when `paramName` is not an obvious non-null constant string
+- richer NUnit constraint chains such as `Does.*`, `Has.*`, comparer/tolerance variants, and message-bearing `Assert.That(...)` overloads
 - most structural-comparison assertions
 
 If a code fix appears, it is meant to be a safe one. If it does not appear, treat the migration as a normal test rewrite rather than a missed trick.
