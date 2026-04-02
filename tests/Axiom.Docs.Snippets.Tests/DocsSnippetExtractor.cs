@@ -88,6 +88,7 @@ internal static class DocsSnippetExtractor
         var context = ResolveContext(relativePath, trimmedCode, infoTokens);
         var needsXunit = NeedsXunitStubs(trimmedCode);
         var needsNunit = NeedsNunitStubs(trimmedCode);
+        var needsMstest = NeedsMstestStubs(trimmedCode);
         var shape = ResolveShape(relativePath, index, trimmedCode, out var skipReason);
 
         return new DocsSnippet(
@@ -100,6 +101,7 @@ internal static class DocsSnippetExtractor
             shape,
             needsXunit,
             needsNunit,
+            needsMstest,
             skipReason);
     }
 
@@ -209,6 +211,20 @@ internal static class DocsSnippetExtractor
             || code.Contains("Is.False", StringComparison.Ordinal)
             || code.Contains("Is.Empty", StringComparison.Ordinal)
             || code.Contains("Is.Not.Empty", StringComparison.Ordinal);
+    }
+
+    private static bool NeedsMstestStubs(string code)
+    {
+        return code.Contains("Microsoft.VisualStudio.TestTools.UnitTesting.Assert.", StringComparison.Ordinal)
+            || code.Contains("using static Microsoft.VisualStudio.TestTools.UnitTesting.Assert", StringComparison.Ordinal)
+            || code.Contains("Assert.AreEqual(", StringComparison.Ordinal)
+            || code.Contains("Assert.AreNotEqual(", StringComparison.Ordinal)
+            || code.Contains("Assert.IsNull(", StringComparison.Ordinal)
+            || code.Contains("Assert.IsNotNull(", StringComparison.Ordinal)
+            || code.Contains("Assert.IsTrue(", StringComparison.Ordinal)
+            || code.Contains("Assert.IsFalse(", StringComparison.Ordinal)
+            || code.Contains("Assert.AreSame(", StringComparison.Ordinal)
+            || code.Contains("Assert.AreNotSame(", StringComparison.Ordinal);
     }
 
     private static bool IsVectorSnippet(string code)
