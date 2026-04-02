@@ -35,4 +35,12 @@ public static class AxiomAnalyzerIds
     public const string MigrateNunitAssertThatFalse = "AXM1029";
     public const string MigrateNunitAssertThatEmpty = "AXM1030";
     public const string MigrateNunitAssertThatNotEmpty = "AXM1031";
+    public const string MigrateMstestAssertAreEqual = "AXM1032";
+    public const string MigrateMstestAssertAreNotEqual = "AXM1033";
+    public const string MigrateMstestAssertIsNull = "AXM1034";
+    public const string MigrateMstestAssertIsNotNull = "AXM1035";
+    public const string MigrateMstestAssertIsTrue = "AXM1036";
+    public const string MigrateMstestAssertIsFalse = "AXM1037";
+    public const string MigrateMstestAssertAreSame = "AXM1038";
+    public const string MigrateMstestAssertAreNotSame = "AXM1039";
 }

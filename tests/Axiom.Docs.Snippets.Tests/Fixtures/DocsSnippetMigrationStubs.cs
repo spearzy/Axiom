@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 
-// Minimal xUnit/NUnit surface for migration examples in the docs. Keep this small and intentional.
+// Minimal xUnit/NUnit/MSTest surface for migration examples in the docs. Keep this small and intentional.
 namespace Xunit
 {
     public static class Assert
@@ -87,4 +87,19 @@ namespace NUnit.Framework.Constraints
     public sealed class TrueConstraint : ConstraintExpression { }
     public sealed class FalseConstraint : ConstraintExpression { }
     public sealed class EmptyConstraint : ConstraintExpression { }
+}
+
+namespace Microsoft.VisualStudio.TestTools.UnitTesting
+{
+    public static class Assert
+    {
+        public static void AreEqual<T>(T expected, T actual) { }
+        public static void AreNotEqual<T>(T expected, T actual) { }
+        public static void IsNull(object? value) { }
+        public static void IsNotNull(object? value) { }
+        public static void IsTrue(bool condition) { }
+        public static void IsFalse(bool condition) { }
+        public static void AreSame(object? expected, object? actual) { }
+        public static void AreNotSame(object? expected, object? actual) { }
+    }
 }

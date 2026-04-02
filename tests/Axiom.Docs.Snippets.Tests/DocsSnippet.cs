@@ -24,6 +24,7 @@ public sealed record DocsSnippet(
     DocsSnippetShape Shape,
     bool NeedsXunit,
     bool NeedsNunit,
+    bool NeedsMstest,
     string? SkipReason)
 {
     public string DisplayName => $"{RelativePath}#snippet-{Index}";

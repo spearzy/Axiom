@@ -45,9 +45,9 @@ internal sealed class DocsSnippetCompiler
         var syntaxTrees = new List<SyntaxTree>();
         // Shared fixture code gives docs examples a stable compile context without copying them out of markdown.
         syntaxTrees.AddRange(_generalSupportTrees);
-        if (snippet.NeedsXunit || snippet.NeedsNunit)
+        if (snippet.NeedsXunit || snippet.NeedsNunit || snippet.NeedsMstest)
         {
-            // Migration docs compile against lightweight test stubs, not the real test frameworks.
+            // Migration docs compile against lightweight framework stubs, not the real test frameworks.
             syntaxTrees.AddRange(_migrationStubTrees);
         }
 
@@ -200,6 +200,11 @@ internal sealed class DocsSnippetCompiler
         if (snippet.NeedsNunit)
         {
             builder.AppendLine("using NUnit.Framework;");
+        }
+
+        if (snippet.NeedsMstest)
+        {
+            builder.AppendLine("using Microsoft.VisualStudio.TestTools.UnitTesting;");
         }
 
         foreach (var usingLine in usingLines)
@@ -423,7 +428,10 @@ internal sealed class DocsSnippetCompiler
             lines.Add("var expected = \"expected\";");
         }
 
-        if (code.Contains("Assert.That(value", StringComparison.Ordinal) || code.Contains("value.Should()", StringComparison.Ordinal))
+        if (code.Contains("Assert.That(value", StringComparison.Ordinal) ||
+            code.Contains("Assert.IsNull(value", StringComparison.Ordinal) ||
+            code.Contains("Assert.IsNotNull(value", StringComparison.Ordinal) ||
+            code.Contains("value.Should()", StringComparison.Ordinal))
         {
             lines.Add("var value = new object();");
         }

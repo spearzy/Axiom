@@ -32,12 +32,13 @@ If you are developing against a direct `ProjectReference` to `Axiom.Assertions.c
 
 That keeps the normal NuGet package flow unchanged while giving local project-reference consumers the same analyzer/code-fix assets explicitly.
 
-The current rules focus on three high-value areas:
+The current rules focus on a few high-value areas:
 
 - ignored async Axiom assertion results
 - `Batch` instances created without `using`
 - high-confidence xUnit `Assert.*` migration suggestions
 - a conservative first NUnit `Assert.That(...)` migration wave
+- a conservative first MSTest `Assert.*` migration wave
 
 ## Async Assertions Must Be Awaited
 
@@ -213,5 +214,40 @@ values.Should().BeEmpty();
 ```
 
 These suggestions use semantic matching against NUnit's real `Assert.That(...)` API. They intentionally skip richer constraint chains, tolerance/comparer variations, `Does.*`, `Has.*`, and message-bearing overloads in this first wave.
+
+## MSTest Assert Migration Suggestions
+
+Rules:
+
+- `AXM1032` for `Assert.AreEqual(expected, actual)`
+- `AXM1033` for `Assert.AreNotEqual(expected, actual)`
+- `AXM1034` for `Assert.IsNull(value)`
+- `AXM1035` for `Assert.IsNotNull(value)`
+- `AXM1036` for `Assert.IsTrue(condition)`
+- `AXM1037` for `Assert.IsFalse(condition)`
+- `AXM1038` for `Assert.AreSame(expected, actual)`
+- `AXM1039` for `Assert.AreNotSame(expected, actual)`
+
+This first MSTest wave is intentionally small. It only covers simple `Assert.*` calls that map directly to Axiom without carrying extra message, comparer, or precision semantics across.
+
+Before:
+
+```csharp axiom-context=migration-gallery
+Assert.AreEqual(expected, actual);
+Assert.IsNull(value);
+Assert.IsFalse(condition);
+Assert.AreNotEqual(expected, actual);
+```
+
+After:
+
+```csharp axiom-context=migration-gallery
+actual.Should().Be(expected);
+value.Should().BeNull();
+condition.Should().BeFalse();
+actual.Should().NotBe(expected);
+```
+
+These suggestions use semantic matching against MSTest's real `Assert` API. They intentionally skip message-bearing, comparer, precision, and other MSTest assertion families in this first wave.
 
 For a broader mapping table and practical migration notes, see [Migrating to Axiom](migrating-to-axiom.md).
