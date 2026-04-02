@@ -4,6 +4,22 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project follows [Semantic Versioning](https://semver.org/).
 
+## [1.2.0] - 2026-04-02
+
+### Added
+
+- Added NUnit migration wave 1 for high-confidence `Assert.That(...)` constraint shapes.
+- Added docs snippet verification to keep docs examples compile-checked against the current codebase.
+
+### Changed
+
+- Improved the local development path for direct `ProjectReference` consumers so analyzer/code-fix behavior is supported more explicitly and reliably.
+- Analyzer and migration docs now reflect the broader migration support and snippet verification workflow.
+
+### Fixed
+
+- Tightened migration and docs validation so shipped examples and analyzer guidance stay aligned with the current API surface.
+
 ## [1.1.0] - 2026-04-01
 
 ### Added
