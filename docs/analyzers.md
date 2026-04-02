@@ -19,6 +19,7 @@ The current rules focus on three high-value areas:
 - ignored async Axiom assertion results
 - `Batch` instances created without `using`
 - high-confidence xUnit `Assert.*` migration suggestions
+- a conservative first NUnit `Assert.That(...)` migration wave
 
 ## Async Assertions Must Be Awaited
 
@@ -159,5 +160,40 @@ They also intentionally skip shapes that are not obviously semantics-preserving 
 - nongeneric `Assert.Single(subject)` calls when the returned item is used
 - `Assert.Throws<TException>(...)` consumed-result shapes outside the `string? paramName, Action testCode` overload
 - `Assert.Throws<TException>(paramName, ...)` when `paramName` is not an obvious non-null constant string
+
+## NUnit Assert.That Migration Suggestions
+
+Rules:
+
+- `AXM1024` for `Assert.That(actual, Is.EqualTo(expected))`
+- `AXM1025` for `Assert.That(actual, Is.Not.EqualTo(expected))`
+- `AXM1026` for `Assert.That(value, Is.Null)`
+- `AXM1027` for `Assert.That(value, Is.Not.Null)`
+- `AXM1028` for `Assert.That(condition, Is.True)`
+- `AXM1029` for `Assert.That(condition, Is.False)`
+- `AXM1030` for `Assert.That(collection, Is.Empty)`
+- `AXM1031` for `Assert.That(collection, Is.Not.Empty)`
+
+This first NUnit wave is intentionally small. It only covers simple `Assert.That(..., Is.*)` shapes that map directly to Axiom without guessing through richer constraint chains.
+
+Before:
+
+```csharp
+Assert.That(actual, Is.EqualTo(expected));
+Assert.That(value, Is.Not.Null);
+Assert.That(condition, Is.True);
+Assert.That(values, Is.Empty);
+```
+
+After:
+
+```csharp
+actual.Should().Be(expected);
+value.Should().NotBeNull();
+condition.Should().BeTrue();
+values.Should().BeEmpty();
+```
+
+These suggestions use semantic matching against NUnit's real `Assert.That(...)` API. They intentionally skip richer constraint chains, tolerance/comparer variations, `Does.*`, `Has.*`, and message-bearing overloads in this first wave.
 
 For a broader mapping table and practical migration notes, see [Migrating to Axiom](migrating-to-axiom.md).
