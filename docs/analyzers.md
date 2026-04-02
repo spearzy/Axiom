@@ -14,6 +14,24 @@ Install the standalone package only if you want the diagnostics on their own:
 dotnet add package Axiom.Analyzers
 ```
 
+If you are developing against a direct `ProjectReference` to `Axiom.Assertions.csproj`, add the analyzer projects explicitly as analyzer references in the consuming project:
+
+```xml
+<ItemGroup>
+  <ProjectReference Include=".../Axiom.Assertions.csproj" />
+  <ProjectReference Include=".../Axiom.Analyzers.csproj"
+                    OutputItemType="Analyzer"
+                    ReferenceOutputAssembly="false"
+                    SetTargetFramework="TargetFramework=netstandard2.0" />
+  <ProjectReference Include=".../Axiom.Analyzers.CodeFixes.csproj"
+                    OutputItemType="Analyzer"
+                    ReferenceOutputAssembly="false"
+                    SetTargetFramework="TargetFramework=netstandard2.0" />
+</ItemGroup>
+```
+
+That keeps the normal NuGet package flow unchanged while giving local project-reference consumers the same analyzer/code-fix assets explicitly.
+
 The current rules focus on three high-value areas:
 
 - ignored async Axiom assertion results

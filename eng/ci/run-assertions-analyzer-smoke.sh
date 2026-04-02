@@ -51,17 +51,17 @@ cd "$consumer_project"
 dotnet add package Axiom.Assertions --version "$package_version" --source "$package_source" --no-restore >/dev/null
 
 cat > Smoke.cs <<'EOF'
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using Axiom.Assertions;
 using Xunit;
 
 namespace Xunit
 {
     public static class Assert
     {
-        public static void Contains<T>(T expected, IEnumerable<T> collection)
+        public static void Equal<T>(T expected, T actual)
+        {
+        }
+
+        public static void Contains(string expectedSubstring, string actualString)
         {
         }
     }
@@ -69,11 +69,10 @@ namespace Xunit
 
 public sealed class Smoke
 {
-    public async Task CheckAsync(IEnumerable<int> values, int expected)
+    public void Check(int expected, int actual, string text)
     {
-        Func<Task> work = async () => await Task.Yield();
-        work.Should().NotThrowAsync();
-        Assert.Contains(expected, values);
+        Assert.Equal(expected, actual);
+        Assert.Contains("sub", text);
     }
 }
 EOF
@@ -89,12 +88,12 @@ fi
 
 error_log_content="$(cat "$error_log")"
 
-if [[ "$error_log_content" != *"AXM0001"* ]]; then
-  echo "Expected AXM0001 diagnostic in SARIF output."
+if [[ "$error_log_content" != *"AXM1001"* ]]; then
+  echo "Expected AXM1001 diagnostic in SARIF output."
   exit 1
 fi
 
-if [[ "$error_log_content" != *"AXM1009"* ]]; then
-  echo "Expected AXM1009 diagnostic in SARIF output."
+if [[ "$error_log_content" != *"AXM1017"* ]]; then
+  echo "Expected AXM1017 diagnostic in SARIF output."
   exit 1
 fi
