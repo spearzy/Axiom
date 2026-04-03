@@ -33,7 +33,7 @@ public sealed class NotBeZeroVectorTests
         var ex = Assert.Throws<InvalidOperationException>(() => embedding.Should().NotBeZeroVector());
 
         Assert.Contains("Expected embedding to not be a zero vector", ex.Message);
-        Assert.Contains("all 0 component(s) were zero", ex.Message);
+        Assert.Contains("vector had no components and was zero by definition", ex.Message);
     }
 
     [Fact]

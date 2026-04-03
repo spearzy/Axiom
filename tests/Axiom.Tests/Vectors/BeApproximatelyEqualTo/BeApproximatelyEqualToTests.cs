@@ -27,6 +27,17 @@ public sealed class BeApproximatelyEqualToTests
     }
 
     [Fact]
+    public void BeApproximatelyEqualTo_Passes_ForEmptyVectors()
+    {
+        float[] actual = [];
+        float[] expected = [];
+
+        var continuation = actual.Should().BeApproximatelyEqualTo(expected, 0f);
+
+        Assert.IsType<VectorAssertions<float>>(continuation.And);
+    }
+
+    [Fact]
     public void BeApproximatelyEqualTo_Throws_OnFirstFloatMismatch()
     {
         float[] actual = [0.1f, 0.2f, 0.31f];
@@ -38,6 +49,18 @@ public sealed class BeApproximatelyEqualToTests
         Assert.Contains("index 2 differed", ex.Message);
         Assert.Contains("expected 0.3", ex.Message);
         Assert.Contains("found 0.31", ex.Message);
+    }
+
+    [Fact]
+    public void BeApproximatelyEqualTo_Throws_OnLateMismatch()
+    {
+        float[] actual = [0.1f, 0.2f, 0.3f, 0.45f];
+        float[] expected = [0.1f, 0.2f, 0.3f, 0.4f];
+
+        var ex = Assert.Throws<InvalidOperationException>(() => actual.Should().BeApproximatelyEqualTo(expected, 0.001f));
+
+        Assert.Contains("index 3 differed", ex.Message);
+        Assert.DoesNotContain("index 0 differed", ex.Message);
     }
 
     [Fact]

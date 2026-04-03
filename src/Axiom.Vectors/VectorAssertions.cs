@@ -136,7 +136,7 @@ public sealed class VectorAssertions<TNumeric>
                 BuildFailureMessage(
                     SubjectLabel,
                     $"to be approximately equal to expected within tolerance {FormatNumeric(tolerance)}",
-                    $"dimensions differed: expected {expected.Length}, found {Subject.Length}",
+                    BuildDimensionMismatchDetail(expected.Length, Subject.Length),
                     because),
                 callerFilePath,
                 callerLineNumber);
@@ -228,7 +228,7 @@ public sealed class VectorAssertions<TNumeric>
                 BuildFailureMessage(
                     SubjectLabel,
                     expectation,
-                    $"dimensions differed: expected {expected.Length}, found {Subject.Length}",
+                    BuildDimensionMismatchDetail(expected.Length, Subject.Length),
                     because),
                 callerFilePath,
                 callerLineNumber);
@@ -243,7 +243,7 @@ public sealed class VectorAssertions<TNumeric>
                 BuildFailureMessage(
                     SubjectLabel,
                     expectation,
-                    $"computed dot product {FormatValue(dotProduct)}",
+                    BuildMetricMismatchDetail("dot product", expectedDotProduct, dotProduct, delta),
                     because),
                 callerFilePath,
                 callerLineNumber);
@@ -293,7 +293,7 @@ public sealed class VectorAssertions<TNumeric>
                 BuildFailureMessage(
                     SubjectLabel,
                     expectation,
-                    $"dimensions differed: expected {expected.Length}, found {Subject.Length}",
+                    BuildDimensionMismatchDetail(expected.Length, Subject.Length),
                     because),
                 callerFilePath,
                 callerLineNumber);
@@ -308,7 +308,7 @@ public sealed class VectorAssertions<TNumeric>
                 BuildFailureMessage(
                     SubjectLabel,
                     expectation,
-                    $"computed Euclidean distance {FormatValue(distance)}",
+                    BuildMetricMismatchDetail("Euclidean distance", expectedDistance, distance, delta),
                     because),
                 callerFilePath,
                 callerLineNumber);
@@ -330,7 +330,7 @@ public sealed class VectorAssertions<TNumeric>
                 this,
                 hasSimilarity: false,
                 similarity: TNumeric.Zero,
-                unavailableActualDetail: $"dimensions differed: expected {expected.Length}, found {Subject.Length}");
+                unavailableActualDetail: BuildDimensionMismatchDetail(expected.Length, Subject.Length));
         }
 
         var actualSpan = Subject.Span;
@@ -451,7 +451,7 @@ public sealed class VectorAssertions<TNumeric>
                     BuildFailureMessage(
                         SubjectLabel,
                         "to be a zero vector",
-                        $"found non-zero component {FormatValue(value)} at index {index}",
+                        $"index {index} differed: expected 0, found {FormatValue(value)}",
                         because),
                     callerFilePath,
                     callerLineNumber);
@@ -489,7 +489,7 @@ public sealed class VectorAssertions<TNumeric>
             BuildFailureMessage(
                 SubjectLabel,
                 "to not be a zero vector",
-                $"all {span.Length} component(s) were zero",
+                BuildAllZeroVectorDetail(span.Length),
                 because),
             callerFilePath,
             callerLineNumber);
@@ -549,6 +549,17 @@ public sealed class VectorAssertions<TNumeric>
 
     internal static string BuildFailureMessage(string subjectLabel, string expectation, string actualDetail, string? because)
         => $"Expected {subjectLabel} {expectation}{BuildReasonClause(because)}, but {actualDetail}.";
+
+    private static string BuildDimensionMismatchDetail(int expectedLength, int actualLength)
+        => $"dimensions differed: expected {expectedLength}, found {actualLength}";
+
+    private static string BuildMetricMismatchDetail(string metricName, TNumeric expectedValue, TNumeric actualValue, TNumeric delta)
+        => $"{metricName} differed: expected {FormatValue(expectedValue)}, found {FormatValue(actualValue)}, delta {FormatValue(delta)}";
+
+    private static string BuildAllZeroVectorDetail(int length)
+        => length == 0
+            ? "vector had no components and was zero by definition"
+            : $"all {length} component(s) were zero";
 
     private static string BuildReasonClause(string? because)
         => string.IsNullOrWhiteSpace(because) ? string.Empty : $" because {because.Trim()}";

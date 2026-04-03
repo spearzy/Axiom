@@ -74,6 +74,7 @@ embedding.Should().HaveDotProductWith(expected, expectedDotProduct: 1f, toleranc
 ```
 
 Dot-product failures report the computed dot product directly.
+They include the expected value, actual dot product, and delta.
 
 ## Euclidean Distance
 
@@ -82,6 +83,7 @@ embedding.Should().HaveEuclideanDistanceTo(unrelated, expectedDistance: 1.4142f,
 ```
 
 Distance failures report the computed Euclidean distance directly.
+They include the expected value, actual distance, and delta.
 
 ## Cosine Similarity
 
@@ -125,4 +127,4 @@ embedding.Should().NotBeZeroVector();
 
 `BeZeroVector()` reports the first non-zero component it finds.
 
-`NotBeZeroVector()` fails only when every component is zero.
+`NotBeZeroVector()` fails only when every component is zero. Empty vectors count as zero vectors.

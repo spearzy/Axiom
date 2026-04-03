@@ -27,12 +27,12 @@ public sealed class BeZeroVectorTests
     [Fact]
     public void BeZeroVector_Throws_WhenComponentIsNonZero()
     {
-        float[] embedding = [0f, 0.5f, 0f];
+        float[] embedding = [0f, 0f, 0f, 0.5f];
 
         var ex = Assert.Throws<InvalidOperationException>(() => embedding.Should().BeZeroVector());
 
         Assert.Contains("Expected embedding to be a zero vector", ex.Message);
-        Assert.Contains("found non-zero component 0.5 at index 1", ex.Message);
+        Assert.Contains("index 3 differed: expected 0, found 0.5", ex.Message);
     }
 
     [Fact]

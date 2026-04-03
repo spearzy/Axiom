@@ -16,6 +16,17 @@ public sealed class HaveDotProductWithTests
     }
 
     [Fact]
+    public void HaveDotProductWith_Passes_ForEmptyVectors_WhenExpectedDotProductIsZero()
+    {
+        float[] embedding = [];
+        float[] expected = [];
+
+        var continuation = embedding.Should().HaveDotProductWith(expected, 0f, 0f);
+
+        Assert.IsType<VectorAssertions<float>>(continuation.And);
+    }
+
+    [Fact]
     public void HaveDotProductWith_Throws_WhenDotProductDiffers()
     {
         float[] embedding = [1f, 2f];
@@ -25,7 +36,19 @@ public sealed class HaveDotProductWithTests
             embedding.Should().HaveDotProductWith(expected, 10f, 0.001f));
 
         Assert.Contains("Expected embedding to have dot product with expected equal to 10 within tolerance 0.001", ex.Message);
-        Assert.Contains("computed dot product 11", ex.Message);
+        Assert.Contains("dot product differed: expected 10, found 11, delta 1", ex.Message);
+    }
+
+    [Fact]
+    public void HaveDotProductWith_Throws_WhenLateComponentsChangeDotProduct()
+    {
+        double[] embedding = [1d, 2d, 3d, 5d];
+        double[] expected = [1d, 2d, 3d, 4d];
+
+        var ex = Assert.Throws<InvalidOperationException>(() =>
+            embedding.Should().HaveDotProductWith(expected, 30d, 0.001d));
+
+        Assert.Contains("dot product differed: expected 30, found 34, delta 4", ex.Message);
     }
 
     [Fact]

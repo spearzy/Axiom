@@ -16,6 +16,17 @@ public sealed class HaveEuclideanDistanceToTests
     }
 
     [Fact]
+    public void HaveEuclideanDistanceTo_Passes_ForEmptyVectors_WhenExpectedDistanceIsZero()
+    {
+        double[] embedding = [];
+        double[] expected = [];
+
+        var continuation = embedding.Should().HaveEuclideanDistanceTo(expected, 0d, 0d);
+
+        Assert.IsType<VectorAssertions<double>>(continuation.And);
+    }
+
+    [Fact]
     public void HaveEuclideanDistanceTo_Throws_WhenDistanceDiffers()
     {
         double[] embedding = [0d, 0d];
@@ -25,7 +36,19 @@ public sealed class HaveEuclideanDistanceToTests
             embedding.Should().HaveEuclideanDistanceTo(expected, 4d, 0.001d));
 
         Assert.Contains("Expected embedding to have Euclidean distance to expected equal to 4 within tolerance 0.001", ex.Message);
-        Assert.Contains("computed Euclidean distance 5", ex.Message);
+        Assert.Contains("Euclidean distance differed: expected 4, found 5, delta 1", ex.Message);
+    }
+
+    [Fact]
+    public void HaveEuclideanDistanceTo_Throws_WhenDifferenceAppearsLateInSequence()
+    {
+        float[] embedding = [1f, 2f, 3f, 7f];
+        float[] expected = [1f, 2f, 3f, 4f];
+
+        var ex = Assert.Throws<InvalidOperationException>(() =>
+            embedding.Should().HaveEuclideanDistanceTo(expected, 2f, 0.001f));
+
+        Assert.Contains("Euclidean distance differed: expected 2, found 3, delta 1", ex.Message);
     }
 
     [Fact]

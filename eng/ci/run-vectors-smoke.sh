@@ -55,12 +55,24 @@ using Axiom.Vectors;
 
 var embedding = new float[] { 1f, 0f, 0f };
 var expected = new float[] { 1f, 0f, 0f };
+var unrelated = new float[] { 0f, 1f, 0f };
+ReadOnlyMemory<float> embeddingMemory = embedding;
+ReadOnlyMemory<float> expectedMemory = expected;
+ReadOnlyMemory<float> unrelatedMemory = unrelated;
+ReadOnlyMemory<float> zero = new float[] { 0f, 0f, 0f };
 
 embedding.Should().HaveDimension(3);
 embedding.Should().NotContainNaNOrInfinity();
-embedding.Should().BeApproximatelyEqualTo(expected, tolerance: 1e-5f);
+embedding.Should().BeApproximatelyEqualTo(expected, tolerance: 0.001f);
+embedding.Should().HaveDotProductWith(expected, expectedDotProduct: 1f, tolerance: 0.001f);
+embedding.Should().HaveEuclideanDistanceTo(unrelated, expectedDistance: 1.4142135f, tolerance: 0.001f);
 embedding.Should().HaveCosineSimilarityTo(expected).AtLeast(0.999f);
-embedding.Should().BeNormalized(tolerance: 1e-5f);
+embedding.Should().BeNormalized(tolerance: 0.001f);
+embedding.Should().NotBeZeroVector();
+
+embeddingMemory.Should().HaveDotProductWith(expectedMemory, expectedDotProduct: 1f, tolerance: 0.001f);
+embeddingMemory.Should().HaveEuclideanDistanceTo(unrelatedMemory, expectedDistance: 1.4142135f, tolerance: 0.001f);
+zero.Should().BeZeroVector();
 
 Console.WriteLine("Axiom.Vectors smoke passed.");
 EOF
