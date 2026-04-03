@@ -88,6 +88,33 @@ public sealed class BeEquivalentToTypedMemberMappingTests
     }
 
     [Fact]
+    public void GivenMultipleTypedNestedMappingsUnderSameParent_WhenAllMappedMembersMatch_ThenDoesNotThrow()
+    {
+        var actual = new NestedActualUser
+        {
+            Address = new NestedActualAddress { Postcode = "AB1 2CD", CountryCode = "GB" },
+        };
+        var expected = new NestedExpectedUser
+        {
+            Location = new NestedExpectedLocation { ZipCode = "AB1 2CD", IsoCountryCode = "GB" },
+        };
+
+        var ex = Record.Exception(() =>
+            actual.Should().BeEquivalentTo(
+                expected,
+                options =>
+                {
+                    options.RequireStrictRuntimeTypes = false;
+                    options.FailOnMissingMembers = false;
+                    options.FailOnExtraMembers = false;
+                    options.MatchMember<NestedActualUser, NestedExpectedUser>(x => x.Address!.Postcode, x => x.Location!.ZipCode);
+                    options.MatchMember<NestedActualUser, NestedExpectedUser>(x => x.Address!.CountryCode, x => x.Location!.IsoCountryCode);
+                }));
+
+        Assert.Null(ex);
+    }
+
+    [Fact]
     public void GivenTypedMemberMapping_WhenStrictRuntimeTypesDisabled_ThenUnrelatedTypesAreComparedStructurally()
     {
         var actual = new ActualUser { GivenName = "Alice", Age = 36 };
@@ -149,6 +176,23 @@ public sealed class BeEquivalentToTypedMemberMappingTests
     }
 
     [Fact]
+    public void GivenConflictingTypedNestedMappings_WhenConfigured_ThenThrowsArgumentException()
+    {
+        var options = new EquivalencyOptions();
+
+        options.MatchMember<ConflictingActualUser, ConflictingExpectedUser>(
+            x => x.Address!.Postcode,
+            x => x.Location!.ZipCode);
+
+        var ex = Assert.Throws<ArgumentException>(() =>
+            options.MatchMember<ConflictingActualUser, ConflictingExpectedUser>(
+                x => x.Address!.CountryCode,
+                x => x.Region!.IsoCountryCode));
+
+        Assert.Contains("conflicting typed member mappings for 'Address'", ex.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void GivenFlatMemberNameMapping_WhenUsedWithoutTypedMapping_ThenStillWorks()
     {
         var actual = new ActualUser { GivenName = "Alice", Age = 36 };
@@ -163,6 +207,54 @@ public sealed class BeEquivalentToTypedMemberMappingTests
                     options.FailOnMissingMembers = false;
                     options.FailOnExtraMembers = false;
                     options.MatchMemberName(nameof(ActualUser.GivenName), nameof(ExpectedUser.FirstName));
+                }));
+
+        Assert.Null(ex);
+    }
+
+    [Fact]
+    public void GivenTypedMemberMappingAndIgnoredActualPath_WhenMappedMemberDiffers_ThenDoesNotThrow()
+    {
+        var actual = new ActualUser
+        {
+            Address = new ActualAddress { Postcode = "AB1 2CD" },
+        };
+        var expected = new ExpectedUser
+        {
+            Location = new ExpectedLocation { ZipCode = "ZZ9 9ZZ" },
+        };
+
+        var ex = Record.Exception(() =>
+            actual.Should().BeEquivalentTo(
+                expected,
+                options =>
+                {
+                    options.RequireStrictRuntimeTypes = false;
+                    options.FailOnMissingMembers = false;
+                    options.FailOnExtraMembers = false;
+                    options.MatchMember<ActualUser, ExpectedUser>(x => x.Address!.Postcode, x => x.Location!.ZipCode);
+                    options.Ignore<ActualUser>(x => x.Address!.Postcode);
+                }));
+
+        Assert.Null(ex);
+    }
+
+    [Fact]
+    public void GivenTypedMemberMappingAndIgnoredExpectedMemberName_WhenMappedMemberDiffers_ThenDoesNotThrow()
+    {
+        var actual = new ActualUser { GivenName = "Alice" };
+        var expected = new ExpectedUser { FirstName = "Bob" };
+
+        var ex = Record.Exception(() =>
+            actual.Should().BeEquivalentTo(
+                expected,
+                options =>
+                {
+                    options.RequireStrictRuntimeTypes = false;
+                    options.FailOnMissingMembers = false;
+                    options.FailOnExtraMembers = false;
+                    options.MatchMember<ActualUser, ExpectedUser>(x => x.GivenName, x => x.FirstName);
+                    options.IgnoreMember(nameof(ExpectedUser.FirstName));
                 }));
 
         Assert.Null(ex);
@@ -213,5 +305,54 @@ public sealed class BeEquivalentToTypedMemberMappingTests
     private sealed class ExpectedLocation
     {
         public string? ZipCode { get; init; }
+    }
+
+    private sealed class NestedActualUser
+    {
+        public NestedActualAddress? Address { get; init; }
+    }
+
+    private sealed class NestedActualAddress
+    {
+        public string? Postcode { get; init; }
+        public string? CountryCode { get; init; }
+    }
+
+    private sealed class NestedExpectedUser
+    {
+        public NestedExpectedLocation? Location { get; init; }
+    }
+
+    private sealed class NestedExpectedLocation
+    {
+        public string? ZipCode { get; init; }
+        public string? IsoCountryCode { get; init; }
+    }
+
+    private sealed class ConflictingActualUser
+    {
+        public ConflictingActualAddress? Address { get; init; }
+    }
+
+    private sealed class ConflictingActualAddress
+    {
+        public string? Postcode { get; init; }
+        public string? CountryCode { get; init; }
+    }
+
+    private sealed class ConflictingExpectedUser
+    {
+        public ConflictingExpectedLocation? Location { get; init; }
+        public ConflictingExpectedRegion? Region { get; init; }
+    }
+
+    private sealed class ConflictingExpectedLocation
+    {
+        public string? ZipCode { get; init; }
+    }
+
+    private sealed class ConflictingExpectedRegion
+    {
+        public string? IsoCountryCode { get; init; }
     }
 }

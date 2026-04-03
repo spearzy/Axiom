@@ -78,6 +78,33 @@ public sealed class BeEquivalentToDiagnosticsTests
     }
 
     [Fact]
+    public void GivenNestedCollectionMismatch_WhenEquivalencyFails_ThenMessageShowsNestedIndexPath()
+    {
+        var actual = new OrderEnvelope
+        {
+            Orders =
+            [
+                new() { Total = 10m },
+                new() { Total = 20m },
+            ]
+        };
+        var expected = new OrderEnvelope
+        {
+            Orders =
+            [
+                new() { Total = 10m },
+                new() { Total = 25m },
+            ]
+        };
+
+        var ex = Assert.Throws<InvalidOperationException>(() => actual.Should().BeEquivalentTo(expected));
+
+        Assert.Contains("actual.Orders[1].Total", ex.Message, StringComparison.Ordinal);
+        Assert.Contains("expected 25", ex.Message, StringComparison.Ordinal);
+        Assert.Contains("but found 20", ex.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void GivenStringMismatchInsideEquivalency_WhenEquivalencyFails_ThenMessageIncludesStringDifferenceDetail()
     {
         var actual = new Person { Name = "Alice" };
@@ -148,6 +175,30 @@ public sealed class BeEquivalentToDiagnosticsTests
         Assert.True(nameIndex < tagIndex, message);
     }
 
+    [Fact]
+    public void GivenMissingAndExtraMembers_WhenRenderingReport_ThenReportedPathsStayDeterministic()
+    {
+        ShapeActual actual = new ShapeActual { AlphaExtra = "A", Shared = "same", ZetaExtra = "Z" };
+        ShapeExpected expected = new ShapeExpected { BetaMissing = "B", Shared = "same", OmegaMissing = "O" };
+
+        var ex = Assert.Throws<InvalidOperationException>(() =>
+            actual.Should().BeEquivalentTo(expected, options => options.RequireStrictRuntimeTypes = false));
+
+        var message = ex.Message.Replace("\r\n", "\n", StringComparison.Ordinal);
+        var alphaIndex = message.IndexOf("actual.AlphaExtra", StringComparison.Ordinal);
+        var zetaIndex = message.IndexOf("actual.ZetaExtra", StringComparison.Ordinal);
+        var betaIndex = message.IndexOf("actual.BetaMissing", StringComparison.Ordinal);
+        var omegaIndex = message.IndexOf("actual.OmegaMissing", StringComparison.Ordinal);
+
+        Assert.True(alphaIndex >= 0, message);
+        Assert.True(zetaIndex >= 0, message);
+        Assert.True(betaIndex >= 0, message);
+        Assert.True(omegaIndex >= 0, message);
+        Assert.True(alphaIndex < zetaIndex, message);
+        Assert.True(zetaIndex < betaIndex, message);
+        Assert.True(betaIndex < omegaIndex, message);
+    }
+
     private sealed class Person
     {
         public string? Name { get; init; }
@@ -191,5 +242,29 @@ public sealed class BeEquivalentToDiagnosticsTests
     private sealed class ExpectedLocation
     {
         public string? ZipCode { get; init; }
+    }
+
+    private sealed class OrderEnvelope
+    {
+        public OrderLine[] Orders { get; init; } = [];
+    }
+
+    private sealed class OrderLine
+    {
+        public decimal Total { get; init; }
+    }
+
+    private sealed class ShapeActual
+    {
+        public string? AlphaExtra { get; init; }
+        public string? Shared { get; init; }
+        public string? ZetaExtra { get; init; }
+    }
+
+    private sealed class ShapeExpected
+    {
+        public string? BetaMissing { get; init; }
+        public string? Shared { get; init; }
+        public string? OmegaMissing { get; init; }
     }
 }

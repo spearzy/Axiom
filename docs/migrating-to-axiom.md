@@ -135,7 +135,7 @@ actual.Should().BeEquivalentTo(expected, options =>
 
 Use typed mappings when you can. They are easier to read and safer to refactor.
 
-If the mapping has to come from strings, use `MatchMemberName(...)` instead.
+If the mapping has to come from strings, use `MatchMemberName(...)` instead. As with typed mappings, repeated identical mappings are fine, but conflicting remaps fail fast.
 
 ### Custom Comparers, Ordering, And Tolerances
 

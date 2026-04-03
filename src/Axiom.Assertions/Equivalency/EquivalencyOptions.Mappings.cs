@@ -50,15 +50,26 @@ public sealed partial class EquivalencyOptions
 
     private void AddMemberNameMapping(string actualMember, string expectedMember)
     {
-        // Keep mappings one-to-one so comparisons stay deterministic.
         if (_actualToExpectedMemberNames.TryGetValue(actualMember, out var existingExpected))
         {
-            _expectedToActualMemberNames.Remove(existingExpected);
+            if (!string.Equals(existingExpected, expectedMember, StringComparison.Ordinal))
+            {
+                throw new ArgumentException(
+                    $"actualMember and expectedMember define conflicting member-name mappings for '{actualMember}'.");
+            }
+
+            return;
         }
 
         if (_expectedToActualMemberNames.TryGetValue(expectedMember, out var existingActual))
         {
-            _actualToExpectedMemberNames.Remove(existingActual);
+            if (!string.Equals(existingActual, actualMember, StringComparison.Ordinal))
+            {
+                throw new ArgumentException(
+                    $"actualMember and expectedMember define conflicting member-name mappings for '{expectedMember}'.");
+            }
+
+            return;
         }
 
         _actualToExpectedMemberNames[actualMember] = expectedMember;
@@ -82,12 +93,24 @@ public sealed partial class EquivalencyOptions
     {
         if (_actualToExpectedMemberPaths.TryGetValue(actualPath, out var existingExpected))
         {
-            _expectedToActualMemberPaths.Remove(existingExpected);
+            if (!string.Equals(existingExpected, expectedPath, StringComparison.Ordinal))
+            {
+                throw new ArgumentException(
+                    $"actualMemberSelector and expectedMemberSelector define conflicting typed member mappings for '{actualPath}'.");
+            }
+
+            return;
         }
 
         if (_expectedToActualMemberPaths.TryGetValue(expectedPath, out var existingActual))
         {
-            _actualToExpectedMemberPaths.Remove(existingActual);
+            if (!string.Equals(existingActual, actualPath, StringComparison.Ordinal))
+            {
+                throw new ArgumentException(
+                    $"actualMemberSelector and expectedMemberSelector define conflicting typed member mappings for '{expectedPath}'.");
+            }
+
+            return;
         }
 
         _actualToExpectedMemberPaths[actualPath] = expectedPath;

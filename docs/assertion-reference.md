@@ -508,6 +508,7 @@ For cross-type renames:
 
 - Prefer `MatchMember<TActual, TExpected>(...)` when you can point at members with expressions.
 - Use `MatchMemberName(...)` when you only have string member names or are working from dynamic/string-based configuration.
+- Both mapping styles are one-to-one. Repeating the same mapping is fine, but conflicting remaps fail fast.
 - If both are configured for the same member, typed `MatchMember(...)` wins.
 
 ## Configuration And Extensibility

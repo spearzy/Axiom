@@ -49,6 +49,25 @@ public sealed class BeEquivalentToPathComparerTests : IDisposable
     }
 
     [Fact]
+    public void GivenAbsoluteAndRelativePathComparers_WhenBothConfiguredForSameMember_ThenAbsolutePathComparerWins()
+    {
+        var actual = new Person { Name = "ABC", Age = 30 };
+        var expected = new Person { Name = "abc", Age = 30 };
+
+        var ex = Assert.Throws<InvalidOperationException>(() =>
+            actual.Should().BeEquivalentTo(
+                expected,
+                options =>
+                {
+                    options.StringComparison = StringComparison.Ordinal;
+                    options.UseComparerForPath(nameof(Person.Name), StringComparer.OrdinalIgnoreCase);
+                    options.UseComparerForPath("actual.Name", new AlwaysFalseObjectComparer());
+                }));
+
+        Assert.Contains("values differ", ex.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void GivenPerPathAndPerTypeComparers_WhenBothConfiguredForSameMember_ThenPerPathComparerWins()
     {
         var actual = new Person { Name = "ABC", Age = 30 };
@@ -95,6 +114,34 @@ public sealed class BeEquivalentToPathComparerTests : IDisposable
 
         Assert.Contains("actual.Name", ex.Message, StringComparison.Ordinal);
         Assert.Contains("values differ", ex.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void GivenTypedMemberMappingAndPathComparer_WhenActualPathIsConfigured_ThenMappedMemberUsesThatComparer()
+    {
+        var actual = new ActualUser
+        {
+            Address = new ActualAddress { Postcode = "AB1 2CD" },
+        };
+        var expected = new ExpectedUser
+        {
+            Location = new ExpectedLocation { ZipCode = "ab1 2cd" },
+        };
+
+        var ex = Record.Exception(() =>
+            actual.Should().BeEquivalentTo(
+                expected,
+                options =>
+                {
+                    options.RequireStrictRuntimeTypes = false;
+                    options.FailOnMissingMembers = false;
+                    options.FailOnExtraMembers = false;
+                    options.StringComparison = StringComparison.Ordinal;
+                    options.MatchMember<ActualUser, ExpectedUser>(x => x.Address!.Postcode, x => x.Location!.ZipCode);
+                    options.UseComparerForPath("actual.Address.Postcode", StringComparer.OrdinalIgnoreCase);
+                }));
+
+        Assert.Null(ex);
     }
 
     [Fact]
@@ -180,6 +227,26 @@ public sealed class BeEquivalentToPathComparerTests : IDisposable
     private sealed class ScoreHolder
     {
         public double Score { get; init; }
+    }
+
+    private sealed class ActualUser
+    {
+        public ActualAddress? Address { get; init; }
+    }
+
+    private sealed class ActualAddress
+    {
+        public string? Postcode { get; init; }
+    }
+
+    private sealed class ExpectedUser
+    {
+        public ExpectedLocation? Location { get; init; }
+    }
+
+    private sealed class ExpectedLocation
+    {
+        public string? ZipCode { get; init; }
     }
 
     private sealed class AlwaysFalseObjectComparer : IEqualityComparer

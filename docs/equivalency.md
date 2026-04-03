@@ -114,6 +114,8 @@ actual.Should().BeEquivalentTo(expected, options =>
 });
 ```
 
+Both mapping styles are one-to-one. Repeating the same mapping is fine, but conflicting remaps fail fast instead of silently overriding an earlier mapping.
+
 Member mapping precedence is:
 
 1. typed `MatchMember<TActual, TExpected>(...)`
