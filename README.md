@@ -34,7 +34,7 @@ Axiom started as an exploration of assertion library design and has since been h
 
 ## Packages
 
-Most test projects should reference `Axiom.Assertions`. It contains the fluent `Should()` API, pulls in `Axiom.Core` automatically, and bundles the Axiom analyzers/code fixes so editor and build diagnostics light up without extra package setup. The bundled rules currently cover ignored async Axiom assertions, `Batch` instances that are created without being disposed, and high-confidence xUnit `Assert.*` migration suggestions.
+Most test projects should reference `Axiom.Assertions`. It contains the fluent `Should()` API, pulls in `Axiom.Core` automatically, and bundles the Axiom analyzers/code fixes so editor and build diagnostics light up without extra package setup. The bundled rules currently cover ignored async Axiom assertions, `Batch` instances that are created without being disposed, and high-confidence xUnit, NUnit, and MSTest migration suggestions.
 
 Use `Axiom.Core` directly only when you need low-level primitives such as `Batch`, formatting, or configuration without the full assertion surface.
 

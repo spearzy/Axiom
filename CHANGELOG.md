@@ -4,6 +4,22 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project follows [Semantic Versioning](https://semver.org/).
 
+## [1.3.0] - 2026-04-03
+
+### Added
+
+- Added MSTest migration wave 1 for high-confidence `Assert.*` shapes.
+- Added async-stream assertion support for `ContainExactlyAsync(...)`, `ContainAnyAsync(...)`, and `NotContainAnyAsync(...)`.
+
+### Changed
+
+- Hardened equivalency coverage and diagnostics around mappings, comparer precedence, and representative failure output.
+- Updated docs, examples, and verification coverage to reflect the current async-stream and equivalency behavior.
+
+### Fixed
+
+- Tightened equivalency regression coverage so documented behavior and diagnostics remain stable.
+
 ## [1.2.0] - 2026-04-02
 
 ### Added
