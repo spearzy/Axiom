@@ -84,12 +84,6 @@ What did you add or update?
 - [ ] Docs validation
 - [ ] No tests needed
 
-Commands run:
-
-```bash
-# paste commands here
-```
-
 ## Docs
 
 Docs updated?
