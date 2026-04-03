@@ -187,6 +187,136 @@ public sealed class VectorAssertions<TNumeric>
     public CosineSimilarityAssertions<TNumeric> HaveCosineSimilarityTo(ReadOnlyMemory<TNumeric> expected)
         => HaveCosineSimilarityWith(expected);
 
+    public AndContinuation<VectorAssertions<TNumeric>> HaveDotProductWith(
+        TNumeric[] expected,
+        TNumeric expectedDotProduct,
+        TNumeric tolerance,
+        string? because = null,
+        [CallerFilePath] string? callerFilePath = null,
+        [CallerLineNumber] int callerLineNumber = 0)
+    {
+        ArgumentNullException.ThrowIfNull(expected);
+        return HaveDotProductWith((ReadOnlyMemory<TNumeric>)expected, expectedDotProduct, tolerance, because, callerFilePath, callerLineNumber);
+    }
+
+    public AndContinuation<VectorAssertions<TNumeric>> HaveDotProductWith(
+        ReadOnlyMemory<TNumeric> expected,
+        TNumeric expectedDotProduct,
+        TNumeric tolerance,
+        string? because = null,
+        [CallerFilePath] string? callerFilePath = null,
+        [CallerLineNumber] int callerLineNumber = 0)
+    {
+        ValidateFiniteMetric(expectedDotProduct, nameof(expectedDotProduct));
+        ValidateTolerance(tolerance);
+
+        var expectation =
+            $"to have dot product with expected equal to {FormatNumeric(expectedDotProduct)} within tolerance {FormatNumeric(tolerance)}";
+
+        if (!_hasSubject)
+        {
+            Fail(
+                BuildFailureMessage(SubjectLabel, expectation, "found <null>", because),
+                callerFilePath,
+                callerLineNumber);
+            return new AndContinuation<VectorAssertions<TNumeric>>(this);
+        }
+
+        if (Subject.Length != expected.Length)
+        {
+            Fail(
+                BuildFailureMessage(
+                    SubjectLabel,
+                    expectation,
+                    $"dimensions differed: expected {expected.Length}, found {Subject.Length}",
+                    because),
+                callerFilePath,
+                callerLineNumber);
+            return new AndContinuation<VectorAssertions<TNumeric>>(this);
+        }
+
+        var dotProduct = ComputeDotProduct(Subject.Span, expected.Span);
+        var delta = TNumeric.Abs(dotProduct - expectedDotProduct);
+        if (TNumeric.IsNaN(delta) || delta > tolerance)
+        {
+            Fail(
+                BuildFailureMessage(
+                    SubjectLabel,
+                    expectation,
+                    $"computed dot product {FormatValue(dotProduct)}",
+                    because),
+                callerFilePath,
+                callerLineNumber);
+        }
+
+        return new AndContinuation<VectorAssertions<TNumeric>>(this);
+    }
+
+    public AndContinuation<VectorAssertions<TNumeric>> HaveEuclideanDistanceTo(
+        TNumeric[] expected,
+        TNumeric expectedDistance,
+        TNumeric tolerance,
+        string? because = null,
+        [CallerFilePath] string? callerFilePath = null,
+        [CallerLineNumber] int callerLineNumber = 0)
+    {
+        ArgumentNullException.ThrowIfNull(expected);
+        return HaveEuclideanDistanceTo((ReadOnlyMemory<TNumeric>)expected, expectedDistance, tolerance, because, callerFilePath, callerLineNumber);
+    }
+
+    public AndContinuation<VectorAssertions<TNumeric>> HaveEuclideanDistanceTo(
+        ReadOnlyMemory<TNumeric> expected,
+        TNumeric expectedDistance,
+        TNumeric tolerance,
+        string? because = null,
+        [CallerFilePath] string? callerFilePath = null,
+        [CallerLineNumber] int callerLineNumber = 0)
+    {
+        ValidateNonNegativeFiniteMetric(expectedDistance, nameof(expectedDistance));
+        ValidateTolerance(tolerance);
+
+        var expectation =
+            $"to have Euclidean distance to expected equal to {FormatNumeric(expectedDistance)} within tolerance {FormatNumeric(tolerance)}";
+
+        if (!_hasSubject)
+        {
+            Fail(
+                BuildFailureMessage(SubjectLabel, expectation, "found <null>", because),
+                callerFilePath,
+                callerLineNumber);
+            return new AndContinuation<VectorAssertions<TNumeric>>(this);
+        }
+
+        if (Subject.Length != expected.Length)
+        {
+            Fail(
+                BuildFailureMessage(
+                    SubjectLabel,
+                    expectation,
+                    $"dimensions differed: expected {expected.Length}, found {Subject.Length}",
+                    because),
+                callerFilePath,
+                callerLineNumber);
+            return new AndContinuation<VectorAssertions<TNumeric>>(this);
+        }
+
+        var distance = ComputeEuclideanDistance(Subject.Span, expected.Span);
+        var delta = TNumeric.Abs(distance - expectedDistance);
+        if (TNumeric.IsNaN(delta) || delta > tolerance)
+        {
+            Fail(
+                BuildFailureMessage(
+                    SubjectLabel,
+                    expectation,
+                    $"computed Euclidean distance {FormatValue(distance)}",
+                    because),
+                callerFilePath,
+                callerLineNumber);
+        }
+
+        return new AndContinuation<VectorAssertions<TNumeric>>(this);
+    }
+
     private CosineSimilarityAssertions<TNumeric> CreateCosineSimilarityAssertions(ReadOnlyMemory<TNumeric> expected)
     {
         if (!_hasSubject)
@@ -297,6 +427,76 @@ public sealed class VectorAssertions<TNumeric>
         return new AndContinuation<VectorAssertions<TNumeric>>(this);
     }
 
+    public AndContinuation<VectorAssertions<TNumeric>> BeZeroVector(
+        string? because = null,
+        [CallerFilePath] string? callerFilePath = null,
+        [CallerLineNumber] int callerLineNumber = 0)
+    {
+        if (!_hasSubject)
+        {
+            Fail(
+                BuildFailureMessage(SubjectLabel, "to be a zero vector", "found <null>", because),
+                callerFilePath,
+                callerLineNumber);
+            return new AndContinuation<VectorAssertions<TNumeric>>(this);
+        }
+
+        var span = Subject.Span;
+        for (var index = 0; index < span.Length; index++)
+        {
+            var value = span[index];
+            if (value != TNumeric.Zero)
+            {
+                Fail(
+                    BuildFailureMessage(
+                        SubjectLabel,
+                        "to be a zero vector",
+                        $"found non-zero component {FormatValue(value)} at index {index}",
+                        because),
+                    callerFilePath,
+                    callerLineNumber);
+                break;
+            }
+        }
+
+        return new AndContinuation<VectorAssertions<TNumeric>>(this);
+    }
+
+    public AndContinuation<VectorAssertions<TNumeric>> NotBeZeroVector(
+        string? because = null,
+        [CallerFilePath] string? callerFilePath = null,
+        [CallerLineNumber] int callerLineNumber = 0)
+    {
+        if (!_hasSubject)
+        {
+            Fail(
+                BuildFailureMessage(SubjectLabel, "to not be a zero vector", "found <null>", because),
+                callerFilePath,
+                callerLineNumber);
+            return new AndContinuation<VectorAssertions<TNumeric>>(this);
+        }
+
+        var span = Subject.Span;
+        for (var index = 0; index < span.Length; index++)
+        {
+            if (span[index] != TNumeric.Zero)
+            {
+                return new AndContinuation<VectorAssertions<TNumeric>>(this);
+            }
+        }
+
+        Fail(
+            BuildFailureMessage(
+                SubjectLabel,
+                "to not be a zero vector",
+                $"all {span.Length} component(s) were zero",
+                because),
+            callerFilePath,
+            callerLineNumber);
+
+        return new AndContinuation<VectorAssertions<TNumeric>>(this);
+    }
+
     public AndContinuation<VectorAssertions<TNumeric>> BeNormalized(
         string? because = null,
         [CallerFilePath] string? callerFilePath = null,
@@ -359,6 +559,45 @@ public sealed class VectorAssertions<TNumeric>
         {
             throw new ArgumentOutOfRangeException(nameof(tolerance), "tolerance must be a finite value greater than or equal to zero.");
         }
+    }
+
+    private static void ValidateFiniteMetric(TNumeric value, string paramName)
+    {
+        if (!TNumeric.IsFinite(value))
+        {
+            throw new ArgumentOutOfRangeException(paramName, $"{paramName} must be a finite value.");
+        }
+    }
+
+    private static void ValidateNonNegativeFiniteMetric(TNumeric value, string paramName)
+    {
+        if (!TNumeric.IsFinite(value) || value < TNumeric.Zero)
+        {
+            throw new ArgumentOutOfRangeException(paramName, $"{paramName} must be a finite value greater than or equal to zero.");
+        }
+    }
+
+    private static TNumeric ComputeDotProduct(ReadOnlySpan<TNumeric> left, ReadOnlySpan<TNumeric> right)
+    {
+        var dotProduct = TNumeric.Zero;
+        for (var index = 0; index < left.Length; index++)
+        {
+            dotProduct += left[index] * right[index];
+        }
+
+        return dotProduct;
+    }
+
+    private static TNumeric ComputeEuclideanDistance(ReadOnlySpan<TNumeric> left, ReadOnlySpan<TNumeric> right)
+    {
+        var sumOfSquares = TNumeric.Zero;
+        for (var index = 0; index < left.Length; index++)
+        {
+            var delta = left[index] - right[index];
+            sumOfSquares += delta * delta;
+        }
+
+        return TNumeric.Sqrt(sumOfSquares);
     }
 
     private static TNumeric ComputeNorm(ReadOnlySpan<TNumeric> values)

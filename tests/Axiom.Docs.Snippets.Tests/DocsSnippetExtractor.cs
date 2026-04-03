@@ -233,10 +233,14 @@ internal static class DocsSnippetExtractor
             || code.Contains("HaveDimension(", StringComparison.Ordinal)
             || code.Contains("NotContainNaNOrInfinity(", StringComparison.Ordinal)
             || code.Contains("BeApproximatelyEqualTo(", StringComparison.Ordinal)
+            || code.Contains("HaveDotProductWith(", StringComparison.Ordinal)
+            || code.Contains("HaveEuclideanDistanceTo(", StringComparison.Ordinal)
             || code.Contains("HaveCosineSimilarityWith(", StringComparison.Ordinal)
             || code.Contains("HaveCosineSimilarityTo(", StringComparison.Ordinal)
             || code.Contains("ActualSimilarity", StringComparison.Ordinal)
-            || code.Contains("BeNormalized(", StringComparison.Ordinal);
+            || code.Contains("BeNormalized(", StringComparison.Ordinal)
+            || code.Contains("BeZeroVector(", StringComparison.Ordinal)
+            || code.Contains("NotBeZeroVector(", StringComparison.Ordinal);
     }
 
     private static bool LooksLikeSignatureCatalog(string code)

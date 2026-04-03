@@ -36,10 +36,13 @@ Install `Axiom.Vectors` when you want vector and embedding-focused assertions on
 dotnet add package Axiom.Vectors
 ```
 
-`Axiom.Vectors` adds dimension, approximate equality, cosine similarity, NaN/infinity, and normalization assertions for vector and embedding test scenarios.
+`Axiom.Vectors` adds dimension, approximate equality, dot product, Euclidean distance, cosine similarity, zero-vector, NaN/infinity, and normalization assertions for vector and embedding test scenarios.
 
 ```csharp
+embedding.Should().HaveDotProductWith(expected, expectedDotProduct: 1f, tolerance: 0.001f);
+embedding.Should().HaveEuclideanDistanceTo(unrelated, expectedDistance: 1.4142f, tolerance: 0.001f);
 embedding.Should().HaveCosineSimilarityWith(expected).AtLeast(0.995f).And.BeNormalized();
+new float[] { 0f, 0f }.Should().BeZeroVector();
 ```
 
 ## Why Axiom

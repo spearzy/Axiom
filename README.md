@@ -340,17 +340,22 @@ await stream.ShouldAsyncEnumerable()
 ### Vector And Embedding Assertions
 
 `Axiom.Vectors` is an optional package for vector and embedding-style test scenarios.
+In these examples, `expected` is the matching embedding and `unrelated` is a clearly different one.
 
 ```csharp
 using Axiom.Vectors;
 
 embedding.Should().HaveDimension(1536);
 embedding.Should().NotContainNaNOrInfinity();
-embedding.Should().BeApproximatelyEqualTo(expected, tolerance: 1e-5f);
+embedding.Should().BeApproximatelyEqualTo(expected, tolerance: 0.001f);
+embedding.Should().HaveDotProductWith(expected, expectedDotProduct: 1f, tolerance: 0.001f);
+embedding.Should().HaveEuclideanDistanceTo(unrelated, expectedDistance: 1.4142f, tolerance: 0.001f);
 embedding.Should().HaveCosineSimilarityWith(expected).AtLeast(0.995f).And.BeNormalized();
 embedding.Should().HaveCosineSimilarityWith(unrelated).AtMost(0.2f);
 embedding.Should().HaveCosineSimilarityWith(expected).Between(0.98f, 0.999f);
-embedding.Should().BeNormalized(tolerance: 1e-5f);
+embedding.Should().BeNormalized(tolerance: 0.001f);
+new float[] { 0f, 0f }.Should().BeZeroVector();
+embedding.Should().NotBeZeroVector();
 ```
 
 For the full vectors guide, see the [Vectors guide](https://spearzy.github.io/Axiom/vectors/).

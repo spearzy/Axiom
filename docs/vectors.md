@@ -2,7 +2,7 @@
 
 `Axiom.Vectors` adds vector and embedding-focused assertions without pushing that API surface into `Axiom.Assertions`.
 
-Install it when you want to assert dimensions, numeric validity, approximate equality, cosine similarity, or normalization directly on vector outputs. It builds on top of the main Axiom assertion infrastructure, so `Batch`, failure strategies, and deterministic messages behave the same way.
+Install it when you want to assert dimensions, numeric validity, approximate equality, dot products, distances, cosine similarity, zero-vector shape, or normalization directly on vector outputs. It builds on top of the main Axiom assertion infrastructure, so `Batch`, failure strategies, and deterministic messages behave the same way.
 
 ```bash
 dotnet add package Axiom.Vectors
@@ -10,16 +10,22 @@ dotnet add package Axiom.Vectors
 
 ## Usage
 
+These examples use `expected` for the matching embedding and `unrelated` for a clearly different one.
+
 ```csharp
 using Axiom.Vectors;
 
 embedding.Should().HaveDimension(1536);
 embedding.Should().NotContainNaNOrInfinity();
-embedding.Should().BeApproximatelyEqualTo(expected, tolerance: 1e-5f);
+embedding.Should().BeApproximatelyEqualTo(expected, tolerance: 0.001f);
+embedding.Should().HaveDotProductWith(expected, expectedDotProduct: 1f, tolerance: 0.001f);
+embedding.Should().HaveEuclideanDistanceTo(unrelated, expectedDistance: 1.4142f, tolerance: 0.001f);
 embedding.Should().HaveCosineSimilarityWith(expected).AtLeast(0.995f).And.BeNormalized();
 embedding.Should().HaveCosineSimilarityWith(unrelated).AtMost(0.2f);
 embedding.Should().HaveCosineSimilarityWith(expected).Between(0.98f, 0.999f);
-embedding.Should().BeNormalized(tolerance: 1e-5f);
+embedding.Should().BeNormalized(tolerance: 0.001f);
+new float[] { 0f, 0f }.Should().BeZeroVector();
+embedding.Should().NotBeZeroVector();
 ```
 
 Supported subject shapes in the first release:
@@ -51,7 +57,7 @@ Axiom stops at the first invalid value and reports the offending index.
 ## Approximate Equality
 
 ```csharp
-embedding.Should().BeApproximatelyEqualTo(expected, tolerance: 1e-5f);
+embedding.Should().BeApproximatelyEqualTo(expected, tolerance: 0.001f);
 ```
 
 Approximate equality fails on the first value outside tolerance and reports:
@@ -60,6 +66,22 @@ Approximate equality fails on the first value outside tolerance and reports:
 - expected value
 - actual value
 - absolute delta
+
+## Dot Product
+
+```csharp
+embedding.Should().HaveDotProductWith(expected, expectedDotProduct: 1f, tolerance: 0.001f);
+```
+
+Dot-product failures report the computed dot product directly.
+
+## Euclidean Distance
+
+```csharp
+embedding.Should().HaveEuclideanDistanceTo(unrelated, expectedDistance: 1.4142f, tolerance: 0.001f);
+```
+
+Distance failures report the computed Euclidean distance directly.
 
 ## Cosine Similarity
 
@@ -89,7 +111,18 @@ The returned continuation exposes:
 ## Normalization
 
 ```csharp
-embedding.Should().BeNormalized(tolerance: 1e-5f);
+embedding.Should().BeNormalized(tolerance: 0.001f);
 ```
 
 Normalization checks the L2 norm and reports the computed norm on failure.
+
+## Zero Vectors
+
+```csharp
+new float[] { 0f, 0f }.Should().BeZeroVector();
+embedding.Should().NotBeZeroVector();
+```
+
+`BeZeroVector()` reports the first non-zero component it finds.
+
+`NotBeZeroVector()` fails only when every component is zero.

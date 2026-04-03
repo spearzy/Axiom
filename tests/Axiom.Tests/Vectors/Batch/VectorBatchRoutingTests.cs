@@ -70,4 +70,32 @@ public sealed class VectorBatchRoutingTests
             disposeEx.Message);
         Assert.Contains("actual and expected vectors both have zero magnitude", disposeEx.Message);
     }
+
+    [Fact]
+    public void NewVectorAssertions_InsideBatch_DoNotThrowAtAssertionCallSite()
+    {
+        float[] embedding = [1f, 0f];
+        float[] expected = [0f, 1f];
+        float[] zero = [0f, 0f];
+
+        using var batch = new Axiom.Core.Batch();
+        var callEx = Record.Exception(() =>
+        {
+            embedding.Should().HaveDotProductWith(expected, 1f, 0.001f);
+            embedding.Should().HaveEuclideanDistanceTo(expected, 1f, 0.001f);
+            embedding.Should().BeZeroVector();
+            zero.Should().NotBeZeroVector();
+        });
+
+        Assert.Null(callEx);
+
+        var disposeEx = Assert.Throws<InvalidOperationException>(() => batch.Dispose());
+        var message = disposeEx.Message.Replace("\r\n", "\n", StringComparison.Ordinal);
+        Assert.Contains("Expected embedding to have dot product with expected equal to 1 within tolerance 0.001", message);
+        Assert.Contains("computed dot product 0", message);
+        Assert.Contains("Expected embedding to have Euclidean distance to expected equal to 1 within tolerance 0.001", message);
+        Assert.Contains("computed Euclidean distance 1.4142135", message);
+        Assert.Contains("Expected embedding to be a zero vector", message);
+        Assert.Contains("Expected zero to not be a zero vector", message);
+    }
 }
