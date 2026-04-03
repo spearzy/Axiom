@@ -4,6 +4,21 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project follows [Semantic Versioning](https://semver.org/).
 
+## [1.4.0] - 2026-04-03
+
+### Added
+
+- Added the next `Axiom.Vectors` assertion wave, including vector math assertions for dot product, Euclidean distance, and zero-vector checks.
+
+### Changed
+
+- Hardened vector diagnostics and edge-case coverage so failures around dimension mismatch, numeric output, and zero-vector behavior are more consistent.
+- Updated vector docs, examples, and verification coverage to match the current vector assertion surface.
+
+### Fixed
+
+- Tightened vector regression coverage so documented diagnostics and behavior remain stable.
+
 ## [1.3.0] - 2026-04-03
 
 ### Added
