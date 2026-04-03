@@ -294,6 +294,7 @@ Entry points live in `Axiom.Vectors.ShouldExtensions` and currently support:
 - `double[]`
 - `ReadOnlyMemory<float>`
 - `ReadOnlyMemory<double>`
+- ranking assertions on ordered result collections via `subject.Should()` with `using Axiom.Assertions;` and `using Axiom.Vectors;`
 
 `subject.Should()` returns `VectorAssertions<TNumeric>`, which exposes:
 
@@ -311,6 +312,25 @@ BeZeroVector()
 NotBeZeroVector()
 ```
 
+When you reference `Axiom.Vectors`, the usual `subject.Should()` entry point from `Axiom.Assertions` also gains ranking extensions for ordered result collections:
+
+```csharp
+ContainInTopK(target, k)
+HaveRank(target, expectedRank)
+HaveRecallAt(k, relevantItems, expectedRecall, tolerance)
+HavePrecisionAt(k, relevantItems, expectedPrecision, tolerance)
+HaveReciprocalRank(target, expectedReciprocalRank, tolerance)
+```
+
+For query-set aggregates on `IEnumerable<RankingQuery<T>>`, the same `subject.Should()` entry point exposes:
+
+```csharp
+HaveMeanReciprocalRank(expectedMeanReciprocalRank, tolerance)
+HaveHitRateAt(k, expectedHitRate, tolerance)
+```
+
+These ranking metric assertions default to exact comparison with `tolerance: 0`.
+
 `HaveCosineSimilarityWith(expected)` returns `CosineSimilarityAssertions<TNumeric>`, which exposes:
 
 ```csharp
@@ -325,6 +345,7 @@ Between(minimumThreshold, maximumThreshold)
 Typical usage:
 
 ```csharp
+using Axiom.Assertions;
 using Axiom.Vectors;
 
 embedding.Should().HaveDimension(1536);
@@ -338,6 +359,15 @@ embedding.Should().HaveCosineSimilarityWith(expected).Between(0.98f, 0.999f);
 embedding.Should().BeNormalized(tolerance: 0.001f);
 new float[] { 0f, 0f }.Should().BeZeroVector();
 embedding.Should().NotBeZeroVector();
+
+results.Should().ContainInTopK("doc-7", 2);
+results.Should().HaveRank("doc-7", 2);
+results.Should().HaveRecallAt(2, relevantItems, expectedRecall: 0.5);
+results.Should().HavePrecisionAt(2, relevantItems, expectedPrecision: 0.5);
+results.Should().HaveReciprocalRank("doc-7", expectedReciprocalRank: 0.5);
+
+queries.Should().HaveMeanReciprocalRank(expectedMeanReciprocalRank: 0.75);
+queries.Should().HaveHitRateAt(k: 1, expectedHitRate: 0.5);
 ```
 
 ## Direct Task Assertions

@@ -406,6 +406,9 @@ internal sealed class DocsSnippetCompiler
         "var embedding = DocsSnippetFixtures.Embedding;",
         "var expected = DocsSnippetFixtures.ExpectedEmbedding;",
         "var unrelated = DocsSnippetFixtures.UnrelatedEmbedding;",
+        "var results = DocsSnippetFixtures.RankedResults;",
+        "var relevantItems = DocsSnippetFixtures.RelevantDocuments;",
+        "var queries = DocsSnippetFixtures.RankingQueries;",
     ];
 
     private static string[] GetMigrationPrelude(string code)

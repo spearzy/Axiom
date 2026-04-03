@@ -134,4 +134,38 @@ public sealed class VectorBatchRoutingTests
         Assert.True(dotProductIndex < zeroVectorIndex, message);
         Assert.True(zeroVectorIndex < notZeroVectorIndex, message);
     }
+
+    [Fact]
+    public void RankingAssertions_InsideBatch_DoNotThrowAtAssertionCallSite()
+    {
+        var results = new[] { "doc-1", "doc-2", "doc-7" };
+        var relevantItems = new[] { "doc-2", "doc-5" };
+        var queries = new[]
+        {
+            new RankingQuery<string>(["doc-2", "doc-7"], ["doc-2"]),
+            new RankingQuery<string>(["doc-8", "doc-3"], ["doc-5"]),
+        };
+
+        using var batch = new Axiom.Core.Batch();
+        var callEx = Record.Exception(() =>
+        {
+            results.Should().ContainInTopK("doc-7", 2);
+            results.Should().HaveRecallAt(2, relevantItems, expectedRecall: 1d, tolerance: 0.001d);
+            queries.Should().HaveMeanReciprocalRank(expectedMeanReciprocalRank: 1d, tolerance: 0.001d);
+            queries.Should().HaveHitRateAt(k: 1, expectedHitRate: 1d, tolerance: 0.001d);
+        });
+
+        Assert.Null(callEx);
+
+        var disposeEx = Assert.Throws<InvalidOperationException>(() => batch.Dispose());
+        var message = disposeEx.Message.Replace("\r\n", "\n", StringComparison.Ordinal);
+        Assert.Contains("Expected results to contain item \"doc-7\" in the top 2 result(s)", message);
+        Assert.Contains("item \"doc-7\" was found at rank 3", message);
+        Assert.Contains("Expected results to have recall@2 equal to 1 within tolerance 0.001", message);
+        Assert.Contains("actual recall@2 was 0.5", message);
+        Assert.Contains("Expected queries to have mean reciprocal rank equal to 1 within tolerance 0.001", message);
+        Assert.Contains("actual mean reciprocal rank was 0.5 across 2 queries", message);
+        Assert.Contains("Expected queries to have hit rate@1 equal to 1 within tolerance 0.001", message);
+        Assert.Contains("actual hit rate@1 was 0.5", message);
+    }
 }

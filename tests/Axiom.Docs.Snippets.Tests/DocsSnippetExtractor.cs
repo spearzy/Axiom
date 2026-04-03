@@ -230,6 +230,7 @@ internal static class DocsSnippetExtractor
     private static bool IsVectorSnippet(string code)
     {
         return code.Contains("using Axiom.Vectors", StringComparison.Ordinal)
+            || code.Contains("RankingQuery<", StringComparison.Ordinal)
             || code.Contains("HaveDimension(", StringComparison.Ordinal)
             || code.Contains("NotContainNaNOrInfinity(", StringComparison.Ordinal)
             || code.Contains("BeApproximatelyEqualTo(", StringComparison.Ordinal)
@@ -240,7 +241,14 @@ internal static class DocsSnippetExtractor
             || code.Contains("ActualSimilarity", StringComparison.Ordinal)
             || code.Contains("BeNormalized(", StringComparison.Ordinal)
             || code.Contains("BeZeroVector(", StringComparison.Ordinal)
-            || code.Contains("NotBeZeroVector(", StringComparison.Ordinal);
+            || code.Contains("NotBeZeroVector(", StringComparison.Ordinal)
+            || code.Contains("ContainInTopK(", StringComparison.Ordinal)
+            || code.Contains("HaveRank(", StringComparison.Ordinal)
+            || code.Contains("HaveRecallAt(", StringComparison.Ordinal)
+            || code.Contains("HavePrecisionAt(", StringComparison.Ordinal)
+            || code.Contains("HaveMeanReciprocalRank(", StringComparison.Ordinal)
+            || code.Contains("HaveReciprocalRank(", StringComparison.Ordinal)
+            || code.Contains("HaveHitRateAt(", StringComparison.Ordinal);
     }
 
     private static bool LooksLikeSignatureCatalog(string code)

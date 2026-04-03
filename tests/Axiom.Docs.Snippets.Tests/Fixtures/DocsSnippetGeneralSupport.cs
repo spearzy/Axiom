@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+using Axiom.Vectors;
 
 // Shared sample data and helper types used to compile literal docs examples against the real Axiom assemblies.
 public static class DocsSnippetFixtures
@@ -100,6 +101,16 @@ public static class DocsSnippetFixtures
     public static float[] ExpectedEmbedding { get; } = [1f, 0f, 0f];
 
     public static float[] UnrelatedEmbedding { get; } = [0f, 1f, 0f];
+
+    public static string[] RankedResults { get; } = ["doc-2", "doc-7", "doc-5", "doc-9"];
+
+    public static string[] RelevantDocuments { get; } = ["doc-2", "doc-5"];
+
+    public static RankingQuery<string>[] RankingQueries { get; } =
+    [
+        new(["doc-2", "doc-7", "doc-5"], ["doc-2"]),
+        new(["doc-8", "doc-5", "doc-3"], ["doc-5"]),
+    ];
 
     public static async IAsyncEnumerable<Order> GetOrders()
     {

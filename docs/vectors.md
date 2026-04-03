@@ -2,7 +2,7 @@
 
 `Axiom.Vectors` adds vector and embedding-focused assertions without pushing that API surface into `Axiom.Assertions`.
 
-Install it when you want to assert dimensions, numeric validity, approximate equality, dot products, distances, cosine similarity, zero-vector shape, or normalization directly on vector outputs. It builds on top of the main Axiom assertion infrastructure, so `Batch`, failure strategies, and deterministic messages behave the same way.
+Install it when you want to assert dimensions, numeric validity, approximate equality, dot products, distances, cosine similarity, zero-vector shape, normalization, or ranked retrieval quality directly in tests. It builds on top of the main Axiom assertion infrastructure, so `Batch`, failure strategies, and deterministic messages behave the same way.
 
 ```bash
 dotnet add package Axiom.Vectors
@@ -128,3 +128,78 @@ embedding.Should().NotBeZeroVector();
 `BeZeroVector()` reports the first non-zero component it finds.
 
 `NotBeZeroVector()` fails only when every component is zero. Empty vectors count as zero vectors.
+
+## Retrieval And Ranking
+
+Ranking assertions use the normal `Should()` entry point from `Axiom.Assertions`.
+
+Use `subject.Should()` for a single ordered result list, and use `subject.Should()` on `IEnumerable<RankingQuery<T>>` when you want aggregate metrics across multiple queries.
+
+Ranks are 1-based.
+
+```csharp
+using Axiom.Assertions;
+using Axiom.Vectors;
+
+results.Should().ContainInTopK("doc-7", 2);
+results.Should().HaveRank("doc-7", 2);
+results.Should().HaveRecallAt(2, relevantItems, expectedRecall: 0.5);
+results.Should().HavePrecisionAt(2, relevantItems, expectedPrecision: 0.5);
+results.Should().HaveReciprocalRank("doc-7", expectedReciprocalRank: 0.5);
+
+queries.Should().HaveMeanReciprocalRank(expectedMeanReciprocalRank: 0.75);
+queries.Should().HaveHitRateAt(k: 1, expectedHitRate: 0.5);
+```
+
+| Assertion | What it checks |
+| --- | --- |
+| `ContainInTopK(target, k)` | Whether a specific item appears within the top `k` results |
+| `HaveRank(target, expectedRank)` | The exact 1-based rank of a specific item |
+| `HaveRecallAt(k, relevantItems, expectedRecall)` | How much of the relevant set appears in the top `k` results |
+| `HavePrecisionAt(k, relevantItems, expectedPrecision)` | How much of the top `k` results is relevant |
+| `HaveReciprocalRank(target, expectedReciprocalRank)` | `1 / rank` for the first occurrence of a target item |
+| `HaveMeanReciprocalRank(expectedMeanReciprocalRank)` | The average reciprocal rank across multiple queries |
+| `HaveHitRateAt(k, expectedHitRate)` | The fraction of queries with at least one relevant hit in the top `k` |
+
+### Top-K And Rank Checks
+
+`ContainInTopK(...)` passes when the target item appears within the allowed top `k` results.
+
+`HaveRank(...)` checks the exact 1-based rank of the first matching item.
+
+If the item is present but ranked too low, the failure reports the found rank. If it is missing entirely, the failure says so explicitly.
+
+### Recall@K And Precision@K
+
+`HaveRecallAt(...)` and `HavePrecisionAt(...)` evaluate the top `k` results against a non-empty relevant-item set.
+
+- Duplicate ranked results do not increase the matched relevant count.
+- `Precision@k` always uses `k` as the denominator, even when fewer than `k` results are returned.
+- Empty relevant-item sets are rejected as invalid input.
+- The ranking metric assertions default to exact comparison with `tolerance: 0`.
+- Pass a tolerance explicitly when you want an approximate numeric comparison.
+
+### Reciprocal Rank, Mean Reciprocal Rank, And Hit Rate
+
+`HaveReciprocalRank(...)` evaluates a single ranked result list for one target item.
+
+Missing items produce reciprocal rank `0`, and the failure message states that the item was missing.
+
+`HaveMeanReciprocalRank(...)` and `HaveHitRateAt(...)` evaluate a query set built from `RankingQuery<T>`:
+
+```csharp
+using Axiom.Assertions;
+using Axiom.Vectors;
+
+var queries = new[]
+{
+    new RankingQuery<string>(["doc-2", "doc-7", "doc-5"], ["doc-2"]),
+    new RankingQuery<string>(["doc-8", "doc-5", "doc-3"], ["doc-5"]),
+};
+```
+
+For these aggregate metrics:
+
+- the first relevant hit determines reciprocal rank for each query
+- queries with no relevant hit contribute `0`
+- each query must have a non-empty relevant-item set
