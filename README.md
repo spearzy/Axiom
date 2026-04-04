@@ -14,7 +14,6 @@ Axiom is a fluent assertion library for modern .NET tests. It focuses on determi
 Target frameworks: `net8.0`, `net9.0`, and `net10.0`.
 
 Docs site: [spearzy.github.io/Axiom](https://spearzy.github.io/Axiom/)  
-Benchmarks: [spearzy.github.io/Axiom/benchmarks](https://spearzy.github.io/Axiom/benchmarks/)
 
 ## Install
 
