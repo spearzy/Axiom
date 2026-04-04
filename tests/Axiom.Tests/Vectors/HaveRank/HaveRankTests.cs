@@ -25,6 +25,18 @@ public sealed class HaveRankTests
     }
 
     [Fact]
+    public void HaveRank_ReportsFirstOccurrence_WhenResultsContainDuplicates()
+    {
+        var results = new[] { "doc-7", "doc-1", "doc-7" };
+
+        var ex = Assert.Throws<InvalidOperationException>(() => results.Should().HaveRank("doc-7", 3));
+
+        Assert.Contains("Expected results to have item \"doc-7\" at rank 3", ex.Message);
+        Assert.Contains("item \"doc-7\" was found at rank 1", ex.Message);
+        Assert.DoesNotContain("was found at rank 3", ex.Message);
+    }
+
+    [Fact]
     public void HaveRank_Throws_WhenTargetAppearsAtDifferentRank()
     {
         var results = new[] { "doc-1", "doc-2", "doc-7", "doc-5" };

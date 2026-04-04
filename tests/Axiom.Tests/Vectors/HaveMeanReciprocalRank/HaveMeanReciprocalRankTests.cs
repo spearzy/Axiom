@@ -27,7 +27,7 @@ public sealed class HaveMeanReciprocalRankTests
             new RankingQuery<string>(["doc-8", "doc-3"], ["doc-5"]),
         };
 
-        var continuation = queries.Should().HaveMeanReciprocalRank(expectedMeanReciprocalRank: 0.5, tolerance: 0.001);
+        var continuation = queries.Should().HaveMeanReciprocalRank(expectedMeanReciprocalRank: 0.5);
 
         Assert.IsType<Axiom.Assertions.AssertionTypes.ValueAssertions<RankingQuery<string>[]>>(continuation.And);
     }
@@ -40,7 +40,7 @@ public sealed class HaveMeanReciprocalRankTests
             new RankingQuery<string>(["doc-5", "doc-5", "doc-2"], ["doc-5"]),
         };
 
-        var continuation = queries.Should().HaveMeanReciprocalRank(expectedMeanReciprocalRank: 1d, tolerance: 0.001);
+        var continuation = queries.Should().HaveMeanReciprocalRank(expectedMeanReciprocalRank: 1d);
 
         Assert.IsType<Axiom.Assertions.AssertionTypes.ValueAssertions<RankingQuery<string>[]>>(continuation.And);
     }
@@ -68,8 +68,10 @@ public sealed class HaveMeanReciprocalRankTests
         RankingQuery<string>[] queries = [];
 
         var ex = Assert.Throws<InvalidOperationException>(() =>
-            queries.Should().HaveMeanReciprocalRank(expectedMeanReciprocalRank: 1d, tolerance: 0.001d));
+            queries.Should().HaveMeanReciprocalRank(expectedMeanReciprocalRank: 1d));
 
+        Assert.Contains("Expected queries to have mean reciprocal rank equal to 1", ex.Message);
+        Assert.DoesNotContain("within tolerance", ex.Message);
         Assert.Contains("query set was empty", ex.Message);
     }
 
@@ -79,6 +81,34 @@ public sealed class HaveMeanReciprocalRankTests
         var ex = Assert.Throws<ArgumentException>(() => new RankingQuery<string>(["doc-2"], Array.Empty<string>()));
 
         Assert.Equal("relevantItems", ex.ParamName);
+    }
+
+    [Fact]
+    public void HaveMeanReciprocalRank_ThrowsForOutOfRangeExpectedMeanReciprocalRank()
+    {
+        var queries = new[]
+        {
+            new RankingQuery<string>(["doc-2"], ["doc-2"]),
+        };
+
+        var ex = Assert.Throws<ArgumentOutOfRangeException>(() =>
+            queries.Should().HaveMeanReciprocalRank(expectedMeanReciprocalRank: 1.1d));
+
+        Assert.Equal("expectedMeanReciprocalRank", ex.ParamName);
+    }
+
+    [Fact]
+    public void HaveMeanReciprocalRank_ThrowsForNegativeTolerance()
+    {
+        var queries = new[]
+        {
+            new RankingQuery<string>(["doc-2"], ["doc-2"]),
+        };
+
+        var ex = Assert.Throws<ArgumentOutOfRangeException>(() =>
+            queries.Should().HaveMeanReciprocalRank(expectedMeanReciprocalRank: 1d, tolerance: -0.1d));
+
+        Assert.Equal("tolerance", ex.ParamName);
     }
 
     [Fact]

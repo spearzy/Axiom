@@ -21,7 +21,7 @@ public sealed class HaveRecallAtTests
         var results = new[] { "doc-2" };
         var relevantItems = new[] { "doc-2", "doc-5" };
 
-        var continuation = results.Should().HaveRecallAt(3, relevantItems, expectedRecall: 0.5, tolerance: 0.001);
+        var continuation = results.Should().HaveRecallAt(3, relevantItems, expectedRecall: 0.5);
 
         Assert.IsType<Axiom.Assertions.AssertionTypes.ValueAssertions<string[]>>(continuation.And);
     }
@@ -32,7 +32,7 @@ public sealed class HaveRecallAtTests
         var results = new[] { "doc-2", "doc-2", "doc-5", "doc-9" };
         var relevantItems = new[] { "doc-2", "doc-5", "doc-8" };
 
-        var continuation = results.Should().HaveRecallAt(3, relevantItems, expectedRecall: 0.6666666666666666d, tolerance: 0.000001d);
+        var continuation = results.Should().HaveRecallAt(3, relevantItems, expectedRecall: 0.6666666666666666d, tolerance: 0.001d);
 
         Assert.IsType<Axiom.Assertions.AssertionTypes.ValueAssertions<string[]>>(continuation.And);
     }
@@ -58,8 +58,10 @@ public sealed class HaveRecallAtTests
         var relevantItems = new[] { "doc-2" };
 
         var ex = Assert.Throws<InvalidOperationException>(() =>
-            results.Should().HaveRecallAt(3, relevantItems, expectedRecall: 1d, tolerance: 0.001d));
+            results.Should().HaveRecallAt(3, relevantItems, expectedRecall: 1d));
 
+        Assert.Contains("Expected results to have recall@3 equal to 1", ex.Message);
+        Assert.DoesNotContain("within tolerance", ex.Message);
         Assert.Contains("actual recall@3 was 0", ex.Message);
     }
 
@@ -96,6 +98,18 @@ public sealed class HaveRecallAtTests
             results.Should().HaveRecallAt(1, relevantItems, expectedRecall: 1.5d, tolerance: 0.001d));
 
         Assert.Equal("expectedRecall", ex.ParamName);
+    }
+
+    [Fact]
+    public void HaveRecallAt_ThrowsForNegativeTolerance()
+    {
+        var results = new[] { "doc-2" };
+        var relevantItems = new[] { "doc-2" };
+
+        var ex = Assert.Throws<ArgumentOutOfRangeException>(() =>
+            results.Should().HaveRecallAt(1, relevantItems, expectedRecall: 1d, tolerance: -0.1d));
+
+        Assert.Equal("tolerance", ex.ParamName);
     }
 
     [Fact]

@@ -11,7 +11,18 @@ internal static class RankingAssertionHelpers
         => $"Expected {subjectLabel} {expectation}{BuildReasonClause(because)}, but {actualDetail}.";
 
     public static string FormatMetric(double value)
-        => value.ToString("G17", CultureInfo.InvariantCulture);
+        => value.ToString("0.###############", CultureInfo.InvariantCulture);
+
+    public static string BuildMetricExpectation(string metricLabel, double expectedValue, double tolerance)
+    {
+        var formattedExpected = FormatMetric(expectedValue);
+        if (tolerance == 0d)
+        {
+            return $"{metricLabel} equal to {formattedExpected}";
+        }
+
+        return $"{metricLabel} equal to {formattedExpected} within tolerance {FormatMetric(tolerance)}";
+    }
 
     public static string FormatValue(object? value)
         => Formatter.Format(value);

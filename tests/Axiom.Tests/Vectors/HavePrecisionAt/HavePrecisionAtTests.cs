@@ -21,7 +21,7 @@ public sealed class HavePrecisionAtTests
         var results = new[] { "doc-2" };
         var relevantItems = new[] { "doc-2", "doc-5" };
 
-        var continuation = results.Should().HavePrecisionAt(5, relevantItems, expectedPrecision: 0.2, tolerance: 0.001);
+        var continuation = results.Should().HavePrecisionAt(5, relevantItems, expectedPrecision: 0.2);
 
         Assert.IsType<Axiom.Assertions.AssertionTypes.ValueAssertions<string[]>>(continuation.And);
     }
@@ -32,7 +32,7 @@ public sealed class HavePrecisionAtTests
         var results = new[] { "doc-2", "doc-2", "doc-5" };
         var relevantItems = new[] { "doc-2", "doc-5" };
 
-        var continuation = results.Should().HavePrecisionAt(2, relevantItems, expectedPrecision: 0.5, tolerance: 0.001);
+        var continuation = results.Should().HavePrecisionAt(2, relevantItems, expectedPrecision: 0.5);
 
         Assert.IsType<Axiom.Assertions.AssertionTypes.ValueAssertions<string[]>>(continuation.And);
     }
@@ -58,8 +58,10 @@ public sealed class HavePrecisionAtTests
         var relevantItems = new[] { "doc-2" };
 
         var ex = Assert.Throws<InvalidOperationException>(() =>
-            results.Should().HavePrecisionAt(3, relevantItems, expectedPrecision: 1d, tolerance: 0.001d));
+            results.Should().HavePrecisionAt(3, relevantItems, expectedPrecision: 1d));
 
+        Assert.Contains("Expected results to have precision@3 equal to 1", ex.Message);
+        Assert.DoesNotContain("within tolerance", ex.Message);
         Assert.Contains("actual precision@3 was 0", ex.Message);
     }
 
@@ -75,6 +77,18 @@ public sealed class HavePrecisionAtTests
     }
 
     [Fact]
+    public void HavePrecisionAt_ThrowsForNonPositiveK()
+    {
+        var results = new[] { "doc-2" };
+        var relevantItems = new[] { "doc-2" };
+
+        var ex = Assert.Throws<ArgumentOutOfRangeException>(() =>
+            results.Should().HavePrecisionAt(0, relevantItems, expectedPrecision: 1d));
+
+        Assert.Equal("k", ex.ParamName);
+    }
+
+    [Fact]
     public void HavePrecisionAt_ThrowsForOutOfRangeExpectedPrecision()
     {
         var results = new[] { "doc-2" };
@@ -84,6 +98,18 @@ public sealed class HavePrecisionAtTests
             results.Should().HavePrecisionAt(1, relevantItems, expectedPrecision: -0.1d, tolerance: 0.001d));
 
         Assert.Equal("expectedPrecision", ex.ParamName);
+    }
+
+    [Fact]
+    public void HavePrecisionAt_ThrowsForNegativeTolerance()
+    {
+        var results = new[] { "doc-2" };
+        var relevantItems = new[] { "doc-2" };
+
+        var ex = Assert.Throws<ArgumentOutOfRangeException>(() =>
+            results.Should().HavePrecisionAt(1, relevantItems, expectedPrecision: 1d, tolerance: -0.1d));
+
+        Assert.Equal("tolerance", ex.ParamName);
     }
 
     [Fact]

@@ -27,7 +27,7 @@ public sealed class HaveHitRateAtTests
             new RankingQuery<string>(["doc-8", "doc-3"], ["doc-5"]),
         };
 
-        var continuation = queries.Should().HaveHitRateAt(k: 2, expectedHitRate: 0.5, tolerance: 0.001);
+        var continuation = queries.Should().HaveHitRateAt(k: 2, expectedHitRate: 0.5);
 
         Assert.IsType<Axiom.Assertions.AssertionTypes.ValueAssertions<RankingQuery<string>[]>>(continuation.And);
     }
@@ -41,7 +41,7 @@ public sealed class HaveHitRateAtTests
             new RankingQuery<string>(["doc-8"], ["doc-5"]),
         };
 
-        var continuation = queries.Should().HaveHitRateAt(k: 5, expectedHitRate: 0.5, tolerance: 0.001);
+        var continuation = queries.Should().HaveHitRateAt(k: 5, expectedHitRate: 0.5);
 
         Assert.IsType<Axiom.Assertions.AssertionTypes.ValueAssertions<RankingQuery<string>[]>>(continuation.And);
     }
@@ -68,8 +68,10 @@ public sealed class HaveHitRateAtTests
         RankingQuery<string>[] queries = [];
 
         var ex = Assert.Throws<InvalidOperationException>(() =>
-            queries.Should().HaveHitRateAt(k: 1, expectedHitRate: 1d, tolerance: 0.001d));
+            queries.Should().HaveHitRateAt(k: 1, expectedHitRate: 1d));
 
+        Assert.Contains("Expected queries to have hit rate@1 equal to 1", ex.Message);
+        Assert.DoesNotContain("within tolerance", ex.Message);
         Assert.Contains("query set was empty", ex.Message);
     }
 
@@ -85,6 +87,34 @@ public sealed class HaveHitRateAtTests
             queries.Should().HaveHitRateAt(k: 0, expectedHitRate: 1d, tolerance: 0.001d));
 
         Assert.Equal("k", ex.ParamName);
+    }
+
+    [Fact]
+    public void HaveHitRateAt_ThrowsForOutOfRangeExpectedHitRate()
+    {
+        var queries = new[]
+        {
+            new RankingQuery<string>(["doc-2"], ["doc-2"]),
+        };
+
+        var ex = Assert.Throws<ArgumentOutOfRangeException>(() =>
+            queries.Should().HaveHitRateAt(k: 1, expectedHitRate: 1.1d));
+
+        Assert.Equal("expectedHitRate", ex.ParamName);
+    }
+
+    [Fact]
+    public void HaveHitRateAt_ThrowsForNegativeTolerance()
+    {
+        var queries = new[]
+        {
+            new RankingQuery<string>(["doc-2"], ["doc-2"]),
+        };
+
+        var ex = Assert.Throws<ArgumentOutOfRangeException>(() =>
+            queries.Should().HaveHitRateAt(k: 1, expectedHitRate: 1d, tolerance: -0.1d));
+
+        Assert.Equal("tolerance", ex.ParamName);
     }
 
     [Fact]

@@ -114,8 +114,7 @@ public static class RankingValueAssertionExtensions
         RankingAssertionHelpers.ValidateTolerance(tolerance);
         var relevantSet = RankingAssertionHelpers.CreateRelevantSet(relevantItems, nameof(relevantItems));
 
-        var expectation =
-            $"to have recall@{k} equal to {RankingAssertionHelpers.FormatMetric(expectedRecall)} within tolerance {RankingAssertionHelpers.FormatMetric(tolerance)}";
+        var expectation = $"to have {RankingAssertionHelpers.BuildMetricExpectation($"recall@{k}", expectedRecall, tolerance)}";
         if (!TryGetResults<TCollection, TItem>(assertions, expectation, because, callerFilePath, callerLineNumber, out var results))
         {
             return new AndContinuation<ValueAssertions<TCollection>>(assertions);
@@ -155,8 +154,7 @@ public static class RankingValueAssertionExtensions
         RankingAssertionHelpers.ValidateTolerance(tolerance);
         var relevantSet = RankingAssertionHelpers.CreateRelevantSet(relevantItems, nameof(relevantItems));
 
-        var expectation =
-            $"to have precision@{k} equal to {RankingAssertionHelpers.FormatMetric(expectedPrecision)} within tolerance {RankingAssertionHelpers.FormatMetric(tolerance)}";
+        var expectation = $"to have {RankingAssertionHelpers.BuildMetricExpectation($"precision@{k}", expectedPrecision, tolerance)}";
         if (!TryGetResults<TCollection, TItem>(assertions, expectation, because, callerFilePath, callerLineNumber, out var results))
         {
             return new AndContinuation<ValueAssertions<TCollection>>(assertions);
@@ -194,7 +192,7 @@ public static class RankingValueAssertionExtensions
         RankingAssertionHelpers.ValidateTolerance(tolerance);
 
         var expectation =
-            $"to have reciprocal rank for item {RankingAssertionHelpers.FormatValue(target)} equal to {RankingAssertionHelpers.FormatMetric(expectedReciprocalRank)} within tolerance {RankingAssertionHelpers.FormatMetric(tolerance)}";
+            $"to have {RankingAssertionHelpers.BuildMetricExpectation($"reciprocal rank for item {RankingAssertionHelpers.FormatValue(target)}", expectedReciprocalRank, tolerance)}";
         if (!TryGetResults<TCollection, TItem>(assertions, expectation, because, callerFilePath, callerLineNumber, out var results))
         {
             return new AndContinuation<ValueAssertions<TCollection>>(assertions);
@@ -379,7 +377,7 @@ public static class RankingValueAssertionExtensions
         RankingAssertionHelpers.ValidateTolerance(tolerance);
 
         var expectation =
-            $"to have mean reciprocal rank equal to {RankingAssertionHelpers.FormatMetric(expectedMeanReciprocalRank)} within tolerance {RankingAssertionHelpers.FormatMetric(tolerance)}";
+            $"to have {RankingAssertionHelpers.BuildMetricExpectation("mean reciprocal rank", expectedMeanReciprocalRank, tolerance)}";
         if (!TryGetQueries<TCollection, TItem>(assertions, expectation, because, callerFilePath, callerLineNumber, out var queries))
         {
             return new AndContinuation<ValueAssertions<TCollection>>(assertions);
@@ -432,8 +430,7 @@ public static class RankingValueAssertionExtensions
         RankingAssertionHelpers.ValidateMetric(expectedHitRate, nameof(expectedHitRate));
         RankingAssertionHelpers.ValidateTolerance(tolerance);
 
-        var expectation =
-            $"to have hit rate@{k} equal to {RankingAssertionHelpers.FormatMetric(expectedHitRate)} within tolerance {RankingAssertionHelpers.FormatMetric(tolerance)}";
+        var expectation = $"to have {RankingAssertionHelpers.BuildMetricExpectation($"hit rate@{k}", expectedHitRate, tolerance)}";
         if (!TryGetQueries<TCollection, TItem>(assertions, expectation, because, callerFilePath, callerLineNumber, out var queries))
         {
             return new AndContinuation<ValueAssertions<TCollection>>(assertions);

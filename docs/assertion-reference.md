@@ -330,6 +330,8 @@ HaveHitRateAt(k, expectedHitRate, tolerance)
 ```
 
 These ranking metric assertions default to exact comparison with `tolerance: 0`.
+Omitting `tolerance` means the computed metric must match exactly.
+Each `RankingQuery<T>` must contain at least one relevant item.
 
 `HaveCosineSimilarityWith(expected)` returns `CosineSimilarityAssertions<TNumeric>`, which exposes:
 

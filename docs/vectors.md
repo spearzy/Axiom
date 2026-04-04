@@ -178,12 +178,13 @@ If the item is present but ranked too low, the failure reports the found rank. I
 - Empty relevant-item sets are rejected as invalid input.
 - The ranking metric assertions default to exact comparison with `tolerance: 0`.
 - Pass a tolerance explicitly when you want an approximate numeric comparison.
+- When no relevant item is found in the inspected top `k`, the computed recall or precision is `0`.
 
 ### Reciprocal Rank, Mean Reciprocal Rank, And Hit Rate
 
 `HaveReciprocalRank(...)` evaluates a single ranked result list for one target item.
 
-Missing items produce reciprocal rank `0`, and the failure message states that the item was missing.
+Missing items produce reciprocal rank `0`, including empty result lists, and the failure message states that the item was missing.
 
 `HaveMeanReciprocalRank(...)` and `HaveHitRateAt(...)` evaluate a query set built from `RankingQuery<T>`:
 
