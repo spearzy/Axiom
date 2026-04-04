@@ -36,7 +36,7 @@ Install `Axiom.Vectors` when you want vector and embedding-focused assertions on
 dotnet add package Axiom.Vectors
 ```
 
-`Axiom.Vectors` adds dimension, approximate equality, dot product, Euclidean distance, cosine similarity, zero-vector, NaN/infinity, and normalization assertions for vector and embedding test scenarios.
+`Axiom.Vectors` adds dimension, approximate equality, dot product, Euclidean distance, cosine similarity, zero-vector, NaN/infinity, normalization, and ranked retrieval evaluation assertions for vector, embedding, and search-style test scenarios.
 
 ```csharp
 embedding.Should().HaveDotProductWith(expected, expectedDotProduct: 1f, tolerance: 0.001f);
@@ -206,7 +206,7 @@ Axiom currently includes:
 - exceptions and async: throw, exact throw, message/parameter/inner-exception checks, delegate-based async assertions, async function result assertions, direct task completion and outcome assertions
 - collections and dictionaries: containment, exact sequence, count/empty checks, ordering, uniqueness, single-item extraction, key/value extraction, direct `IAsyncEnumerable<T>` assertions
 - temporal assertions: before, after, and within-tolerance checks
-- vector assertions: dimension checks, NaN/infinity validation, approximate equality, cosine similarity thresholds, normalization
+- vector assertions: dimension checks, NaN/infinity validation, approximate equality, dot product, Euclidean distance, cosine similarity thresholds, normalization, ranked retrieval evaluation
 - custom assertion authoring: `AssertionContext.Create(...)` for domain assertions on `ValueAssertions<T>`
 
 ## Documentation

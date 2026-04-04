@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project follows [Semantic Versioning](https://semver.org/).
 
+## [1.5.0] - 2026-04-04
+
+### Added
+
+- Added retrieval and ranking evaluation assertions to `Axiom.Vectors`, including top-k, rank, recall@k, precision@k, reciprocal rank, mean reciprocal rank, and hit-rate assertions.
+
+### Changed
+
+- Hardened retrieval/ranking diagnostics, edge-case coverage, and vector docs/examples so ranking behavior and metrics are more explicit and consistent.
+
+### Fixed
+
+- Tightened retrieval/ranking regression coverage so documented behavior remains stable.
+
 ## [1.4.0] - 2026-04-03
 
 ### Added
