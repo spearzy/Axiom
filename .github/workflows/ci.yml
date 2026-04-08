@@ -89,6 +89,9 @@ jobs:
       - name: Build
         run: dotnet build Axiom.sln -c Release --no-restore
 
+      - name: Validate benchmark snapshot
+        run: bash eng/ci/run-benchmark-snapshot.sh validate
+
       - name: Test docs snippets
         run: dotnet test tests/Axiom.Docs.Snippets.Tests/Axiom.Docs.Snippets.Tests.csproj -c Release --no-build
 

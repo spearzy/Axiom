@@ -1,0 +1,42 @@
+{
+  "generated_on": "2026-04-08",
+  "job": "ShortRun",
+  "rows": [
+    {
+      "scenario": "Simple `Be(...)` pass",
+      "mean": "7.23 ns",
+      "allocated": "32 B",
+      "what_it_shows": "The baseline pass path stays cheap."
+    },
+    {
+      "scenario": "Collection `Contain(...)` pass",
+      "mean": "7.20 ns",
+      "allocated": "0 B",
+      "what_it_shows": "Common collection membership checks stay cheap on small inputs."
+    },
+    {
+      "scenario": "`BeEquivalentTo(...)` pass",
+      "mean": "5.3 \u03bcs",
+      "allocated": "20.0 KB",
+      "what_it_shows": "Structural comparison does more work, but only when you use it."
+    },
+    {
+      "scenario": "Async `ContainAllAsync(...)` pass",
+      "mean": "133.7 ns",
+      "allocated": "344 B",
+      "what_it_shows": "Async stream assertions pay to enumerate the stream, not before."
+    },
+    {
+      "scenario": "Vector `BeNormalized(...)` pass",
+      "mean": "5.92 ns",
+      "allocated": "48 B",
+      "what_it_shows": "Vector-specific checks stay focused on the metric they compute."
+    },
+    {
+      "scenario": "Ranking `HaveRecallAt(...)` pass",
+      "mean": "197.6 ns",
+      "allocated": "600 B",
+      "what_it_shows": "Retrieval metrics add top-k and set work only when you ask for them."
+    }
+  ]
+}

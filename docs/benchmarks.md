@@ -1,102 +1,20 @@
-# Performance and Benchmarks
+# Benchmarks
 
-This page exists for transparency and regression tracking.
+Axiom tracks a small set of representative benchmarks. Simple assertions are expected to stay cheap, while more capable features cost more only when you use them. These snapshots exist to catch regressions and show the shape of the library.
 
-Axiom publishes a small BenchmarkDotNet harness so readers and maintainers can see the cost of a few representative assertion scenarios, rerun them locally, and notice when those costs move over time. The benchmark set is intentionally small: the goal is to show the shape of Axiom's own work, not to build a synthetic leaderboard.
+Snapshot last refreshed: 2026-04-08.
 
-## What This Page Is For
+## Representative Benchmarks
 
-Use this page for:
-
-- understanding representative per-scenario costs inside Axiom
-- tracking performance regressions over time
-- making implementation tradeoffs more visible
-
-Do not use this page for:
-
-- predicting whole test-suite runtime
-- ranking Axiom against other assertion libraries
-- overinterpreting tiny deltas from one machine or one benchmark run
-
-## Benchmark Project
-
-The harness lives in `benchmarks/Axiom.Benchmarks`.
-
-Current scenarios:
-
-- `Be pass (int)`: successful scalar `Be(...)`
-- `BeEquivalentTo pass (medium graph)`: successful structural comparison on a nested object graph
-- `BeEquivalentTo fail (nested mismatch)`: structural comparison that fails on a nested member and generates failure output
-- `Batch aggregation (2 failures)`: a small explicit batch that mixes passing and failing assertions and throws one aggregated failure
-
-The benchmark code is split into:
-
-- `Infrastructure/`: BenchmarkDotNet config, shared setup, and failure-consumption helpers
-- `Models/`: stable benchmark data models
-- `Scenarios/`: one focused class per scenario group
-
-That keeps the first wave small, repeatable, and easy to grow without turning the suite into maintenance overhead.
+| Scenario | Mean | Allocated | What it shows |
+| --- | ---: | ---: | --- |
+| Simple `Be(...)` pass | `7.23 ns` | `32 B` | The baseline pass path stays cheap. |
+| Collection `Contain(...)` pass | `7.20 ns` | `0 B` | Common collection membership checks stay cheap on small inputs. |
+| `BeEquivalentTo(...)` pass | `5.3 μs` | `20.0 KB` | Structural comparison does more work, but only when you use it. |
+| Async `ContainAllAsync(...)` pass | `133.7 ns` | `344 B` | Async stream assertions pay to enumerate the stream, not before. |
+| Vector `BeNormalized(...)` pass | `5.92 ns` | `48 B` | Vector-specific checks stay focused on the metric they compute. |
+| Ranking `HaveRecallAt(...)` pass | `197.6 ns` | `600 B` | Retrieval metrics add top-k and set work only when you ask for them. |
 
 ## Methodology
 
-These results were collected with:
-
-- BenchmarkDotNet `0.14.0`
-- `.NET 10.0.3`
-- `ShortRun`
-- memory diagnostics enabled
-
-The benchmark harness configures Axiom to use `InvalidOperationFailureStrategy` explicitly so the benchmark process does not vary by detected test framework.
-
-Failure-path benchmarks catch the expected assertion exception inside the benchmark body so the measured work is the assertion path itself, not a broken harness.
-
-## Current Results
-
-Recorded on March 28, 2026.
-
-Each row below represents a different kind of work:
-
-- `Be(...)` pass: the baseline cost of a successful basic assertion
-- `BeEquivalentTo(...)` pass: structural comparison on a representative nested graph
-- `BeEquivalentTo(...)` fail: structural comparison plus deterministic diagnostics and exception creation
-- `Batch` aggregation: explicit aggregation work across several assertions
-
-That means the rows are not interchangeable "speed scores." They represent different behaviors and different amounts of work.
-
-| Scenario | Mean | Allocated | What it represents |
-| --- | ---: | ---: | --- |
-| `Be pass (int)` | `7.689 ns` | `32 B` | Baseline cost of a successful basic assertion |
-| `BeEquivalentTo pass (medium graph)` | `10.56 us` | `42.58 KB` | Structural comparison on a representative nested graph |
-| `BeEquivalentTo fail (nested mismatch)` | `16.61 us` | `60.37 KB` | Structural comparison plus deterministic failure generation |
-| `Batch aggregation (2 failures)` | `3.725 us` | `2.57 KB` | Explicit aggregation of multiple assertions into one failure |
-
-## Interpreting The Numbers
-
-- These are per-scenario microbenchmarks, not end-to-end test-suite timings.
-- They are useful for spotting Axiom regressions and understanding where Axiom spends work.
-- They were collected on one machine, one runtime, and one BenchmarkDotNet job shape.
-- The failure-path numbers include exception creation and deterministic message generation, which is intentional.
-
-More specifically:
-
-- `Be(...)` pass is the closest thing here to a pass-path baseline.
-- `BeEquivalentTo(...)` failure is intentionally measuring richer work, including exception construction and deterministic failure rendering.
-- `Batch` aggregation has its own measurable overhead because it is doing extra coordination and reporting work on purpose.
-
-The useful signal is not that one row is universally "better" than another. The useful signal is that these measurements make Axiom's own tradeoffs visible and give us a stable baseline for future regression checks.
-
-## Running Locally
-
-Build the benchmark project:
-
-```bash
-dotnet build benchmarks/Axiom.Benchmarks/Axiom.Benchmarks.csproj -c Release
-```
-
-Run the full benchmark set:
-
-```bash
-dotnet run -c Release --project benchmarks/Axiom.Benchmarks/Axiom.Benchmarks.csproj -- --filter '*'
-```
-
-BenchmarkDotNet writes reports to `BenchmarkDotNet.Artifacts/results/` from the repo root when you run that command there.
+These numbers come from the repo's BenchmarkDotNet suite using the shared `ShortRun` configuration and a Release build. The published values are rounded so tiny machine noise does not churn the docs. Use them to spot regressions and understand Axiom's pay-to-play shape, not to predict full test-suite runtime or compare different machines.
