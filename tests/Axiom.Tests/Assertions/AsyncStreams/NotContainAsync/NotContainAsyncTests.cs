@@ -29,6 +29,19 @@ public sealed class NotContainAsyncTests
     }
 
     [Fact]
+    public async Task NotContainAsync_Throws_WhenComparerFindsAMatch()
+    {
+        var values = CreateAsyncSequence("Alpha", "beta", "gamma");
+
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+            await values.Should().NotContainAsync("BETA", StringComparer.OrdinalIgnoreCase));
+
+        Assert.Equal(
+            "Expected values to not contain \"BETA\", but found first matching item at subject index 1: \"beta\".",
+            ex.Message);
+    }
+
+    [Fact]
     public async Task NotContainAsync_ReportsFirstMatchingOccurrence_WhenDuplicatesExist()
     {
         var values = CreateAsyncSequence(1, 2, 2, 3);
@@ -63,6 +76,18 @@ public sealed class NotContainAsyncTests
     }
 
     [Fact]
+    public async Task NotContainAsync_ThrowsArgumentNullException_WhenComparerIsNull()
+    {
+        var values = CreateAsyncSequence("Alpha");
+        StringComparer? comparer = null;
+
+        var ex = await Assert.ThrowsAsync<ArgumentNullException>(async () =>
+            await values.Should().NotContainAsync("alpha", comparer!));
+
+        Assert.Equal("comparer", ex.ParamName);
+    }
+
+    [Fact]
     public async Task NotContainAsync_Throws_WithReason_WhenProvided()
     {
         var values = CreateAsyncSequence(1, 2, 3);
@@ -81,6 +106,19 @@ public sealed class NotContainAsyncTests
 
         await Assert.ThrowsAsync<InvalidOperationException>(async () =>
             await values.Should().NotContainAsync(2));
+
+        Assert.Equal(2, tracking.YieldCount);
+        Assert.Equal(2, tracking.MoveNextCallCount);
+    }
+
+    [Fact]
+    public async Task NotContainAsync_StopsAtFirstMatch_WhenUsingComparer()
+    {
+        var tracking = new TrackingAsyncEnumerable<string>(["Alpha", "beta", "BETA", "gamma"]);
+        IAsyncEnumerable<string> values = tracking;
+
+        await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+            await values.Should().NotContainAsync("beta", StringComparer.OrdinalIgnoreCase));
 
         Assert.Equal(2, tracking.YieldCount);
         Assert.Equal(2, tracking.MoveNextCallCount);

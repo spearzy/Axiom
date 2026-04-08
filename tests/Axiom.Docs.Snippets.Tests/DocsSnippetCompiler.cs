@@ -399,6 +399,8 @@ internal sealed class DocsSnippetCompiler
         "var events = DocsSnippetFixtures.GetEvents();",
         "var stepIds = DocsSnippetFixtures.StepIds;",
         "var descendingStepIds = DocsSnippetFixtures.DescendingStepIds;",
+        "var eventNames = DocsSnippetFixtures.EventNames;",
+        "var labels = DocsSnippetFixtures.Labels;",
         "var values = DocsSnippetFixtures.TextValues;",
     ];
 

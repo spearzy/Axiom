@@ -98,6 +98,10 @@ public static class DocsSnippetFixtures
 
     public static IAsyncEnumerable<int> DescendingStepIds { get; } = GetDescendingStepIds();
 
+    public static IAsyncEnumerable<string> EventNames { get; } = GetEventNames();
+
+    public static IAsyncEnumerable<string> Labels { get; } = GetLabels();
+
     public static float[] Embedding { get; } = [1f, 0f, 0f];
 
     public static float[] ExpectedEmbedding { get; } = [1f, 0f, 0f];
@@ -156,6 +160,21 @@ public static class DocsSnippetFixtures
         await Task.Yield();
         yield return 2;
         yield return 1;
+    }
+
+    private static async IAsyncEnumerable<string> GetEventNames()
+    {
+        yield return "Created";
+        await Task.Yield();
+        yield return "Queued";
+    }
+
+    private static async IAsyncEnumerable<string> GetLabels()
+    {
+        yield return "alpha";
+        await Task.Yield();
+        yield return "Beta";
+        yield return "charlie";
     }
 }
 

@@ -99,6 +99,11 @@ public sealed partial class AsyncEnumerableAssertions<T>
         return EqualityComparer<TValue>.Default;
     }
 
+    private static IEqualityComparer<TValue> GetComparer<TValue>(IEqualityComparer<TValue>? comparer)
+    {
+        return comparer ?? GetComparer<TValue>();
+    }
+
     private string RenderContainSingleFailure(string expectationText, object? actual, string? because)
     {
         var failure = new Failure(

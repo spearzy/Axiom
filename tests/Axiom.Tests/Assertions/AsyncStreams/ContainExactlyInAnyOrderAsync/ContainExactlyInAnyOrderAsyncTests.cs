@@ -27,6 +27,19 @@ public sealed class ContainExactlyInAnyOrderAsyncTests
     }
 
     [Fact]
+    public async Task ContainExactlyInAnyOrderAsync_Passes_WhenComparerTreatsItemsAsEqual()
+    {
+        var values = CreateAsyncSequence("Alpha", "beta", "BETA");
+
+        var ex = await Record.ExceptionAsync(async () =>
+            await values.Should().ContainExactlyInAnyOrderAsync(
+                ["BETA", "alpha", "beta"],
+                StringComparer.OrdinalIgnoreCase));
+
+        Assert.Null(ex);
+    }
+
+    [Fact]
     public async Task ContainExactlyInAnyOrderAsync_Throws_WhenExpectedItemIsMissing()
     {
         var values = CreateAsyncSequence(1, 2, 2);
@@ -86,6 +99,18 @@ public sealed class ContainExactlyInAnyOrderAsyncTests
             await values.Should().ContainExactlyInAnyOrderAsync(expectedSequence!));
 
         Assert.Equal("expectedSequence", ex.ParamName);
+    }
+
+    [Fact]
+    public async Task ContainExactlyInAnyOrderAsync_ThrowsArgumentNullException_WhenComparerIsNull()
+    {
+        var values = CreateAsyncSequence("Alpha");
+        StringComparer? comparer = null;
+
+        var ex = await Assert.ThrowsAsync<ArgumentNullException>(async () =>
+            await values.Should().ContainExactlyInAnyOrderAsync(["alpha"], comparer!));
+
+        Assert.Equal("comparer", ex.ParamName);
     }
 
     [Fact]
