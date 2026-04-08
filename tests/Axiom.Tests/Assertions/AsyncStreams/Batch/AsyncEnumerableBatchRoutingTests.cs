@@ -283,31 +283,69 @@ public sealed class AsyncEnumerableBatchRoutingTests
     [Fact]
     public async Task NewAsyncContainmentAssertions_InsideBatch_DoNotThrowAtAssertionCallSite()
     {
-        var values = CreateAsyncSequence(1, 2, 2);
+        static IAsyncEnumerable<int> CreateValues()
+        {
+            return CreateAsyncSequence(1, 2, 2);
+        }
 
         using var batch = new Axiom.Core.Batch();
         var callEx = await Record.ExceptionAsync(async () =>
         {
-            await values.Should().ContainExactlyInAnyOrderAsync([1, 2, 3]);
-            await values.Should().ContainAllAsync([1, 4]);
-            await values.Should().NotContainAsync(2);
-            await values.Should().BeSubsetOfAsync([1]);
-            await values.Should().BeSupersetOfAsync([1, 4]);
+            await CreateValues().Should().ContainExactlyInAnyOrderAsync([1, 2, 3]);
+            await CreateValues().Should().ContainAllAsync([1, 4]);
+            await CreateValues().Should().NotContainAsync(2);
+            await CreateValues().Should().BeSubsetOfAsync([1]);
+            await CreateValues().Should().BeSupersetOfAsync([1, 4]);
         });
 
         Assert.Null(callEx);
 
         var disposeEx = Assert.Throws<InvalidOperationException>(() => batch.Dispose());
-        Assert.Contains("Expected values to contain exactly in any order [1, 2, 3]", disposeEx.Message);
+        Assert.Contains("to contain exactly in any order [1, 2, 3]", disposeEx.Message);
         Assert.Contains("missing item 3: expected count 1 but found 0", disposeEx.Message);
-        Assert.Contains("Expected values to contain all [1, 4]", disposeEx.Message);
+        Assert.Contains("to contain all [1, 4]", disposeEx.Message);
         Assert.Contains("missing expected item at index 1: 4", disposeEx.Message);
-        Assert.Contains("Expected values to not contain 2", disposeEx.Message);
+        Assert.Contains("to not contain 2", disposeEx.Message);
         Assert.Contains("first matching item at subject index 1: 2", disposeEx.Message);
-        Assert.Contains("Expected values to be a subset of [1]", disposeEx.Message);
+        Assert.Contains("to be a subset of [1]", disposeEx.Message);
         Assert.Contains("missing item at index 1: 2", disposeEx.Message);
-        Assert.Contains("Expected values to be a superset of [1, 4]", disposeEx.Message);
+        Assert.Contains("to be a superset of [1, 4]", disposeEx.Message);
         Assert.Contains("missing expected item at index 1: 4", disposeEx.Message);
+    }
+
+    [Fact]
+    public async Task NewAsyncContainmentAssertions_WithComparer_InsideBatch_DoNotThrowAtAssertionCallSite()
+    {
+        static IAsyncEnumerable<string> CreateValues()
+        {
+            return CreateAsyncSequence("Alpha", "beta", "beta");
+        }
+
+        using var batch = new Axiom.Core.Batch();
+        var callEx = await Record.ExceptionAsync(async () =>
+        {
+            await CreateValues().Should().ContainExactlyInAnyOrderAsync(
+                ["alpha", "beta", "gamma"],
+                StringComparer.OrdinalIgnoreCase);
+            await CreateValues().Should().ContainAllAsync(["alpha", "delta"], StringComparer.OrdinalIgnoreCase);
+            await CreateValues().Should().NotContainAsync("BETA", StringComparer.OrdinalIgnoreCase);
+            await CreateValues().Should().BeSubsetOfAsync(["alpha"], StringComparer.OrdinalIgnoreCase);
+            await CreateValues().Should().BeSupersetOfAsync(["alpha", "delta"], StringComparer.OrdinalIgnoreCase);
+        });
+
+        Assert.Null(callEx);
+
+        var disposeEx = Assert.Throws<InvalidOperationException>(() => batch.Dispose());
+        Assert.Contains("to contain exactly in any order [\"alpha\", \"beta\", \"gamma\"]", disposeEx.Message);
+        Assert.Contains("missing item \"gamma\": expected count 1 but found 0", disposeEx.Message);
+        Assert.Contains("to contain all [\"alpha\", \"delta\"]", disposeEx.Message);
+        Assert.Contains("missing expected item at index 1: \"delta\"", disposeEx.Message);
+        Assert.Contains("to not contain \"BETA\"", disposeEx.Message);
+        Assert.Contains("first matching item at subject index 1: \"beta\"", disposeEx.Message);
+        Assert.Contains("to be a subset of [\"alpha\"]", disposeEx.Message);
+        Assert.Contains("missing item at index 1: \"beta\"", disposeEx.Message);
+        Assert.Contains("to be a superset of [\"alpha\", \"delta\"]", disposeEx.Message);
+        Assert.Contains("missing expected item at index 1: \"delta\"", disposeEx.Message);
     }
 
     [Fact]
@@ -332,6 +370,61 @@ public sealed class AsyncEnumerableBatchRoutingTests
         Assert.Contains("first out-of-order pair at index 2: previous 1 then current 2", disposeEx.Message);
     }
 
+    [Fact]
+    public async Task AsyncEnumerableOrderingAssertions_WithComparer_InsideBatch_DoNotThrowAtAssertionCallSite()
+    {
+        var ascending = CreateAsyncSequence("a", "ccc", "bb");
+        var descending = CreateAsyncSequence("ccc", "a", "bb");
+
+        using var batch = new Axiom.Core.Batch();
+        var callEx = await Record.ExceptionAsync(async () =>
+        {
+            await ascending.Should().BeInAscendingOrderAsync(StringLengthComparer.Instance);
+            await descending.Should().BeInDescendingOrderAsync(StringLengthComparer.Instance);
+        });
+
+        Assert.Null(callEx);
+
+        var disposeEx = Assert.Throws<InvalidOperationException>(() => batch.Dispose());
+        Assert.Contains("Expected ascending to be in ascending order", disposeEx.Message);
+        Assert.Contains("first out-of-order pair at index 2: previous \"ccc\" then current \"bb\"", disposeEx.Message);
+        Assert.Contains("Expected descending to be in descending order", disposeEx.Message);
+        Assert.Contains("first out-of-order pair at index 2: previous \"a\" then current \"bb\"", disposeEx.Message);
+    }
+
+    [Fact]
+    public async Task AsyncEnumerableComparerAssertions_InsideBatch_PreserveFailureCallOrder()
+    {
+        static IAsyncEnumerable<string> CreateValues()
+        {
+            return CreateAsyncSequence("Alpha", "beta", "beta");
+        }
+
+        static IAsyncEnumerable<string> CreateDescending()
+        {
+            return CreateAsyncSequence("ccc", "a", "bb");
+        }
+
+        using var batch = new Axiom.Core.Batch("async streams");
+        var callEx = await Record.ExceptionAsync(async () =>
+        {
+            await CreateValues().Should().ContainAllAsync(["alpha", "delta"], StringComparer.OrdinalIgnoreCase);
+            await CreateValues().Should().NotContainAsync("BETA", StringComparer.OrdinalIgnoreCase);
+            await CreateDescending().Should().BeInDescendingOrderAsync(StringLengthComparer.Instance);
+        });
+
+        Assert.Null(callEx);
+
+        var disposeEx = Assert.Throws<InvalidOperationException>(() => batch.Dispose());
+        var containAllIndex = disposeEx.Message.IndexOf("to contain all [\"alpha\", \"delta\"]", StringComparison.Ordinal);
+        var notContainIndex = disposeEx.Message.IndexOf("to not contain \"BETA\"", StringComparison.Ordinal);
+        var descendingIndex = disposeEx.Message.IndexOf("to be in descending order", StringComparison.Ordinal);
+
+        Assert.True(containAllIndex >= 0, disposeEx.Message);
+        Assert.True(notContainIndex > containAllIndex, disposeEx.Message);
+        Assert.True(descendingIndex > notContainIndex, disposeEx.Message);
+    }
+
     private static async IAsyncEnumerable<T> CreateAsyncSequence<T>(params T[] items)
     {
         foreach (var item in items)
@@ -349,4 +442,14 @@ public sealed class AsyncEnumerableBatchRoutingTests
     }
 
     private sealed record WorkflowEvent(WorkflowStep Step, string Name);
+
+    private sealed class StringLengthComparer : IComparer<string>
+    {
+        public static StringLengthComparer Instance { get; } = new();
+
+        public int Compare(string? x, string? y)
+        {
+            return Comparer<int>.Default.Compare(x?.Length ?? 0, y?.Length ?? 0);
+        }
+    }
 }

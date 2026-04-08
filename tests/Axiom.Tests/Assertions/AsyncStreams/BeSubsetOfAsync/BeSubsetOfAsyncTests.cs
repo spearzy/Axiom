@@ -25,6 +25,17 @@ public sealed class BeSubsetOfAsyncTests
     }
 
     [Fact]
+    public async Task BeSubsetOfAsync_Passes_WhenComparerTreatsItemsAsEqual()
+    {
+        var values = CreateAsyncSequence("Alpha", "beta");
+
+        var ex = await Record.ExceptionAsync(async () =>
+            await values.Should().BeSubsetOfAsync(["alpha", "BETA", "gamma"], StringComparer.OrdinalIgnoreCase));
+
+        Assert.Null(ex);
+    }
+
+    [Fact]
     public async Task BeSubsetOfAsync_Throws_WhenItemIsNotInSuperset()
     {
         var values = CreateAsyncSequence(1, 4, 2);
@@ -60,6 +71,18 @@ public sealed class BeSubsetOfAsyncTests
             await values.Should().BeSubsetOfAsync(expectedSuperset!));
 
         Assert.Equal("expectedSuperset", ex.ParamName);
+    }
+
+    [Fact]
+    public async Task BeSubsetOfAsync_ThrowsArgumentNullException_WhenComparerIsNull()
+    {
+        var values = CreateAsyncSequence("Alpha");
+        StringComparer? comparer = null;
+
+        var ex = await Assert.ThrowsAsync<ArgumentNullException>(async () =>
+            await values.Should().BeSubsetOfAsync(["alpha"], comparer!));
+
+        Assert.Equal("comparer", ex.ParamName);
     }
 
     [Fact]

@@ -38,6 +38,17 @@ public sealed class ContainAllAsyncTests
     }
 
     [Fact]
+    public async Task ContainAllAsync_Passes_WhenComparerTreatsItemsAsEqual()
+    {
+        var values = CreateAsyncSequence("Alpha", "beta", "gamma");
+
+        var ex = await Record.ExceptionAsync(async () =>
+            await values.Should().ContainAllAsync(["alpha", "GAMMA"], StringComparer.OrdinalIgnoreCase));
+
+        Assert.Null(ex);
+    }
+
+    [Fact]
     public async Task ContainAllAsync_Throws_WhenExpectedItemIsMissing()
     {
         var values = CreateAsyncSequence(1, 2, 3);
@@ -76,6 +87,18 @@ public sealed class ContainAllAsyncTests
     }
 
     [Fact]
+    public async Task ContainAllAsync_ThrowsArgumentNullException_WhenComparerIsNull()
+    {
+        var values = CreateAsyncSequence("Alpha");
+        StringComparer? comparer = null;
+
+        var ex = await Assert.ThrowsAsync<ArgumentNullException>(async () =>
+            await values.Should().ContainAllAsync(["alpha"], comparer!));
+
+        Assert.Equal("comparer", ex.ParamName);
+    }
+
+    [Fact]
     public async Task ContainAllAsync_Throws_WhenSubjectIsNull()
     {
         IAsyncEnumerable<int>? values = null;
@@ -93,6 +116,18 @@ public sealed class ContainAllAsyncTests
         IAsyncEnumerable<int> values = tracking;
 
         await values.Should().ContainAllAsync([1, 3]);
+
+        Assert.Equal(3, tracking.YieldCount);
+        Assert.Equal(3, tracking.MoveNextCallCount);
+    }
+
+    [Fact]
+    public async Task ContainAllAsync_StopsAfterAllExpectedItemsAreFound_WhenUsingComparer()
+    {
+        var tracking = new TrackingAsyncEnumerable<string>(["Alpha", "beta", "gamma", "delta"]);
+        IAsyncEnumerable<string> values = tracking;
+
+        await values.Should().ContainAllAsync(["alpha", "GAMMA"], StringComparer.OrdinalIgnoreCase);
 
         Assert.Equal(3, tracking.YieldCount);
         Assert.Equal(3, tracking.MoveNextCallCount);

@@ -22,6 +22,26 @@ public sealed partial class AsyncEnumerableAssertions<T>
         return new AndContinuation<AsyncEnumerableAssertions<T>>(this);
     }
 
+    public async ValueTask<AndContinuation<AsyncEnumerableAssertions<T>>> BeInAscendingOrderAsync(
+        IComparer<T> comparer,
+        string? because = null,
+        [CallerFilePath] string? callerFilePath = null,
+        [CallerLineNumber] int callerLineNumber = 0)
+    {
+        ArgumentNullException.ThrowIfNull(comparer);
+
+        await AssertInOrderAsync(
+                because,
+                expectationText: "to be in ascending order",
+                comparer,
+                inOrder: static (previous, current, resolvedComparer) => resolvedComparer.Compare(previous, current) <= 0,
+                callerFilePath,
+                callerLineNumber)
+            .ConfigureAwait(false);
+
+        return new AndContinuation<AsyncEnumerableAssertions<T>>(this);
+    }
+
     public async ValueTask<AndContinuation<AsyncEnumerableAssertions<T>>> BeInDescendingOrderAsync(
         string? because = null,
         [CallerFilePath] string? callerFilePath = null,
@@ -31,6 +51,26 @@ public sealed partial class AsyncEnumerableAssertions<T>
                 because,
                 expectationText: "to be in descending order",
                 inOrder: (previous, current) => CompareObjectsForOrdering(previous, current) >= 0,
+                callerFilePath,
+                callerLineNumber)
+            .ConfigureAwait(false);
+
+        return new AndContinuation<AsyncEnumerableAssertions<T>>(this);
+    }
+
+    public async ValueTask<AndContinuation<AsyncEnumerableAssertions<T>>> BeInDescendingOrderAsync(
+        IComparer<T> comparer,
+        string? because = null,
+        [CallerFilePath] string? callerFilePath = null,
+        [CallerLineNumber] int callerLineNumber = 0)
+    {
+        ArgumentNullException.ThrowIfNull(comparer);
+
+        await AssertInOrderAsync(
+                because,
+                expectationText: "to be in descending order",
+                comparer,
+                inOrder: static (previous, current, resolvedComparer) => resolvedComparer.Compare(previous, current) >= 0,
                 callerFilePath,
                 callerLineNumber)
             .ConfigureAwait(false);
@@ -216,6 +256,59 @@ public sealed partial class AsyncEnumerableAssertions<T>
                     SubjectLabel(),
                     new Expectation(expectationText, IncludeExpectedValue: false),
                     new RenderedText($"first out-of-order pair at index {index}: previous {FormatValue(previous)} then current {FormatValue(current)}"),
+                    because),
+                callerFilePath,
+                callerLineNumber);
+            return;
+        }
+    }
+
+    private async ValueTask AssertInOrderAsync(
+        string? because,
+        string expectationText,
+        IComparer<T> comparer,
+        Func<T, T, IComparer<T>, bool> inOrder,
+        string? callerFilePath,
+        int callerLineNumber)
+    {
+        var subject = Subject;
+        if (subject is null)
+        {
+            Fail(
+                new Failure(
+                    SubjectLabel(),
+                    new Expectation(expectationText, IncludeExpectedValue: false),
+                    subject,
+                    because),
+                callerFilePath,
+                callerLineNumber);
+            return;
+        }
+
+        await using var enumerator = subject.GetAsyncEnumerator();
+        if (!await enumerator.MoveNextAsync().ConfigureAwait(false))
+        {
+            return;
+        }
+
+        var previous = enumerator.Current;
+        var index = 1;
+        while (await enumerator.MoveNextAsync().ConfigureAwait(false))
+        {
+            var current = enumerator.Current;
+            if (inOrder(previous, current, comparer))
+            {
+                previous = current;
+                index++;
+                continue;
+            }
+
+            Fail(
+                new Failure(
+                    SubjectLabel(),
+                    new Expectation(expectationText, IncludeExpectedValue: false),
+                    new RenderedText(
+                        $"first out-of-order pair at index {index}: previous {FormatValue(previous)} then current {FormatValue(current)}"),
                     because),
                 callerFilePath,
                 callerLineNumber);

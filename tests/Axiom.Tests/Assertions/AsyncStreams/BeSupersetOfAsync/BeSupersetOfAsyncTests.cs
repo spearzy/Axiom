@@ -38,6 +38,17 @@ public sealed class BeSupersetOfAsyncTests
     }
 
     [Fact]
+    public async Task BeSupersetOfAsync_Passes_WhenComparerTreatsItemsAsEqual()
+    {
+        var values = CreateAsyncSequence("Alpha", "beta", "gamma");
+
+        var ex = await Record.ExceptionAsync(async () =>
+            await values.Should().BeSupersetOfAsync(["alpha", "GAMMA"], StringComparer.OrdinalIgnoreCase));
+
+        Assert.Null(ex);
+    }
+
+    [Fact]
     public async Task BeSupersetOfAsync_Throws_WhenSubsetItemIsMissing()
     {
         var values = CreateAsyncSequence(1, 2, 3);
@@ -76,6 +87,18 @@ public sealed class BeSupersetOfAsyncTests
     }
 
     [Fact]
+    public async Task BeSupersetOfAsync_ThrowsArgumentNullException_WhenComparerIsNull()
+    {
+        var values = CreateAsyncSequence("Alpha");
+        StringComparer? comparer = null;
+
+        var ex = await Assert.ThrowsAsync<ArgumentNullException>(async () =>
+            await values.Should().BeSupersetOfAsync(["alpha"], comparer!));
+
+        Assert.Equal("comparer", ex.ParamName);
+    }
+
+    [Fact]
     public async Task BeSupersetOfAsync_Throws_WhenSubjectIsNull()
     {
         IAsyncEnumerable<int>? values = null;
@@ -93,6 +116,18 @@ public sealed class BeSupersetOfAsyncTests
         IAsyncEnumerable<int> values = tracking;
 
         await values.Should().BeSupersetOfAsync([1, 3]);
+
+        Assert.Equal(2, tracking.YieldCount);
+        Assert.Equal(2, tracking.MoveNextCallCount);
+    }
+
+    [Fact]
+    public async Task BeSupersetOfAsync_StopsAfterAllExpectedItemsAreFound_WhenUsingComparer()
+    {
+        var tracking = new TrackingAsyncEnumerable<string>(["Gamma", "alpha", "beta", "delta"]);
+        IAsyncEnumerable<string> values = tracking;
+
+        await values.Should().BeSupersetOfAsync(["gamma", "ALPHA"], StringComparer.OrdinalIgnoreCase);
 
         Assert.Equal(2, tracking.YieldCount);
         Assert.Equal(2, tracking.MoveNextCallCount);

@@ -25,6 +25,17 @@ public sealed class BeInDescendingOrderAsyncTests
     }
 
     [Fact]
+    public async Task BeInDescendingOrderAsync_Passes_WhenComparerDefinesOrdering()
+    {
+        var values = CreateAsyncSequence("ccc", "bb", "a");
+
+        var ex = await Record.ExceptionAsync(async () =>
+            await values.Should().BeInDescendingOrderAsync(StringLengthComparer.Instance));
+
+        Assert.Null(ex);
+    }
+
+    [Fact]
     public async Task BeInDescendingOrderAsync_Passes_WhenStreamIsEmpty()
     {
         var values = CreateAsyncSequence<int>();
@@ -49,6 +60,19 @@ public sealed class BeInDescendingOrderAsyncTests
     }
 
     [Fact]
+    public async Task BeInDescendingOrderAsync_Throws_WhenComparerOrderIsViolated()
+    {
+        var values = CreateAsyncSequence("ccc", "a", "bb");
+
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+            await values.Should().BeInDescendingOrderAsync(StringLengthComparer.Instance));
+
+        Assert.Equal(
+            "Expected values to be in descending order, but found first out-of-order pair at index 2: previous \"a\" then current \"bb\".",
+            ex.Message);
+    }
+
+    [Fact]
     public async Task BeInDescendingOrderAsync_Throws_WhenSubjectIsNull()
     {
         IAsyncEnumerable<int>? values = null;
@@ -57,6 +81,18 @@ public sealed class BeInDescendingOrderAsyncTests
             await values.Should().BeInDescendingOrderAsync());
 
         Assert.Equal("Expected values to be in descending order, but found <null>.", ex.Message);
+    }
+
+    [Fact]
+    public async Task BeInDescendingOrderAsync_ThrowsArgumentNullException_WhenComparerIsNull()
+    {
+        var values = CreateAsyncSequence("a");
+        IComparer<string>? comparer = null;
+
+        var ex = await Assert.ThrowsAsync<ArgumentNullException>(async () =>
+            await values.Should().BeInDescendingOrderAsync(comparer!));
+
+        Assert.Equal("comparer", ex.ParamName);
     }
 
     [Fact]
@@ -76,6 +112,16 @@ public sealed class BeInDescendingOrderAsyncTests
         {
             await Task.Yield();
             yield return item;
+        }
+    }
+
+    private sealed class StringLengthComparer : IComparer<string>
+    {
+        public static StringLengthComparer Instance { get; } = new();
+
+        public int Compare(string? x, string? y)
+        {
+            return Comparer<int>.Default.Compare(x?.Length ?? 0, y?.Length ?? 0);
         }
     }
 }
