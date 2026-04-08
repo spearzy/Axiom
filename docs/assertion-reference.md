@@ -522,7 +522,24 @@ Available on:
 ```csharp
 BeBefore(expected)
 BeAfter(expected)
+BeOnOrBefore(expected)
+BeOnOrAfter(expected)
 BeWithin(expected, tolerance)
+NotBeWithin(expected, tolerance)
+BeBetween(min, max)
+```
+
+`BeOnOrBefore(...)` and `BeOnOrAfter(...)` are inclusive. `BeWithin(...)` and `NotBeWithin(...)` use the temporal type's native distance semantics, including wrap-midnight behavior for `TimeOnly`.
+
+```csharp
+invoice.DueDate.Should().BeOnOrBefore(today);
+invoice.DueDate.Should().BeBetween(today.AddDays(-40), today);
+
+var publishedAt = new DateTimeOffset(2026, 4, 2, 9, 30, 0, TimeSpan.Zero);
+publishedAt.Should().BeOnOrAfter(new DateTimeOffset(2026, 4, 2, 9, 0, 0, TimeSpan.Zero));
+
+var reminderAt = new TimeOnly(23, 59);
+reminderAt.Should().NotBeWithin(new TimeOnly(12, 0), TimeSpan.FromHours(1));
 ```
 
 ## Equivalency Options
