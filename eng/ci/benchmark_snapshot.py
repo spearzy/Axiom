@@ -148,7 +148,7 @@ def render_docs(snapshot: dict[str, object]) -> str:
     body = "\n".join(table_lines)
     return f"""# Benchmarks
 
-Axiom tracks a small set of representative benchmarks. Simple assertions are expected to stay cheap, while more capable features cost more only when you use them. These snapshots exist to catch regressions and show the shape of the library, not to publish a leaderboard.
+Axiom tracks a small set of representative benchmarks. Simple assertions are expected to stay cheap, while more capable features cost more only when you use them. These snapshots exist to catch regressions and show the shape of the library.
 
 Snapshot last refreshed: {generated_on}.
 
@@ -160,7 +160,7 @@ Refreshes are manual and intentional. CI only validates that the committed snaps
 
 ## Methodology
 
-These numbers come from the repo's BenchmarkDotNet suite using the shared `ShortRun` configuration and a Release build. The published values are rounded into display-grade numbers so tiny machine noise does not churn the docs. Use them to spot regressions and understand Axiom's pay-to-play shape, not to predict full test-suite runtime or compare different machines.
+These numbers come from the repo's BenchmarkDotNet suite using the shared `ShortRun` configuration and a Release build. The published values are rounded so tiny machine noise does not churn the docs. Use them to spot regressions and understand Axiom's pay-to-play shape, not to predict full test-suite runtime or compare different machines.
 """
 
 

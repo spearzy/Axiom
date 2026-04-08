@@ -4,13 +4,13 @@
   "rows": [
     {
       "scenario": "Simple `Be(...)` pass",
-      "mean": "7.23 ns",
+      "mean": "7.18 ns",
       "allocated": "32 B",
       "what_it_shows": "The baseline pass path stays cheap."
     },
     {
       "scenario": "Collection `Contain(...)` pass",
-      "mean": "7.20 ns",
+      "mean": "7.11 ns",
       "allocated": "0 B",
       "what_it_shows": "Common collection membership checks stay cheap on small inputs."
     },
@@ -22,19 +22,19 @@
     },
     {
       "scenario": "Async `ContainAllAsync(...)` pass",
-      "mean": "133.7 ns",
+      "mean": "132.0 ns",
       "allocated": "344 B",
       "what_it_shows": "Async stream assertions pay to enumerate the stream, not before."
     },
     {
       "scenario": "Vector `BeNormalized(...)` pass",
-      "mean": "5.92 ns",
+      "mean": "6.42 ns",
       "allocated": "48 B",
       "what_it_shows": "Vector-specific checks stay focused on the metric they compute."
     },
     {
       "scenario": "Ranking `HaveRecallAt(...)` pass",
-      "mean": "197.6 ns",
+      "mean": "194.0 ns",
       "allocated": "600 B",
       "what_it_shows": "Retrieval metrics add top-k and set work only when you ask for them."
     }
