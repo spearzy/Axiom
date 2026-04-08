@@ -4,6 +4,19 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project follows [Semantic Versioning](https://semver.org/).
 
+## [1.7.0] - 2026-04-08
+
+### Added
+- Added temporal assertions for inclusive bounds, ranges, and inverse tolerance checks across the supported date and time types.
+- Added comparer-aware async collection assertions for the newer async enumerable APIs.
+
+### Changed
+- Hardened async execution and batching behavior across the async assertion surface.
+- Updated docs and snippet coverage to reflect the expanded temporal and async assertion APIs.
+
+### Fixed
+- Tightened regression coverage around async batching and comparer-driven assertion paths.
+
 ## [1.6.0] - 2026-04-08
 
 ### Added
