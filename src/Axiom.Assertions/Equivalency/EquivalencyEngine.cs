@@ -6,6 +6,7 @@ namespace Axiom.Assertions.Equivalency;
 internal static partial class EquivalencyEngine
 {
     private static readonly ConcurrentDictionary<Type, Func<IComparerProvider, object, object, bool?>> ComparerInvokers = new();
+    private static readonly ConcurrentDictionary<ComparableMemberCacheKey, ComparableMemberSet> ComparableMemberCache = new();
     private static int _appendPathProbeCount;
     private static int _appendIndexProbeCount;
     private static int _resolveExpectedMemberPathProbeCount;
@@ -65,5 +66,23 @@ internal static partial class EquivalencyEngine
     private static bool HasMemberMappings(EquivalencyOptions options)
     {
         return options.HasTypedMemberMappings || options.HasMemberNameMappings;
+    }
+
+    private readonly record struct ComparableMemberCacheKey(
+        Type Type,
+        bool IncludePublicProperties,
+        bool IncludePublicFields);
+
+    private sealed class ComparableMemberSet
+    {
+        public ComparableMemberSet(Dictionary<string, Func<object, object?>> members, string[] orderedNames)
+        {
+            Members = members;
+            OrderedNames = orderedNames;
+        }
+
+        public Dictionary<string, Func<object, object?>> Members { get; }
+
+        public string[] OrderedNames { get; }
     }
 }

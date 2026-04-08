@@ -185,10 +185,12 @@ internal static partial class EquivalencyEngine
         HashSet<ReferencePair> visitedPairs)
         where TPathMode : struct, IExpectedPathMode<TPathMode>
     {
-        var actualMembers = GetComparableMembers(actualType, options);
-        var expectedMembers = GetComparableMembers(expectedType, options);
+        var actualMemberSet = GetComparableMembers(actualType, options);
+        var expectedMemberSet = GetComparableMembers(expectedType, options);
+        var actualMembers = actualMemberSet.Members;
+        var expectedMembers = expectedMemberSet.Members;
         var usedExpectedMembers = new HashSet<string>(StringComparer.Ordinal);
-        foreach (var actualMemberName in actualMembers.Keys.OrderBy(static name => name, StringComparer.Ordinal))
+        foreach (var actualMemberName in actualMemberSet.OrderedNames)
         {
             if (options.IgnoredMemberNames.Contains(actualMemberName))
             {
@@ -252,7 +254,7 @@ internal static partial class EquivalencyEngine
             CompareNode(actualValueAtMember, expectedValueAtMember, memberPath, rootPath, childMode, options, differences, visitedPairs);
         }
 
-        foreach (var expectedMemberName in expectedMembers.Keys.OrderBy(static name => name, StringComparer.Ordinal))
+        foreach (var expectedMemberName in expectedMemberSet.OrderedNames)
         {
             if (usedExpectedMembers.Contains(expectedMemberName) ||
                 options.IgnoredMemberNames.Contains(expectedMemberName))

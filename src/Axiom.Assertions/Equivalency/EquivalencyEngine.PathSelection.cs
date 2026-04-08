@@ -96,11 +96,17 @@ internal static partial class EquivalencyEngine
         Interlocked.Increment(ref counter);
     }
 
-    private static Dictionary<string, Func<object, object?>> GetComparableMembers(Type type, EquivalencyOptions options)
+    private static ComparableMemberSet GetComparableMembers(Type type, EquivalencyOptions options)
+    {
+        var cacheKey = new ComparableMemberCacheKey(type, options.IncludePublicProperties, options.IncludePublicFields);
+        return ComparableMemberCache.GetOrAdd(cacheKey, static key => BuildComparableMembers(key.Type, key.IncludePublicProperties, key.IncludePublicFields));
+    }
+
+    private static ComparableMemberSet BuildComparableMembers(Type type, bool includePublicProperties, bool includePublicFields)
     {
         var members = new Dictionary<string, Func<object, object?>>(StringComparer.Ordinal);
 
-        if (options.IncludePublicProperties)
+        if (includePublicProperties)
         {
             foreach (var property in type.GetProperties(BindingFlags.Instance | BindingFlags.Public))
             {
@@ -118,7 +124,7 @@ internal static partial class EquivalencyEngine
             }
         }
 
-        if (options.IncludePublicFields)
+        if (includePublicFields)
         {
             foreach (var field in type.GetFields(BindingFlags.Instance | BindingFlags.Public))
             {
@@ -131,7 +137,9 @@ internal static partial class EquivalencyEngine
             }
         }
 
-        return members;
+        var orderedNames = members.Keys.ToArray();
+        Array.Sort(orderedNames, StringComparer.Ordinal);
+        return new ComparableMemberSet(members, orderedNames);
     }
 
     private static bool IsPathIgnored(string path, string rootPath, EquivalencyOptions options)
