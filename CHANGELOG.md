@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project follows [Semantic Versioning](https://semver.org/).
 
+## [1.6.0] - 2026-04-08
+
+### Added
+- Extended async enumerable assertions to more fully match the capabilities of the synchronous collection assertion API.
+- Added fuller batching coverage for vector assertions.
+- Added a small public benchmark snapshot to the docs site.
+
+### Changed
+- Improved performance in a small number of measured hot paths.
+- Updated benchmark tracking so representative scenarios can be refreshed and reviewed more easily.
+
+### Fixed
+- Tightened regression coverage around async assertions, vector batching, and performance-sensitive paths.
+
 ## [1.5.0] - 2026-04-04
 
 ### Added
