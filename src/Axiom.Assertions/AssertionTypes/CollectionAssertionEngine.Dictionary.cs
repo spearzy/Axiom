@@ -68,6 +68,7 @@ internal static partial class CollectionAssertionEngine
         IReadOnlyDictionary<TKey, TValue>? subject,
         string? subjectExpression,
         TValue expectedValue,
+        IEqualityComparer<TValue>? comparer,
         string? because,
         string? callerFilePath,
         int callerLineNumber)
@@ -84,7 +85,7 @@ internal static partial class CollectionAssertionEngine
             return;
         }
 
-        var valueComparer = GetComparer<TValue>();
+        var valueComparer = GetComparer(comparer);
         foreach (var pair in subject)
         {
             if (valueComparer.Equals(pair.Value, expectedValue))
@@ -105,6 +106,7 @@ internal static partial class CollectionAssertionEngine
         IReadOnlyDictionary<TKey, TValue>? subject,
         string? subjectExpression,
         TValue unexpectedValue,
+        IEqualityComparer<TValue>? comparer,
         string? because,
         string? callerFilePath,
         int callerLineNumber)
@@ -121,7 +123,7 @@ internal static partial class CollectionAssertionEngine
             return;
         }
 
-        var valueComparer = GetComparer<TValue>();
+        var valueComparer = GetComparer(comparer);
         foreach (var pair in subject)
         {
             if (!valueComparer.Equals(pair.Value, unexpectedValue))
@@ -144,6 +146,7 @@ internal static partial class CollectionAssertionEngine
         string? subjectExpression,
         TKey expectedKey,
         TValue expectedValue,
+        IEqualityComparer<TValue>? comparer,
         string? because,
         string? callerFilePath,
         int callerLineNumber)
@@ -173,7 +176,7 @@ internal static partial class CollectionAssertionEngine
             return;
         }
 
-        var valueComparer = GetComparer<TValue>();
+        var valueComparer = GetComparer(comparer);
         if (valueComparer.Equals(actualValue, expectedValue))
         {
             return;
@@ -192,6 +195,7 @@ internal static partial class CollectionAssertionEngine
         string? subjectExpression,
         TKey unexpectedKey,
         TValue unexpectedValue,
+        IEqualityComparer<TValue>? comparer,
         string? because,
         string? callerFilePath,
         int callerLineNumber)
@@ -215,7 +219,7 @@ internal static partial class CollectionAssertionEngine
             return;
         }
 
-        var valueComparer = GetComparer<TValue>();
+        var valueComparer = GetComparer(comparer);
         if (!valueComparer.Equals(actualValue, unexpectedValue))
         {
             return;

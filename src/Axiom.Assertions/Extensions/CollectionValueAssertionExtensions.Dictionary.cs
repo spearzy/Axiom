@@ -193,6 +193,7 @@ public static partial class CollectionValueAssertionExtensions
             assertions.Subject,
             assertions.SubjectExpression,
             expectedValue,
+            comparer: null,
             because,
             callerFilePath,
             callerLineNumber);
@@ -232,6 +233,66 @@ public static partial class CollectionValueAssertionExtensions
             callerLineNumber);
     }
 
+    public static AndContinuation<ValueAssertions<TDictionary>> ContainValue<TDictionary, TKey, TValue>(
+        this ValueAssertions<TDictionary> assertions,
+        TValue expectedValue,
+        IEqualityComparer<TValue> comparer,
+        string? because = null,
+        [CallerFilePath] string? callerFilePath = null,
+        [CallerLineNumber] int callerLineNumber = 0)
+        where TDictionary : IReadOnlyDictionary<TKey, TValue>
+    {
+        ArgumentNullException.ThrowIfNull(assertions);
+        ArgumentNullException.ThrowIfNull(comparer);
+
+        CollectionAssertionEngine.AssertContainValue(
+            assertions.Subject,
+            assertions.SubjectExpression,
+            expectedValue,
+            comparer,
+            because,
+            callerFilePath,
+            callerLineNumber);
+
+        return new AndContinuation<ValueAssertions<TDictionary>>(assertions);
+    }
+
+    public static AndContinuation<ValueAssertions<Dictionary<TKey, TValue>>> ContainValue<TKey, TValue>(
+        this ValueAssertions<Dictionary<TKey, TValue>> assertions,
+        TValue expectedValue,
+        IEqualityComparer<TValue> comparer,
+        string? because = null,
+        [CallerFilePath] string? callerFilePath = null,
+        [CallerLineNumber] int callerLineNumber = 0)
+        where TKey : notnull
+    {
+        return ContainValue<Dictionary<TKey, TValue>, TKey, TValue>(
+            assertions,
+            expectedValue,
+            comparer,
+            because,
+            callerFilePath,
+            callerLineNumber);
+    }
+
+    public static AndContinuation<ValueAssertions<IReadOnlyDictionary<TKey, TValue>>> ContainValue<TKey, TValue>(
+        this ValueAssertions<IReadOnlyDictionary<TKey, TValue>> assertions,
+        TValue expectedValue,
+        IEqualityComparer<TValue> comparer,
+        string? because = null,
+        [CallerFilePath] string? callerFilePath = null,
+        [CallerLineNumber] int callerLineNumber = 0)
+        where TKey : notnull
+    {
+        return ContainValue<IReadOnlyDictionary<TKey, TValue>, TKey, TValue>(
+            assertions,
+            expectedValue,
+            comparer,
+            because,
+            callerFilePath,
+            callerLineNumber);
+    }
+
     public static AndContinuation<ValueAssertions<TDictionary>> NotContainValue<TDictionary, TKey, TValue>(
         this ValueAssertions<TDictionary> assertions,
         TValue unexpectedValue,
@@ -246,6 +307,7 @@ public static partial class CollectionValueAssertionExtensions
             assertions.Subject,
             assertions.SubjectExpression,
             unexpectedValue,
+            comparer: null,
             because,
             callerFilePath,
             callerLineNumber);
@@ -285,6 +347,66 @@ public static partial class CollectionValueAssertionExtensions
             callerLineNumber);
     }
 
+    public static AndContinuation<ValueAssertions<TDictionary>> NotContainValue<TDictionary, TKey, TValue>(
+        this ValueAssertions<TDictionary> assertions,
+        TValue unexpectedValue,
+        IEqualityComparer<TValue> comparer,
+        string? because = null,
+        [CallerFilePath] string? callerFilePath = null,
+        [CallerLineNumber] int callerLineNumber = 0)
+        where TDictionary : IReadOnlyDictionary<TKey, TValue>
+    {
+        ArgumentNullException.ThrowIfNull(assertions);
+        ArgumentNullException.ThrowIfNull(comparer);
+
+        CollectionAssertionEngine.AssertNotContainValue(
+            assertions.Subject,
+            assertions.SubjectExpression,
+            unexpectedValue,
+            comparer,
+            because,
+            callerFilePath,
+            callerLineNumber);
+
+        return new AndContinuation<ValueAssertions<TDictionary>>(assertions);
+    }
+
+    public static AndContinuation<ValueAssertions<Dictionary<TKey, TValue>>> NotContainValue<TKey, TValue>(
+        this ValueAssertions<Dictionary<TKey, TValue>> assertions,
+        TValue unexpectedValue,
+        IEqualityComparer<TValue> comparer,
+        string? because = null,
+        [CallerFilePath] string? callerFilePath = null,
+        [CallerLineNumber] int callerLineNumber = 0)
+        where TKey : notnull
+    {
+        return NotContainValue<Dictionary<TKey, TValue>, TKey, TValue>(
+            assertions,
+            unexpectedValue,
+            comparer,
+            because,
+            callerFilePath,
+            callerLineNumber);
+    }
+
+    public static AndContinuation<ValueAssertions<IReadOnlyDictionary<TKey, TValue>>> NotContainValue<TKey, TValue>(
+        this ValueAssertions<IReadOnlyDictionary<TKey, TValue>> assertions,
+        TValue unexpectedValue,
+        IEqualityComparer<TValue> comparer,
+        string? because = null,
+        [CallerFilePath] string? callerFilePath = null,
+        [CallerLineNumber] int callerLineNumber = 0)
+        where TKey : notnull
+    {
+        return NotContainValue<IReadOnlyDictionary<TKey, TValue>, TKey, TValue>(
+            assertions,
+            unexpectedValue,
+            comparer,
+            because,
+            callerFilePath,
+            callerLineNumber);
+    }
+
     public static AndContinuation<ValueAssertions<TDictionary>> ContainEntry<TDictionary, TKey, TValue>(
         this ValueAssertions<TDictionary> assertions,
         TKey expectedKey,
@@ -301,6 +423,7 @@ public static partial class CollectionValueAssertionExtensions
             assertions.SubjectExpression,
             expectedKey,
             expectedValue,
+            comparer: null,
             because,
             callerFilePath,
             callerLineNumber);
@@ -344,6 +467,72 @@ public static partial class CollectionValueAssertionExtensions
             callerLineNumber);
     }
 
+    public static AndContinuation<ValueAssertions<TDictionary>> ContainEntry<TDictionary, TKey, TValue>(
+        this ValueAssertions<TDictionary> assertions,
+        TKey expectedKey,
+        TValue expectedValue,
+        IEqualityComparer<TValue> comparer,
+        string? because = null,
+        [CallerFilePath] string? callerFilePath = null,
+        [CallerLineNumber] int callerLineNumber = 0)
+        where TDictionary : IReadOnlyDictionary<TKey, TValue>
+    {
+        ArgumentNullException.ThrowIfNull(assertions);
+        ArgumentNullException.ThrowIfNull(comparer);
+
+        CollectionAssertionEngine.AssertContainEntry(
+            assertions.Subject,
+            assertions.SubjectExpression,
+            expectedKey,
+            expectedValue,
+            comparer,
+            because,
+            callerFilePath,
+            callerLineNumber);
+
+        return new AndContinuation<ValueAssertions<TDictionary>>(assertions);
+    }
+
+    public static AndContinuation<ValueAssertions<Dictionary<TKey, TValue>>> ContainEntry<TKey, TValue>(
+        this ValueAssertions<Dictionary<TKey, TValue>> assertions,
+        TKey expectedKey,
+        TValue expectedValue,
+        IEqualityComparer<TValue> comparer,
+        string? because = null,
+        [CallerFilePath] string? callerFilePath = null,
+        [CallerLineNumber] int callerLineNumber = 0)
+        where TKey : notnull
+    {
+        return ContainEntry<Dictionary<TKey, TValue>, TKey, TValue>(
+            assertions,
+            expectedKey,
+            expectedValue,
+            comparer,
+            because,
+            callerFilePath,
+            callerLineNumber);
+    }
+
+    public static AndContinuation<ValueAssertions<IReadOnlyDictionary<TKey, TValue>>> ContainEntry<TKey, TValue>(
+        this ValueAssertions<IReadOnlyDictionary<TKey, TValue>> assertions,
+        TKey expectedKey,
+        TValue expectedValue,
+        IEqualityComparer<TValue> comparer,
+        string? because = null,
+        [CallerFilePath] string? callerFilePath = null,
+        [CallerLineNumber] int callerLineNumber = 0)
+        where TKey : notnull
+    {
+        return ContainEntry<IReadOnlyDictionary<TKey, TValue>, TKey, TValue>(
+            assertions,
+            expectedKey,
+            expectedValue,
+            comparer,
+            because,
+            callerFilePath,
+            callerLineNumber);
+    }
+
     public static AndContinuation<ValueAssertions<TDictionary>> NotContainEntry<TDictionary, TKey, TValue>(
         this ValueAssertions<TDictionary> assertions,
         TKey unexpectedKey,
@@ -360,6 +549,7 @@ public static partial class CollectionValueAssertionExtensions
             assertions.SubjectExpression,
             unexpectedKey,
             unexpectedValue,
+            comparer: null,
             because,
             callerFilePath,
             callerLineNumber);
@@ -398,6 +588,72 @@ public static partial class CollectionValueAssertionExtensions
             assertions,
             unexpectedKey,
             unexpectedValue,
+            because,
+            callerFilePath,
+            callerLineNumber);
+    }
+
+    public static AndContinuation<ValueAssertions<TDictionary>> NotContainEntry<TDictionary, TKey, TValue>(
+        this ValueAssertions<TDictionary> assertions,
+        TKey unexpectedKey,
+        TValue unexpectedValue,
+        IEqualityComparer<TValue> comparer,
+        string? because = null,
+        [CallerFilePath] string? callerFilePath = null,
+        [CallerLineNumber] int callerLineNumber = 0)
+        where TDictionary : IReadOnlyDictionary<TKey, TValue>
+    {
+        ArgumentNullException.ThrowIfNull(assertions);
+        ArgumentNullException.ThrowIfNull(comparer);
+
+        CollectionAssertionEngine.AssertNotContainEntry(
+            assertions.Subject,
+            assertions.SubjectExpression,
+            unexpectedKey,
+            unexpectedValue,
+            comparer,
+            because,
+            callerFilePath,
+            callerLineNumber);
+
+        return new AndContinuation<ValueAssertions<TDictionary>>(assertions);
+    }
+
+    public static AndContinuation<ValueAssertions<Dictionary<TKey, TValue>>> NotContainEntry<TKey, TValue>(
+        this ValueAssertions<Dictionary<TKey, TValue>> assertions,
+        TKey unexpectedKey,
+        TValue unexpectedValue,
+        IEqualityComparer<TValue> comparer,
+        string? because = null,
+        [CallerFilePath] string? callerFilePath = null,
+        [CallerLineNumber] int callerLineNumber = 0)
+        where TKey : notnull
+    {
+        return NotContainEntry<Dictionary<TKey, TValue>, TKey, TValue>(
+            assertions,
+            unexpectedKey,
+            unexpectedValue,
+            comparer,
+            because,
+            callerFilePath,
+            callerLineNumber);
+    }
+
+    public static AndContinuation<ValueAssertions<IReadOnlyDictionary<TKey, TValue>>> NotContainEntry<TKey, TValue>(
+        this ValueAssertions<IReadOnlyDictionary<TKey, TValue>> assertions,
+        TKey unexpectedKey,
+        TValue unexpectedValue,
+        IEqualityComparer<TValue> comparer,
+        string? because = null,
+        [CallerFilePath] string? callerFilePath = null,
+        [CallerLineNumber] int callerLineNumber = 0)
+        where TKey : notnull
+    {
+        return NotContainEntry<IReadOnlyDictionary<TKey, TValue>, TKey, TValue>(
+            assertions,
+            unexpectedKey,
+            unexpectedValue,
+            comparer,
             because,
             callerFilePath,
             callerLineNumber);

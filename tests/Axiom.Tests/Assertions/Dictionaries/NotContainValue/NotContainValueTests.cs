@@ -34,4 +34,34 @@ public sealed class NotContainValueTests
         const string expected = "Expected values to not contain value 2, but found a matching value at key \"beta\".";
         Assert.Equal(expected, ex.Message);
     }
+
+    [Fact]
+    public void NotContainValue_Throws_WhenComparerMatchesValue()
+    {
+        Dictionary<string, string> values = new()
+        {
+            ["alpha"] = "Created",
+            ["beta"] = "Queued",
+        };
+
+        var ex = Assert.Throws<InvalidOperationException>(() =>
+            values.Should().NotContainValue("queued", StringComparer.OrdinalIgnoreCase));
+
+        const string expected = "Expected values to not contain value \"queued\", but found a matching value at key \"beta\".";
+        Assert.Equal(expected, ex.Message);
+    }
+
+    [Fact]
+    public void NotContainValue_ThrowsArgumentNullException_WhenComparerIsNull()
+    {
+        Dictionary<string, string> values = new()
+        {
+            ["alpha"] = "Created",
+        };
+        IEqualityComparer<string>? comparer = null;
+
+        var ex = Assert.Throws<ArgumentNullException>(() => values.Should().NotContainValue("created", comparer!));
+
+        Assert.Equal("comparer", ex.ParamName);
+    }
 }

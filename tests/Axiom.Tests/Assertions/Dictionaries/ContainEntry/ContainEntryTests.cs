@@ -64,6 +64,65 @@ public sealed class ContainEntryTests
         Assert.Equal(expected, ex.Message);
     }
 
+    [Fact]
+    public void ContainEntry_ReturnsContinuation_WhenComparerMatchesValue()
+    {
+        Dictionary<string, string> values = new()
+        {
+            ["alpha"] = "Created",
+            ["beta"] = "Queued",
+        };
+
+        var baseAssertions = values.Should();
+        var continuation = baseAssertions.ContainEntry("beta", "queued", StringComparer.OrdinalIgnoreCase);
+
+        Assert.Same(baseAssertions, continuation.And);
+    }
+
+    [Fact]
+    public void ContainEntry_KeyLookup_StillUsesDictionaryKeySemantics_WhenValueComparerIsProvided()
+    {
+        Dictionary<string, string> values = new()
+        {
+            ["beta"] = "Queued",
+        };
+
+        var ex = Assert.Throws<InvalidOperationException>(() =>
+            values.Should().ContainEntry("BETA", "queued", StringComparer.OrdinalIgnoreCase));
+
+        const string expected = "Expected values to contain entry \"BETA\" => \"queued\", but found key \"BETA\" was missing.";
+        Assert.Equal(expected, ex.Message);
+    }
+
+    [Fact]
+    public void ContainEntry_KeyLookup_UsesDictionaryComparer_WhenValueComparerIsProvided()
+    {
+        Dictionary<string, string> values = new(StringComparer.OrdinalIgnoreCase)
+        {
+            ["beta"] = "Queued",
+        };
+
+        var baseAssertions = values.Should();
+        var continuation = baseAssertions.ContainEntry("BETA", "queued", StringComparer.OrdinalIgnoreCase);
+
+        Assert.Same(baseAssertions, continuation.And);
+    }
+
+    [Fact]
+    public void ContainEntry_ThrowsArgumentNullException_WhenComparerIsNull()
+    {
+        Dictionary<string, string> values = new()
+        {
+            ["beta"] = "Queued",
+        };
+        IEqualityComparer<string>? comparer = null;
+
+        var ex = Assert.Throws<ArgumentNullException>(() =>
+            values.Should().ContainEntry("beta", "queued", comparer!));
+
+        Assert.Equal("comparer", ex.ParamName);
+    }
+
     private readonly record struct ThrowingToStringValue(int Value)
     {
         public override string ToString()

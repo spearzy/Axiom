@@ -109,6 +109,36 @@ public sealed class NotContainEntryTests
     }
 
     [Fact]
+    public void NotContainEntry_Throws_WhenComparerMatchesValue()
+    {
+        Dictionary<string, string> values = new()
+        {
+            ["alpha"] = "Created",
+            ["beta"] = "Queued",
+        };
+
+        var ex = Assert.Throws<InvalidOperationException>(() =>
+            values.Should().NotContainEntry("beta", "queued", StringComparer.OrdinalIgnoreCase));
+
+        const string expected = "Expected values to not contain entry \"beta\" => \"queued\", but found matching entry was present: \"beta\" => \"Queued\".";
+        Assert.Equal(expected, ex.Message);
+    }
+
+    [Fact]
+    public void NotContainEntry_KeyLookup_StillUsesDictionaryKeySemantics_WhenValueComparerIsProvided()
+    {
+        Dictionary<string, string> values = new()
+        {
+            ["beta"] = "Queued",
+        };
+
+        var baseAssertions = values.Should();
+        var continuation = baseAssertions.NotContainEntry("BETA", "queued", StringComparer.OrdinalIgnoreCase);
+
+        Assert.Same(baseAssertions, continuation.And);
+    }
+
+    [Fact]
     public void NotContainEntry_Throws_WhenDictionaryIsNull()
     {
         Dictionary<string, int>? values = null;
@@ -132,6 +162,21 @@ public sealed class NotContainEntryTests
             values.Should().NotContainEntry("beta", 2, "deprecated mappings must be removed"));
 
         Assert.Contains("because deprecated mappings must be removed", ex.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void NotContainEntry_ThrowsArgumentNullException_WhenComparerIsNull()
+    {
+        Dictionary<string, string> values = new()
+        {
+            ["beta"] = "Queued",
+        };
+        IEqualityComparer<string>? comparer = null;
+
+        var ex = Assert.Throws<ArgumentNullException>(() =>
+            values.Should().NotContainEntry("beta", "queued", comparer!));
+
+        Assert.Equal("comparer", ex.ParamName);
     }
 
     private sealed class ThrowingToStringValue(int id)
