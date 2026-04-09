@@ -529,15 +529,21 @@ Local comparer overloads are available on the collection assertions whose semant
 ```csharp
 int[] ids = [3, 1, 2];
 ids.Should().ContainExactlyInAnyOrder([1, 2, 3]);
+ids.Should().Contain(2);
 
 string[] labels = ["Alpha", "beta", "BETA"];
+labels.Should().Contain("alpha", StringComparer.OrdinalIgnoreCase);
 labels.Should().ContainExactlyInAnyOrder(
     ["alpha", "beta", "beta"],
     StringComparer.OrdinalIgnoreCase);
 
 labels.Should().ContainAll(["alpha", "beta"], StringComparer.OrdinalIgnoreCase);
+labels.Should().ContainAny(["queued", "beta"], StringComparer.OrdinalIgnoreCase);
 labels.Should().NotContain("archived", StringComparer.OrdinalIgnoreCase);
+labels.Should().NotContainAny(["archived", "deleted"], StringComparer.OrdinalIgnoreCase);
 labels.Should().HaveUniqueItems(StringComparer.OrdinalIgnoreCase);
+labels.Should().BeSubsetOf(["alpha", "beta", "gamma"], StringComparer.OrdinalIgnoreCase);
+labels.Should().BeSupersetOf(["alpha", "beta"], StringComparer.OrdinalIgnoreCase);
 labels.Should().BeInAscendingOrder(StringComparer.OrdinalIgnoreCase);
 ```
 
@@ -563,6 +569,13 @@ NotContainEntry(key, value, comparer)
 ```csharp
 And
 WhoseValue
+```
+
+```csharp
+lookup.Should().ContainValue("queued", StringComparer.OrdinalIgnoreCase);
+lookup.Should().NotContainValue("failed", StringComparer.OrdinalIgnoreCase);
+lookup.Should().ContainEntry(2, "queued", StringComparer.OrdinalIgnoreCase);
+lookup.Should().NotContainEntry(2, "failed", StringComparer.OrdinalIgnoreCase);
 ```
 
 ## Temporal Assertions

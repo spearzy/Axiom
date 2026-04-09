@@ -401,6 +401,7 @@ internal sealed class DocsSnippetCompiler
         "var descendingStepIds = DocsSnippetFixtures.DescendingStepIds;",
         "var eventNames = DocsSnippetFixtures.EventNames;",
         "var labels = DocsSnippetFixtures.Labels;",
+        "var lookup = DocsSnippetFixtures.StringLookup;",
         "var values = DocsSnippetFixtures.TextValues;",
     ];
 
