@@ -305,7 +305,7 @@ public sealed class AsyncEnumerableBatchRoutingTests
             await CreateValues().Should().ContainInOrderAsync(
                 ["ALPHA", "GAMMA"],
                 StringComparer.OrdinalIgnoreCase);
-                //item is the same element returned as the selected key
+            //item is the same element returned as the selected key
             await CreateValues().Should().ContainInOrderAsync(["ALPHA", "GAMMA"], item => item,
                 StringComparer.OrdinalIgnoreCase);
         });
