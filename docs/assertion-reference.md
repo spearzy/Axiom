@@ -453,6 +453,8 @@ HaveUniqueItems()
 HaveUniqueItemsBy(keySelector)
 HaveUniqueItemsBy(keySelector, comparer)
 ContainExactly(IEnumerable<TItem> expectedSequence)
+ContainExactlyInAnyOrder(IEnumerable<TItem> expectedSequence)
+ContainExactlyInAnyOrder(IEnumerable<TItem> expectedSequence, comparer)
 BeSubsetOf(IEnumerable<TItem> expectedSuperset)
 BeSupersetOf(IEnumerable<TItem> expectedSubset)
 HaveCount(expectedCount)
@@ -489,6 +491,18 @@ SingleItem
 ```
 
 The predicate overload gives you a strongly typed `SingleItem`. The parameterless overload is also strongly typed for common generic collection subjects such as `List<T>`, arrays, and interface-typed generic enumerables. Nongeneric collections still expose `object? SingleItem`.
+
+`ContainExactly(...)` is the ordered exact-sequence assertion. `ContainExactlyInAnyOrder(...)` is the unordered exact-membership assertion: same items, same counts, no extras, and no omissions, with an opt-in comparer overload when you need custom equality.
+
+```csharp
+int[] ids = [3, 1, 2];
+ids.Should().ContainExactlyInAnyOrder([1, 2, 3]);
+
+string[] labels = ["Alpha", "beta", "BETA"];
+labels.Should().ContainExactlyInAnyOrder(
+    ["alpha", "beta", "beta"],
+    StringComparer.OrdinalIgnoreCase);
+```
 
 ## Dictionary Assertions
 

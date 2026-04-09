@@ -204,7 +204,7 @@ Axiom currently includes:
 - value assertions: equality, nullability, type/reference checks, numeric comparisons, ranges, predicates, approximate numeric checks, equivalency
 - string assertions: exact equality, null/empty/whitespace checks, prefix/suffix/contain, regex, comparison-aware matching
 - exceptions and async: throw, exact throw, message/parameter/inner-exception checks, delegate-based async assertions, async function result assertions, direct task completion and outcome assertions
-- collections and dictionaries: containment, exact sequence, count/empty checks, ordering, uniqueness, single-item extraction, key/value extraction, direct `IAsyncEnumerable<T>` assertions
+- collections and dictionaries: containment, exact sequence, exact unordered sequence, count/empty checks, ordering, uniqueness, single-item extraction, key/value extraction, direct `IAsyncEnumerable<T>` assertions
 - temporal assertions: before/after, inclusive bounds, within-tolerance, inverse-tolerance, and range checks
 - vector assertions: dimension checks, NaN/infinity validation, approximate equality, dot product, Euclidean distance, cosine similarity thresholds, normalization, ranked retrieval evaluation
 - custom assertion authoring: `AssertionContext.Create(...)` for domain assertions on `ValueAssertions<T>`
