@@ -69,9 +69,13 @@ Available on `ValueAssertions<T>` from `subject.Should()`.
 
 ```csharp
 Be(expected)
+Be(expected, comparer)
 NotBe(unexpected)
+NotBe(unexpected, comparer)
 BeOneOf(IEnumerable<T> expectedValues)
+BeOneOf(IEnumerable<T> expectedValues, comparer)
 NotBeOneOf(IEnumerable<T> unexpectedValues)
+NotBeOneOf(IEnumerable<T> unexpectedValues, comparer)
 Satisfy(Func<T, bool> predicate)
 NotSatisfy(Func<T, bool> predicate)
 BeSameAs(T? expectedReference)
@@ -107,6 +111,23 @@ BeApproximately(expected, tolerance)
 
 // ValueAssertions<decimal>
 BeApproximately(expected, tolerance)
+```
+
+The comparer overloads on `Be(...)`, `NotBe(...)`, `BeOneOf(...)`, and `NotBeOneOf(...)` let you apply local equality rules to a single value assertion without changing the shared comparer-provider configuration.
+
+```csharp
+var errorCodeComparer = EqualityComparer<ApiResponse>.Create(
+    static (left, right) => string.Equals(left?.ErrorCode, right?.ErrorCode, StringComparison.OrdinalIgnoreCase),
+    static response => StringComparer.OrdinalIgnoreCase.GetHashCode(response.ErrorCode ?? string.Empty));
+
+failedResponse.Should().Be(new ApiResponse { ErrorCode = "order_not_found" }, errorCodeComparer);
+failedResponse.Should().NotBe(new ApiResponse { ErrorCode = "rate_limited" }, errorCodeComparer);
+failedResponse.Should().BeOneOf(
+    [new ApiResponse { ErrorCode = "timeout" }, new ApiResponse { ErrorCode = "order_not_found" }],
+    errorCodeComparer);
+failedResponse.Should().NotBeOneOf(
+    [new ApiResponse { ErrorCode = "duplicate" }, new ApiResponse { ErrorCode = "unauthorized" }],
+    errorCodeComparer);
 ```
 
 ## String Assertions
