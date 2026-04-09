@@ -11,6 +11,28 @@ public sealed partial class AsyncEnumerableAssertions<T>
         [CallerFilePath] string? callerFilePath = null,
         [CallerLineNumber] int callerLineNumber = 0)
     {
+        return await EvaluateHaveUniqueItemsAsync(comparer: null, because, callerFilePath, callerLineNumber)
+            .ConfigureAwait(false);
+    }
+
+    public async ValueTask<AndContinuation<AsyncEnumerableAssertions<T>>> HaveUniqueItemsAsync(
+        IEqualityComparer<T> comparer,
+        string? because = null,
+        [CallerFilePath] string? callerFilePath = null,
+        [CallerLineNumber] int callerLineNumber = 0)
+    {
+        ArgumentNullException.ThrowIfNull(comparer);
+
+        return await EvaluateHaveUniqueItemsAsync(comparer, because, callerFilePath, callerLineNumber)
+            .ConfigureAwait(false);
+    }
+
+    private async ValueTask<AndContinuation<AsyncEnumerableAssertions<T>>> EvaluateHaveUniqueItemsAsync(
+        IEqualityComparer<T>? comparer,
+        string? because,
+        string? callerFilePath,
+        int callerLineNumber)
+    {
         var subject = Subject;
         if (subject is null)
         {
@@ -25,7 +47,7 @@ public sealed partial class AsyncEnumerableAssertions<T>
             return new AndContinuation<AsyncEnumerableAssertions<T>>(this);
         }
 
-        var seen = new HashSet<T>(GetComparer<T>());
+        var seen = new HashSet<T>(GetComparer(comparer));
         var index = 0;
         await using var enumerator = subject.GetAsyncEnumerator();
         while (await enumerator.MoveNextAsync().ConfigureAwait(false))

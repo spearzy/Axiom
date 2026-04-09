@@ -27,6 +27,17 @@ public sealed class ContainAsyncTests
     }
 
     [Fact]
+    public async Task ContainAsync_Passes_WhenComparerMatchesItem()
+    {
+        var values = CreateAsyncSequence("alpha", "beta", "gamma");
+
+        var assertions = values.Should();
+        var continuation = await assertions.ContainAsync("BETA", StringComparer.OrdinalIgnoreCase);
+
+        Assert.Same(assertions, continuation.And);
+    }
+
+    [Fact]
     public async Task ContainAsync_Predicate_Passes_WhenMatchingItemIsPresent()
     {
         var values = CreateAsyncSequence(1, 2, 3);
@@ -58,6 +69,18 @@ public sealed class ContainAsyncTests
 
         Assert.Equal(2, tracking.YieldCount);
         Assert.Equal(2, tracking.MoveNextCallCount);
+    }
+
+    [Fact]
+    public async Task ContainAsync_ThrowsArgumentNullException_WhenComparerIsNull()
+    {
+        var values = CreateAsyncSequence("alpha", "beta");
+        IEqualityComparer<string>? comparer = null;
+
+        var ex = await Assert.ThrowsAsync<ArgumentNullException>(async () =>
+            await values.Should().ContainAsync("beta", comparer!));
+
+        Assert.Equal("comparer", ex.ParamName);
     }
 
     [Fact]

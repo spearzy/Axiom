@@ -85,6 +85,44 @@ public sealed partial class AsyncEnumerableAssertions<T>
         [CallerFilePath] string? callerFilePath = null,
         [CallerLineNumber] int callerLineNumber = 0)
     {
+        return await EvaluateContainInOrderAsync(
+                expectedSequence,
+                comparer: null,
+                because,
+                allowGaps,
+                callerFilePath,
+                callerLineNumber)
+            .ConfigureAwait(false);
+    }
+
+    public async ValueTask<AndContinuation<AsyncEnumerableAssertions<T>>> ContainInOrderAsync(
+        IEnumerable<T> expectedSequence,
+        IEqualityComparer<T> comparer,
+        string? because = null,
+        bool allowGaps = true,
+        [CallerFilePath] string? callerFilePath = null,
+        [CallerLineNumber] int callerLineNumber = 0)
+    {
+        ArgumentNullException.ThrowIfNull(comparer);
+
+        return await EvaluateContainInOrderAsync(
+                expectedSequence,
+                comparer,
+                because,
+                allowGaps,
+                callerFilePath,
+                callerLineNumber)
+            .ConfigureAwait(false);
+    }
+
+    private async ValueTask<AndContinuation<AsyncEnumerableAssertions<T>>> EvaluateContainInOrderAsync(
+        IEnumerable<T> expectedSequence,
+        IEqualityComparer<T>? comparer,
+        string? because,
+        bool allowGaps,
+        string? callerFilePath,
+        int callerLineNumber)
+    {
         ArgumentNullException.ThrowIfNull(expectedSequence);
 
         var expectedItems = MaterialiseExpectedSequence(expectedSequence);
@@ -108,19 +146,19 @@ public sealed partial class AsyncEnumerableAssertions<T>
             return new AndContinuation<AsyncEnumerableAssertions<T>>(this);
         }
 
-        var comparer = GetComparer<T>();
+        var resolvedComparer = GetComparer(comparer);
         var expectedIndex = 0;
         var matched = false;
         if (allowGaps)
         {
-            var result = await ContainsInOrderAllowingGapsAsync(subject, expectedItems, comparer, item => item)
+            var result = await ContainsInOrderAllowingGapsAsync(subject, expectedItems, resolvedComparer, item => item)
                 .ConfigureAwait(false);
             matched = result.Matched;
             expectedIndex = result.ExpectedIndex;
         }
         else
         {
-            matched = await ContainsInOrderWithoutGapsAsync(subject, expectedItems, comparer, item => item)
+            matched = await ContainsInOrderWithoutGapsAsync(subject, expectedItems, resolvedComparer, item => item)
                 .ConfigureAwait(false);
         }
 
@@ -152,6 +190,49 @@ public sealed partial class AsyncEnumerableAssertions<T>
         [CallerFilePath] string? callerFilePath = null,
         [CallerLineNumber] int callerLineNumber = 0)
     {
+        return await EvaluateContainInOrderAsync(
+                expectedSequence,
+                keySelector,
+                comparer: null,
+                because,
+                allowGaps,
+                callerFilePath,
+                callerLineNumber)
+            .ConfigureAwait(false);
+    }
+
+    public async ValueTask<AndContinuation<AsyncEnumerableAssertions<T>>> ContainInOrderAsync<TKey>(
+        IEnumerable<TKey> expectedSequence,
+        Func<T, TKey> keySelector,
+        IEqualityComparer<TKey> comparer,
+        string? because = null,
+        bool allowGaps = true,
+        [CallerFilePath] string? callerFilePath = null,
+        [CallerLineNumber] int callerLineNumber = 0)
+    {
+        ArgumentNullException.ThrowIfNull(keySelector);
+        ArgumentNullException.ThrowIfNull(comparer);
+
+        return await EvaluateContainInOrderAsync(
+                expectedSequence,
+                keySelector,
+                comparer,
+                because,
+                allowGaps,
+                callerFilePath,
+                callerLineNumber)
+            .ConfigureAwait(false);
+    }
+
+    private async ValueTask<AndContinuation<AsyncEnumerableAssertions<T>>> EvaluateContainInOrderAsync<TKey>(
+        IEnumerable<TKey> expectedSequence,
+        Func<T, TKey> keySelector,
+        IEqualityComparer<TKey>? comparer,
+        string? because,
+        bool allowGaps,
+        string? callerFilePath,
+        int callerLineNumber)
+    {
         ArgumentNullException.ThrowIfNull(expectedSequence);
         ArgumentNullException.ThrowIfNull(keySelector);
 
@@ -176,19 +257,19 @@ public sealed partial class AsyncEnumerableAssertions<T>
             return new AndContinuation<AsyncEnumerableAssertions<T>>(this);
         }
 
-        var comparer = GetComparer<TKey>();
+        var resolvedComparer = GetComparer(comparer);
         var expectedIndex = 0;
         var matched = false;
         if (allowGaps)
         {
-            var result = await ContainsInOrderAllowingGapsAsync(subject, expectedItems, comparer, keySelector)
+            var result = await ContainsInOrderAllowingGapsAsync(subject, expectedItems, resolvedComparer, keySelector)
                 .ConfigureAwait(false);
             matched = result.Matched;
             expectedIndex = result.ExpectedIndex;
         }
         else
         {
-            matched = await ContainsInOrderWithoutGapsAsync(subject, expectedItems, comparer, keySelector)
+            matched = await ContainsInOrderWithoutGapsAsync(subject, expectedItems, resolvedComparer, keySelector)
                 .ConfigureAwait(false);
         }
 

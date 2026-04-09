@@ -281,6 +281,83 @@ public sealed class AsyncEnumerableBatchRoutingTests
     }
 
     [Fact]
+    public async Task AsyncEnumerableComparerAssertions_InsideBatch_DoNotThrowAtAssertionCallSite()
+    {
+        static IAsyncEnumerable<string> CreateValues()
+        {
+            return CreateAsyncSequence("Alpha", "beta", "beta");
+        }
+
+        using var batch = new Axiom.Core.Batch();
+        var callEx = await Record.ExceptionAsync(async () =>
+        {
+            await CreateValues().Should().ContainAsync("GAMMA", StringComparer.OrdinalIgnoreCase);
+            await CreateValues().Should().ContainExactlyAsync(
+                ["alpha", "gamma", "beta"],
+                StringComparer.OrdinalIgnoreCase);
+            await CreateValues().Should().ContainAnyAsync(
+                ["DELTA", "EPSILON"],
+                StringComparer.OrdinalIgnoreCase);
+            await CreateValues().Should().NotContainAnyAsync(
+                ["THETA", "BETA"],
+                StringComparer.OrdinalIgnoreCase);
+            await CreateValues().Should().HaveUniqueItemsAsync(StringComparer.OrdinalIgnoreCase);
+            await CreateValues().Should().ContainInOrderAsync(
+                ["ALPHA", "GAMMA"],
+                StringComparer.OrdinalIgnoreCase);
+                //item is the same element returned as the selected key
+            await CreateValues().Should().ContainInOrderAsync(["ALPHA", "GAMMA"], item => item,
+                StringComparer.OrdinalIgnoreCase);
+        });
+
+        Assert.Null(callEx);
+
+        var disposeEx = Assert.Throws<InvalidOperationException>(() => batch.Dispose());
+        Assert.Contains("to contain \"GAMMA\"", disposeEx.Message);
+        Assert.Contains("<no matching item>", disposeEx.Message);
+        Assert.Contains("to contain exactly [\"alpha\", \"gamma\", \"beta\"]", disposeEx.Message);
+        Assert.Contains("item mismatch at index 1: expected \"gamma\" but found \"beta\"", disposeEx.Message);
+        Assert.Contains("to contain any of [\"DELTA\", \"EPSILON\"]", disposeEx.Message);
+        Assert.Contains("none of the expected items were found", disposeEx.Message);
+        Assert.Contains("to not contain any of [\"THETA\", \"BETA\"]", disposeEx.Message);
+        Assert.Contains("first matching item at subject index 1: \"beta\"", disposeEx.Message);
+        Assert.Contains("to have unique items", disposeEx.Message);
+        Assert.Contains("first duplicate item at index 2: \"beta\"", disposeEx.Message);
+        Assert.Contains("to contain items in order [\"ALPHA\", \"GAMMA\"]", disposeEx.Message);
+        Assert.Contains("missing expected item at sequence index 1: \"GAMMA\"", disposeEx.Message);
+        Assert.Contains("to contain selected values in order [\"ALPHA\", \"GAMMA\"]", disposeEx.Message);
+        Assert.Contains("missing expected selected value at sequence index 1: \"GAMMA\"", disposeEx.Message);
+    }
+
+    [Fact]
+    public async Task AsyncEnumerableComparerAssertions_InsideBatch_PreserveFailureCallOrder_ForContainmentAndUniqueness()
+    {
+        static IAsyncEnumerable<string> CreateValues()
+        {
+            return CreateAsyncSequence("Alpha", "beta", "beta");
+        }
+
+        using var batch = new Axiom.Core.Batch("async streams");
+        var callEx = await Record.ExceptionAsync(async () =>
+        {
+            await CreateValues().Should().ContainAsync("GAMMA", StringComparer.OrdinalIgnoreCase);
+            await CreateValues().Should().NotContainAnyAsync(["THETA", "BETA"], StringComparer.OrdinalIgnoreCase);
+            await CreateValues().Should().HaveUniqueItemsAsync(StringComparer.OrdinalIgnoreCase);
+        });
+
+        Assert.Null(callEx);
+
+        var disposeEx = Assert.Throws<InvalidOperationException>(() => batch.Dispose());
+        var containIndex = disposeEx.Message.IndexOf("to contain \"GAMMA\"", StringComparison.Ordinal);
+        var notContainAnyIndex = disposeEx.Message.IndexOf("to not contain any of [\"THETA\", \"BETA\"]", StringComparison.Ordinal);
+        var uniqueIndex = disposeEx.Message.IndexOf("to have unique items", StringComparison.Ordinal);
+
+        Assert.True(containIndex >= 0, disposeEx.Message);
+        Assert.True(notContainAnyIndex > containIndex, disposeEx.Message);
+        Assert.True(uniqueIndex > notContainAnyIndex, disposeEx.Message);
+    }
+
+    [Fact]
     public async Task NewAsyncContainmentAssertions_InsideBatch_DoNotThrowAtAssertionCallSite()
     {
         static IAsyncEnumerable<int> CreateValues()

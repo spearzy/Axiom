@@ -43,6 +43,19 @@ public sealed class HaveUniqueItemsAsyncTests : IDisposable
     }
 
     [Fact]
+    public async Task HaveUniqueItemsAsync_Throws_WhenComparerTreatsItemsAsDuplicates()
+    {
+        var values = CreateAsyncSequence("alpha", "BETA", "beta");
+
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+            await values.Should().HaveUniqueItemsAsync(StringComparer.OrdinalIgnoreCase));
+
+        Assert.Equal(
+            "Expected values to have unique items, but found first duplicate item at index 2: \"beta\".",
+            ex.Message);
+    }
+
+    [Fact]
     public async Task HaveUniqueItemsAsync_Throws_WithReason_WhenProvided()
     {
         var values = CreateAsyncSequence(1, 2, 2, 3);
@@ -73,6 +86,18 @@ public sealed class HaveUniqueItemsAsyncTests : IDisposable
             await values.Should().HaveUniqueItemsAsync());
 
         Assert.Equal("Expected values to have unique items, but found <null>.", ex.Message);
+    }
+
+    [Fact]
+    public async Task HaveUniqueItemsAsync_ThrowsArgumentNullException_WhenComparerIsNull()
+    {
+        var values = CreateAsyncSequence("alpha", "beta");
+        IEqualityComparer<string>? comparer = null;
+
+        var ex = await Assert.ThrowsAsync<ArgumentNullException>(async () =>
+            await values.Should().HaveUniqueItemsAsync(comparer!));
+
+        Assert.Equal("comparer", ex.ParamName);
     }
 
     [Fact]

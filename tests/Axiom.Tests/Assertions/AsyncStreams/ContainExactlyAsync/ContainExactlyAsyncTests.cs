@@ -29,6 +29,19 @@ public sealed class ContainExactlyAsyncTests
     }
 
     [Fact]
+    public async Task ContainExactlyAsync_Passes_WhenComparerMatchesByLocalEquality()
+    {
+        var values = CreateAsyncSequence("Alpha", "beta", "Gamma");
+
+        var assertions = values.Should();
+        var continuation = await assertions.ContainExactlyAsync(
+            ["alpha", "BETA", "gamma"],
+            StringComparer.OrdinalIgnoreCase);
+
+        Assert.Same(assertions, continuation.And);
+    }
+
+    [Fact]
     public async Task ContainExactlyAsync_Throws_WhenStreamEndsTooEarly()
     {
         var values = CreateAsyncSequence(1, 2);
@@ -101,6 +114,18 @@ public sealed class ContainExactlyAsyncTests
             await values.Should().ContainExactlyAsync(expectedSequence!));
 
         Assert.Equal("expectedSequence", ex.ParamName);
+    }
+
+    [Fact]
+    public async Task ContainExactlyAsync_ThrowsArgumentNullException_WhenComparerIsNull()
+    {
+        var values = CreateAsyncSequence("Alpha", "beta");
+        IEqualityComparer<string>? comparer = null;
+
+        var ex = await Assert.ThrowsAsync<ArgumentNullException>(async () =>
+            await values.Should().ContainExactlyAsync(["alpha", "beta"], comparer!));
+
+        Assert.Equal("comparer", ex.ParamName);
     }
 
     [Fact]

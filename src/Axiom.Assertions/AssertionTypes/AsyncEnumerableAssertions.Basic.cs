@@ -124,6 +124,30 @@ public sealed partial class AsyncEnumerableAssertions<T>
         [CallerFilePath] string? callerFilePath = null,
         [CallerLineNumber] int callerLineNumber = 0)
     {
+        return await EvaluateContainAsync(expected, comparer: null, because, callerFilePath, callerLineNumber)
+            .ConfigureAwait(false);
+    }
+
+    public async ValueTask<AndContinuation<AsyncEnumerableAssertions<T>>> ContainAsync(
+        T expected,
+        IEqualityComparer<T> comparer,
+        string? because = null,
+        [CallerFilePath] string? callerFilePath = null,
+        [CallerLineNumber] int callerLineNumber = 0)
+    {
+        ArgumentNullException.ThrowIfNull(comparer);
+
+        return await EvaluateContainAsync(expected, comparer, because, callerFilePath, callerLineNumber)
+            .ConfigureAwait(false);
+    }
+
+    private async ValueTask<AndContinuation<AsyncEnumerableAssertions<T>>> EvaluateContainAsync(
+        T expected,
+        IEqualityComparer<T>? comparer,
+        string? because,
+        string? callerFilePath,
+        int callerLineNumber)
+    {
         var subject = Subject;
         if (subject is null)
         {
@@ -138,11 +162,11 @@ public sealed partial class AsyncEnumerableAssertions<T>
             return new AndContinuation<AsyncEnumerableAssertions<T>>(this);
         }
 
-        var comparer = GetComparer<T>();
+        var resolvedComparer = GetComparer(comparer);
         await using var enumerator = subject.GetAsyncEnumerator();
         while (await enumerator.MoveNextAsync().ConfigureAwait(false))
         {
-            if (comparer.Equals(enumerator.Current, expected))
+            if (resolvedComparer.Equals(enumerator.Current, expected))
             {
                 return new AndContinuation<AsyncEnumerableAssertions<T>>(this);
             }
@@ -166,6 +190,30 @@ public sealed partial class AsyncEnumerableAssertions<T>
         [CallerFilePath] string? callerFilePath = null,
         [CallerLineNumber] int callerLineNumber = 0)
     {
+        return await EvaluateContainExactlyAsync(expectedSequence, comparer: null, because, callerFilePath, callerLineNumber)
+            .ConfigureAwait(false);
+    }
+
+    public async ValueTask<AndContinuation<AsyncEnumerableAssertions<T>>> ContainExactlyAsync(
+        IEnumerable<T> expectedSequence,
+        IEqualityComparer<T> comparer,
+        string? because = null,
+        [CallerFilePath] string? callerFilePath = null,
+        [CallerLineNumber] int callerLineNumber = 0)
+    {
+        ArgumentNullException.ThrowIfNull(comparer);
+
+        return await EvaluateContainExactlyAsync(expectedSequence, comparer, because, callerFilePath, callerLineNumber)
+            .ConfigureAwait(false);
+    }
+
+    private async ValueTask<AndContinuation<AsyncEnumerableAssertions<T>>> EvaluateContainExactlyAsync(
+        IEnumerable<T> expectedSequence,
+        IEqualityComparer<T>? comparer,
+        string? because,
+        string? callerFilePath,
+        int callerLineNumber)
+    {
         ArgumentNullException.ThrowIfNull(expectedSequence);
 
         var expectedItems = MaterialiseExpectedSequence(expectedSequence);
@@ -184,7 +232,7 @@ public sealed partial class AsyncEnumerableAssertions<T>
             return new AndContinuation<AsyncEnumerableAssertions<T>>(this);
         }
 
-        var comparer = GetComparer<T>();
+        var resolvedComparer = GetComparer(comparer);
         var index = 0;
         await using var enumerator = subject.GetAsyncEnumerator();
         while (await enumerator.MoveNextAsync().ConfigureAwait(false))
@@ -203,7 +251,7 @@ public sealed partial class AsyncEnumerableAssertions<T>
                 return new AndContinuation<AsyncEnumerableAssertions<T>>(this);
             }
 
-            if (!comparer.Equals(item, expectedItems[index]))
+            if (!resolvedComparer.Equals(item, expectedItems[index]))
             {
                 Fail(
                     new Failure(
@@ -241,6 +289,30 @@ public sealed partial class AsyncEnumerableAssertions<T>
         [CallerFilePath] string? callerFilePath = null,
         [CallerLineNumber] int callerLineNumber = 0)
     {
+        return await EvaluateContainAnyAsync(expectedItems, comparer: null, because, callerFilePath, callerLineNumber)
+            .ConfigureAwait(false);
+    }
+
+    public async ValueTask<AndContinuation<AsyncEnumerableAssertions<T>>> ContainAnyAsync(
+        IEnumerable<T> expectedItems,
+        IEqualityComparer<T> comparer,
+        string? because = null,
+        [CallerFilePath] string? callerFilePath = null,
+        [CallerLineNumber] int callerLineNumber = 0)
+    {
+        ArgumentNullException.ThrowIfNull(comparer);
+
+        return await EvaluateContainAnyAsync(expectedItems, comparer, because, callerFilePath, callerLineNumber)
+            .ConfigureAwait(false);
+    }
+
+    private async ValueTask<AndContinuation<AsyncEnumerableAssertions<T>>> EvaluateContainAnyAsync(
+        IEnumerable<T> expectedItems,
+        IEqualityComparer<T>? comparer,
+        string? because,
+        string? callerFilePath,
+        int callerLineNumber)
+    {
         ArgumentNullException.ThrowIfNull(expectedItems);
 
         var expected = MaterialiseExpectedSequence(expectedItems);
@@ -272,11 +344,11 @@ public sealed partial class AsyncEnumerableAssertions<T>
             return new AndContinuation<AsyncEnumerableAssertions<T>>(this);
         }
 
-        var comparer = GetComparer<T>();
+        var resolvedComparer = GetComparer(comparer);
         await using var enumerator = subject.GetAsyncEnumerator();
         while (await enumerator.MoveNextAsync().ConfigureAwait(false))
         {
-            if (ContainsItem(expected, enumerator.Current, comparer))
+            if (ContainsItem(expected, enumerator.Current, resolvedComparer))
             {
                 return new AndContinuation<AsyncEnumerableAssertions<T>>(this);
             }
@@ -299,6 +371,30 @@ public sealed partial class AsyncEnumerableAssertions<T>
         string? because = null,
         [CallerFilePath] string? callerFilePath = null,
         [CallerLineNumber] int callerLineNumber = 0)
+    {
+        return await EvaluateNotContainAnyAsync(unexpectedItems, comparer: null, because, callerFilePath, callerLineNumber)
+            .ConfigureAwait(false);
+    }
+
+    public async ValueTask<AndContinuation<AsyncEnumerableAssertions<T>>> NotContainAnyAsync(
+        IEnumerable<T> unexpectedItems,
+        IEqualityComparer<T> comparer,
+        string? because = null,
+        [CallerFilePath] string? callerFilePath = null,
+        [CallerLineNumber] int callerLineNumber = 0)
+    {
+        ArgumentNullException.ThrowIfNull(comparer);
+
+        return await EvaluateNotContainAnyAsync(unexpectedItems, comparer, because, callerFilePath, callerLineNumber)
+            .ConfigureAwait(false);
+    }
+
+    private async ValueTask<AndContinuation<AsyncEnumerableAssertions<T>>> EvaluateNotContainAnyAsync(
+        IEnumerable<T> unexpectedItems,
+        IEqualityComparer<T>? comparer,
+        string? because,
+        string? callerFilePath,
+        int callerLineNumber)
     {
         ArgumentNullException.ThrowIfNull(unexpectedItems);
 
@@ -323,13 +419,13 @@ public sealed partial class AsyncEnumerableAssertions<T>
             return new AndContinuation<AsyncEnumerableAssertions<T>>(this);
         }
 
-        var comparer = GetComparer<T>();
+        var resolvedComparer = GetComparer(comparer);
         var subjectIndex = 0;
         await using var enumerator = subject.GetAsyncEnumerator();
         while (await enumerator.MoveNextAsync().ConfigureAwait(false))
         {
             var item = enumerator.Current;
-            if (ContainsItem(unexpected, item, comparer))
+            if (ContainsItem(unexpected, item, resolvedComparer))
             {
                 Fail(
                     new Failure(

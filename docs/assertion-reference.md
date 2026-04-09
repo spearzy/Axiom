@@ -220,16 +220,20 @@ BeEmptyAsync()
 NotBeEmptyAsync()
 HaveCountAsync(expectedCount)
 ContainAsync(expected)
+ContainAsync(expected, comparer)
 ContainAsync(predicate)
 ContainExactlyAsync(expectedSequence)
+ContainExactlyAsync(expectedSequence, comparer)
 ContainExactlyInAnyOrderAsync(expectedSequence)
 ContainExactlyInAnyOrderAsync(expectedSequence, comparer)
 ContainAllAsync(expectedItems)
 ContainAllAsync(expectedItems, comparer)
 ContainAnyAsync(expectedItems)
+ContainAnyAsync(expectedItems, comparer)
 NotContainAsync(unexpected)
 NotContainAsync(unexpected, comparer)
 NotContainAnyAsync(unexpectedItems)
+NotContainAnyAsync(unexpectedItems, comparer)
 BeSubsetOfAsync(expectedSuperset)
 BeSubsetOfAsync(expectedSuperset, comparer)
 BeSupersetOfAsync(expectedSubset)
@@ -239,6 +243,7 @@ ContainSingleAsync()
 ContainSingleAsync(predicate)
 SatisfyRespectivelyAsync(assertionsForItems)
 HaveUniqueItemsAsync()
+HaveUniqueItemsAsync(comparer)
 HaveUniqueItemsByAsync(keySelector)
 HaveUniqueItemsByAsync(keySelector, comparer)
 BeInAscendingOrderAsync()
@@ -246,7 +251,9 @@ BeInAscendingOrderAsync(comparer)
 BeInDescendingOrderAsync()
 BeInDescendingOrderAsync(comparer)
 ContainInOrderAsync(expectedSequence, allowGaps = true)
+ContainInOrderAsync(expectedSequence, comparer, allowGaps = true)
 ContainInOrderAsync(expectedSequence, keySelector, allowGaps = true)
+ContainInOrderAsync(expectedSequence, keySelector, comparer, allowGaps = true)
 ```
 
 `ContainSingleAsync()` and `ContainSingleAsync(predicate)` return:
@@ -258,23 +265,27 @@ SingleItem
 
 Use them when you want to assert an async stream directly instead of materializing it into a list first.
 
-`ContainExactlyAsync(...)` is the exact ordered async-stream assertion. The stream must match the expected sequence item-for-item in the same order, with no missing items and no extras.
+`ContainExactlyAsync(...)` is the exact ordered async-stream assertion. The stream must match the expected sequence item-for-item in the same order, with no missing items and no extras. The comparer overload lets you keep that same exactness while opting into local equality for just this assertion.
 
 `ContainExactlyInAnyOrderAsync(...)` is the exact unordered async-stream assertion. The stream must contain the same items with the same counts, but order does not matter. The comparer overload lets you opt into custom equality without adding any extra cost to the default path.
 
-`ContainAllAsync(...)` checks that every expected item is present somewhere in the stream. `ContainAnyAsync(...)` passes when the async stream contains at least one of the expected items. `NotContainAsync(...)` passes when a specific item never appears. `NotContainAnyAsync(...)` passes when the stream contains none of the unexpected items. `ContainAllAsync(...)`, `NotContainAsync(...)`, `BeSubsetOfAsync(...)`, and `BeSupersetOfAsync(...)` also have comparer overloads when you need non-default equality.
+`ContainAllAsync(...)` checks that every expected item is present somewhere in the stream. `ContainAnyAsync(...)` passes when the async stream contains at least one of the expected items. `NotContainAsync(...)` passes when a specific item never appears. `NotContainAnyAsync(...)` passes when the stream contains none of the unexpected items. `ContainAsync(...)`, `ContainExactlyAsync(...)`, `ContainAllAsync(...)`, `ContainAnyAsync(...)`, `NotContainAsync(...)`, `NotContainAnyAsync(...)`, `BeSubsetOfAsync(...)`, and `BeSupersetOfAsync(...)` all have comparer overloads when you need local non-default equality.
 
 `BeSubsetOfAsync(...)` and `BeSupersetOfAsync(...)` mirror the synchronous collection subset/superset assertions for async streams.
 
 ```csharp
 await stepIds.Should().ContainExactlyAsync([1, 2, 3]);
+await eventNames.Should().ContainExactlyAsync(["created", "queued"], StringComparer.OrdinalIgnoreCase);
 await stepIds.Should().ContainExactlyInAnyOrderAsync([3, 1, 2]);
 await eventNames.Should().ContainExactlyInAnyOrderAsync(["created", "queued"], StringComparer.OrdinalIgnoreCase);
 await stepIds.Should().ContainAllAsync([1, 3]);
 await stepIds.Should().ContainAnyAsync([2, 9]);
+await eventNames.Should().ContainAnyAsync(["FAILED", "QUEUED"], StringComparer.OrdinalIgnoreCase);
+await eventNames.Should().ContainAsync("QUEUED", StringComparer.OrdinalIgnoreCase);
 await stepIds.Should().NotContainAsync(9);
 await eventNames.Should().NotContainAsync("failed", StringComparer.OrdinalIgnoreCase);
 await stepIds.Should().NotContainAnyAsync([8, 9]);
+await eventNames.Should().NotContainAnyAsync(["FAILED", "CANCELED"], StringComparer.OrdinalIgnoreCase);
 await stepIds.Should().BeSubsetOfAsync([1, 2, 3, 4]);
 await stepIds.Should().BeSupersetOfAsync([1, 3]);
 ```
@@ -287,15 +298,16 @@ await orders.Should().SatisfyRespectivelyAsync(
     second => second.Total.Should().Be(20m));
 ```
 
-`HaveUniqueItemsAsync()` and `HaveUniqueItemsByAsync(...)` let you assert direct async-stream uniqueness without materializing the sequence first.
+`HaveUniqueItemsAsync()` and `HaveUniqueItemsByAsync(...)` let you assert direct async-stream uniqueness without materializing the sequence first. `HaveUniqueItemsAsync(comparer)` is useful when uniqueness should use local equality rather than the configured comparer provider or the default comparer.
 
 ```csharp
 await users.Should().HaveUniqueItemsAsync();
+await labels.Should().HaveUniqueItemsAsync(StringComparer.OrdinalIgnoreCase);
 await users.Should().HaveUniqueItemsByAsync(user => user.Id);
 await users.Should().HaveUniqueItemsByAsync(user => user.Email, StringComparer.OrdinalIgnoreCase);
 ```
 
-`ContainInOrderAsync(...)` mirrors the synchronous ordered-sequence assertions for async streams. With the default `allowGaps: true`, the expected sequence must appear in order as a subsequence. With `allowGaps: false`, the expected sequence must appear as an adjacent ordered run.
+`ContainInOrderAsync(...)` mirrors the synchronous ordered-sequence assertions for async streams. With the default `allowGaps: true`, the expected sequence must appear in order as a subsequence. With `allowGaps: false`, the expected sequence must appear as an adjacent ordered run. Both the direct and key-selector forms also have comparer overloads when ordered matching should use local equality.
 
 `BeInAscendingOrderAsync(...)` and `BeInDescendingOrderAsync(...)` check the stream order directly and report the first out-of-order pair. They also have comparer overloads when the stream's natural ordering is not the one you want to assert.
 
@@ -304,9 +316,14 @@ await stepIds.Should().BeInAscendingOrderAsync();
 await descendingStepIds.Should().BeInDescendingOrderAsync();
 await labels.Should().BeInAscendingOrderAsync(StringComparer.OrdinalIgnoreCase);
 await statuses.Should().ContainInOrderAsync([WorkflowStep.Started, WorkflowStep.Completed]);
+await eventNames.Should().ContainInOrderAsync(["created", "queued"], StringComparer.OrdinalIgnoreCase);
 await events.Should().ContainInOrderAsync(
     [WorkflowStep.Started, WorkflowStep.Completed],
     evt => evt.Step);
+await events.Should().ContainInOrderAsync(
+    ["started", "completed"],
+    evt => evt.Step.ToString(),
+    StringComparer.OrdinalIgnoreCase);
 await stepIds.Should().ContainInOrderAsync([2, 3], allowGaps: false);
 ```
 

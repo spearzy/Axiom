@@ -126,6 +126,31 @@ public sealed class ContainInOrderAsyncTests : IDisposable
     }
 
     [Fact]
+    public async Task ContainInOrderAsync_Passes_WhenComparerMatchesExpectedSequence()
+    {
+        var values = CreateAsyncSequence("started", "COMPLETED", "Finished");
+
+        var assertions = values.Should();
+        var continuation = await assertions.ContainInOrderAsync(
+            ["STARTED", "completed"],
+            StringComparer.OrdinalIgnoreCase);
+
+        Assert.Same(assertions, continuation.And);
+    }
+
+    [Fact]
+    public async Task ContainInOrderAsync_ThrowsArgumentNullException_WhenComparerIsNull()
+    {
+        var values = CreateAsyncSequence("started", "completed");
+        IEqualityComparer<string>? comparer = null;
+
+        var ex = await Assert.ThrowsAsync<ArgumentNullException>(async () =>
+            await values.Should().ContainInOrderAsync(["STARTED"], comparer!));
+
+        Assert.Equal("comparer", ex.ParamName);
+    }
+
+    [Fact]
     public async Task ContainInOrderAsync_ByKey_ReturnsContinuation_WhenExpectedSelectedValuesExistInOrder()
     {
         var values = CreateAsyncSequence(
@@ -205,6 +230,35 @@ public sealed class ContainInOrderAsyncTests : IDisposable
                 evt => evt.Name));
 
         Assert.Null(ex);
+    }
+
+    [Fact]
+    public async Task ContainInOrderAsync_ByKey_Passes_WhenComparerMatchesSelectedValues()
+    {
+        var values = CreateAsyncSequence(
+            new WorkflowEvent(WorkflowStep.Started, "STARTED"),
+            new WorkflowEvent(WorkflowStep.Running, "RUNNING"),
+            new WorkflowEvent(WorkflowStep.Completed, "completed"));
+
+        var assertions = values.Should();
+        var continuation = await assertions.ContainInOrderAsync(
+            ["started", "COMPLETED"],
+            evt => evt.Name,
+            StringComparer.OrdinalIgnoreCase);
+
+        Assert.Same(assertions, continuation.And);
+    }
+
+    [Fact]
+    public async Task ContainInOrderAsync_ByKey_ThrowsArgumentNullException_WhenComparerIsNull()
+    {
+        var values = CreateAsyncSequence(new WorkflowEvent(WorkflowStep.Started, "start"));
+        IEqualityComparer<string>? comparer = null;
+
+        var ex = await Assert.ThrowsAsync<ArgumentNullException>(async () =>
+            await values.Should().ContainInOrderAsync(["start"], evt => evt.Name, comparer!));
+
+        Assert.Equal("comparer", ex.ParamName);
     }
 
     [Fact]

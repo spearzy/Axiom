@@ -29,6 +29,19 @@ public sealed class NotContainAnyAsyncTests
     }
 
     [Fact]
+    public async Task NotContainAnyAsync_Throws_WhenComparerMatchesAnUnexpectedItem()
+    {
+        var values = CreateAsyncSequence("alpha", "beta", "gamma");
+
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+            await values.Should().NotContainAnyAsync(["DELTA", "BETA"], StringComparer.OrdinalIgnoreCase));
+
+        Assert.Equal(
+            "Expected values to not contain any of [\"DELTA\", \"BETA\"], but found first matching item at subject index 1: \"beta\".",
+            ex.Message);
+    }
+
+    [Fact]
     public async Task NotContainAnyAsync_Failure_IdentifiesTheUnexpectedItem()
     {
         var values = CreateAsyncSequence("alpha", "beta", "gamma");
@@ -71,6 +84,18 @@ public sealed class NotContainAnyAsyncTests
             await values.Should().NotContainAnyAsync(unexpectedItems!));
 
         Assert.Equal("unexpectedItems", ex.ParamName);
+    }
+
+    [Fact]
+    public async Task NotContainAnyAsync_ThrowsArgumentNullException_WhenComparerIsNull()
+    {
+        var values = CreateAsyncSequence("alpha", "beta");
+        IEqualityComparer<string>? comparer = null;
+
+        var ex = await Assert.ThrowsAsync<ArgumentNullException>(async () =>
+            await values.Should().NotContainAnyAsync(["BETA"], comparer!));
+
+        Assert.Equal("comparer", ex.ParamName);
     }
 
     [Fact]
