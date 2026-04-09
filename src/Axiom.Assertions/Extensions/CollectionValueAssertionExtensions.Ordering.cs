@@ -136,6 +136,28 @@ public static partial class CollectionValueAssertionExtensions
         return new AndContinuation<ValueAssertions<TCollection>>(assertions);
     }
 
+    public static AndContinuation<ValueAssertions<TCollection>> BeInAscendingOrder<TCollection, TItem>(
+        this ValueAssertions<TCollection> assertions,
+        IComparer<TItem> comparer,
+        string? because = null,
+        [CallerFilePath] string? callerFilePath = null,
+        [CallerLineNumber] int callerLineNumber = 0)
+        where TCollection : IEnumerable<TItem>
+    {
+        ArgumentNullException.ThrowIfNull(assertions);
+        ArgumentNullException.ThrowIfNull(comparer);
+
+        CollectionAssertionEngine.AssertBeInAscendingOrder(
+            assertions.Subject,
+            assertions.SubjectExpression,
+            comparer,
+            because,
+            callerFilePath,
+            callerLineNumber);
+
+        return new AndContinuation<ValueAssertions<TCollection>>(assertions);
+    }
+
     public static AndContinuation<ValueAssertions<TCollection>> BeInDescendingOrder<TCollection>(
         this ValueAssertions<TCollection> assertions,
         string? because = null,
@@ -148,6 +170,28 @@ public static partial class CollectionValueAssertionExtensions
         CollectionAssertionEngine.AssertBeInDescendingOrder(
             assertions.Subject,
             assertions.SubjectExpression,
+            because,
+            callerFilePath,
+            callerLineNumber);
+
+        return new AndContinuation<ValueAssertions<TCollection>>(assertions);
+    }
+
+    public static AndContinuation<ValueAssertions<TCollection>> BeInDescendingOrder<TCollection, TItem>(
+        this ValueAssertions<TCollection> assertions,
+        IComparer<TItem> comparer,
+        string? because = null,
+        [CallerFilePath] string? callerFilePath = null,
+        [CallerLineNumber] int callerLineNumber = 0)
+        where TCollection : IEnumerable<TItem>
+    {
+        ArgumentNullException.ThrowIfNull(assertions);
+        ArgumentNullException.ThrowIfNull(comparer);
+
+        CollectionAssertionEngine.AssertBeInDescendingOrder(
+            assertions.Subject,
+            assertions.SubjectExpression,
+            comparer,
             because,
             callerFilePath,
             callerLineNumber);

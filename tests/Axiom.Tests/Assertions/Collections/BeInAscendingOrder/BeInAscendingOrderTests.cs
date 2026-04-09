@@ -67,6 +67,17 @@ public sealed class BeInAscendingOrderTests
     }
 
     [Fact]
+    public void BeInAscendingOrder_WithComparer_UsesProvidedComparer()
+    {
+        string[] values = ["alpha", "Beta", "charlie"];
+
+        var ex = Record.Exception(() =>
+            values.Should().BeInAscendingOrder(StringComparer.OrdinalIgnoreCase));
+
+        Assert.Null(ex);
+    }
+
+    [Fact]
     public void BeInAscendingOrder_Throws_WhenTypeHasNoDefaultOrdering()
     {
         NonComparable[] values =
@@ -148,6 +159,18 @@ public sealed class BeInAscendingOrderTests
 
         var ex = Assert.Throws<ArgumentNullException>(() =>
             users.Should().BeInAscendingOrder((User user) => user.Rank, comparer!));
+
+        Assert.Equal("comparer", ex.ParamName);
+    }
+
+    [Fact]
+    public void BeInAscendingOrder_WithComparer_ThrowsArgumentNullException_WhenComparerIsNull()
+    {
+        string[] values = ["alpha"];
+        StringComparer? comparer = null;
+
+        var ex = Assert.Throws<ArgumentNullException>(() =>
+            values.Should().BeInAscendingOrder(comparer!));
 
         Assert.Equal("comparer", ex.ParamName);
     }

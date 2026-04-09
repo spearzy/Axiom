@@ -384,6 +384,19 @@ public sealed class CollectionBatchRoutingTests
     }
 
     [Fact]
+    public void BeInAscendingOrder_WithComparer_InsideBatch_DoesNotThrowAtAssertionCallSite()
+    {
+        string[] values = ["alpha", "charlie", "Beta"];
+
+        using var batch = new Axiom.Core.Batch();
+        var callEx = Record.Exception(() =>
+            values.Should().BeInAscendingOrder(StringComparer.OrdinalIgnoreCase));
+
+        Assert.Null(callEx);
+        Assert.Throws<InvalidOperationException>(() => batch.Dispose());
+    }
+
+    [Fact]
     public void BeInDescendingOrder_OutsideBatch_ThrowsImmediately()
     {
         int[] values = [3, 1, 2];
@@ -398,6 +411,19 @@ public sealed class CollectionBatchRoutingTests
 
         using var batch = new Axiom.Core.Batch();
         var callEx = Record.Exception(() => values.Should().BeInDescendingOrder());
+
+        Assert.Null(callEx);
+        Assert.Throws<InvalidOperationException>(() => batch.Dispose());
+    }
+
+    [Fact]
+    public void BeInDescendingOrder_WithComparer_InsideBatch_DoesNotThrowAtAssertionCallSite()
+    {
+        string[] values = ["charlie", "alpha", "Beta"];
+
+        using var batch = new Axiom.Core.Batch();
+        var callEx = Record.Exception(() =>
+            values.Should().BeInDescendingOrder(StringComparer.OrdinalIgnoreCase));
 
         Assert.Null(callEx);
         Assert.Throws<InvalidOperationException>(() => batch.Dispose());

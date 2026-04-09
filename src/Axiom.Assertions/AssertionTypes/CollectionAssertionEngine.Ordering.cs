@@ -124,6 +124,26 @@ internal static partial class CollectionAssertionEngine
             callerLineNumber);
     }
 
+    public static void AssertBeInAscendingOrder<T>(
+        IEnumerable<T>? subject,
+        string? subjectExpression,
+        IComparer<T> comparer,
+        string? because,
+        string? callerFilePath,
+        int callerLineNumber)
+    {
+        AssertInOrder(
+            subject,
+            subjectExpression,
+            comparer,
+            because,
+            expectationText: "to be in ascending order",
+            failureDetailText: "first out-of-order pair",
+            inOrder: (previous, current, resolvedComparer) => resolvedComparer.Compare(previous, current) <= 0,
+            callerFilePath,
+            callerLineNumber);
+    }
+
     public static void AssertBeInDescendingOrder(
         IEnumerable? subject,
         string? subjectExpression,
@@ -138,6 +158,26 @@ internal static partial class CollectionAssertionEngine
             expectationText: "to be in descending order",
             failureDetailText: "first out-of-order pair",
             inOrder: (previous, current) => CompareObjects(previous, current) >= 0,
+            callerFilePath,
+            callerLineNumber);
+    }
+
+    public static void AssertBeInDescendingOrder<T>(
+        IEnumerable<T>? subject,
+        string? subjectExpression,
+        IComparer<T> comparer,
+        string? because,
+        string? callerFilePath,
+        int callerLineNumber)
+    {
+        AssertInOrder(
+            subject,
+            subjectExpression,
+            comparer,
+            because,
+            expectationText: "to be in descending order",
+            failureDetailText: "first out-of-order pair",
+            inOrder: (previous, current, resolvedComparer) => resolvedComparer.Compare(previous, current) >= 0,
             callerFilePath,
             callerLineNumber);
     }
@@ -435,6 +475,58 @@ internal static partial class CollectionAssertionEngine
 
         throw new InvalidOperationException(
             $"Values of runtime type '{previous.GetType().FullName}' do not define a default ordering. Use a key-selector overload with an explicit comparer.");
+    }
+
+    private static void AssertInOrder<T>(
+        IEnumerable<T>? subject,
+        string? subjectExpression,
+        IComparer<T> comparer,
+        string? because,
+        string expectationText,
+        string failureDetailText,
+        Func<T, T, IComparer<T>, bool> inOrder,
+        string? callerFilePath,
+        int callerLineNumber)
+    {
+        var subjectLabel = SubjectLabel(subjectExpression);
+        if (subject is null)
+        {
+            var nullFailure = new Failure(
+                subjectLabel,
+                new Expectation(expectationText, IncludeExpectedValue: false),
+                subject,
+                because);
+            AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(nullFailure), callerFilePath, callerLineNumber);
+            return;
+        }
+
+        using var enumerator = subject.GetEnumerator();
+        if (!enumerator.MoveNext())
+        {
+            return;
+        }
+
+        var previous = enumerator.Current;
+        var index = 1;
+        while (enumerator.MoveNext())
+        {
+            var current = enumerator.Current;
+            if (inOrder(previous, current, comparer))
+            {
+                previous = current;
+                index++;
+                continue;
+            }
+
+            var failure = new Failure(
+                subjectLabel,
+                new Expectation(expectationText, IncludeExpectedValue: false),
+                new RenderedText(
+                    $"{failureDetailText} at index {index}: previous {FormatSingleValue(previous)} then current {FormatSingleValue(current)}"),
+                because);
+            AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
+            return;
+        }
     }
 
     private static void AssertInOrderByKey<T, TKey>(
