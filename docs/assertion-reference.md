@@ -549,9 +549,13 @@ Available on `ValueAssertions<TDictionary>` where the subject implements `IReadO
 ContainKey(key)
 NotContainKey(key)
 ContainValue(value)
+ContainValue(value, comparer)
 NotContainValue(value)
+NotContainValue(value, comparer)
 ContainEntry(key, value)
+ContainEntry(key, value, comparer)
 NotContainEntry(key, value)
+NotContainEntry(key, value, comparer)
 ```
 
 `ContainKey(...)` returns a continuation with:
