@@ -1,10 +1,11 @@
-using Axiom.Assertions;
 using Axiom.Assertions.Extensions;
 
 namespace Axiom.Tests.Assertions.Values.Batch;
 
 public sealed class ValueBatchRoutingTests
 {
+    private static readonly IComparer<int> ReverseComparer = Comparer<int>.Create(static (left, right) => right.CompareTo(left));
+
     private sealed class OddEvenMatchIntComparer : IEqualityComparer<int>
     {
         public bool Equals(int x, int y)
@@ -140,6 +141,43 @@ public sealed class ValueBatchRoutingTests
         Assert.Contains("Batch 'one-of' failed with 2 assertion failure(s):", message);
         Assert.Contains("1) Expected value to be one of [1, 2, 3], but found 42.", message);
         Assert.Contains("2) Expected value to not be one of [41, 42, 43], but found 42.", message);
+    }
+
+    [Fact]
+    public void OrderComparerValueAssertions_InsideBatch_DoNotThrowAtAssertionCallSite()
+    {
+        const int value = 7;
+
+        using var batch = new Axiom.Core.Batch();
+        var callEx = Record.Exception(() =>
+        {
+            value.Should().BeGreaterThan(5, ReverseComparer);
+            value.Should().BeLessThanOrEqualTo(5, ReverseComparer);
+            value.Should().BeInRange(10, 1, ReverseComparer);
+        });
+
+        Assert.Null(callEx);
+        Assert.Throws<InvalidOperationException>(() => batch.Dispose());
+    }
+
+    [Fact]
+    public void Batch_Dispose_ThrowsCombinedFailures_FromOrderComparerValueAssertions_InCallOrder()
+    {
+        const int value = 3;
+
+        var ex = Assert.Throws<InvalidOperationException>(() =>
+        {
+            using var batch = new Axiom.Core.Batch("ordered-values");
+            value.Should().BeGreaterThan(5, Comparer<int>.Default);
+            value.Should().BeLessThan(1, Comparer<int>.Default);
+            value.Should().BeInRange(4, 5, Comparer<int>.Default);
+        });
+
+        var message = ex.Message.Replace("\r\n", "\n", StringComparison.Ordinal);
+        Assert.Contains("Batch 'ordered-values' failed with 3 assertion failure(s):", message);
+        Assert.Contains("1) Expected value to be greater than 5, but found 3.", message);
+        Assert.Contains("2) Expected value to be less than 1, but found 3.", message);
+        Assert.Contains("3) Expected value to be in range [4, 5], but found 3.", message);
     }
 
     [Fact]

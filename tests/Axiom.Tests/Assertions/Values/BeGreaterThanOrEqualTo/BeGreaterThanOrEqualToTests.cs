@@ -4,6 +4,8 @@ namespace Axiom.Tests.Assertions.Values.BeGreaterThanOrEqualTo;
 
 public sealed class BeGreaterThanOrEqualToTests
 {
+    private static readonly IComparer<int> ReverseComparer = Comparer<int>.Create(static (left, right) => right.CompareTo(left));
+
     [Fact]
     public void BeGreaterThanOrEqualTo_DoesNotThrow_WhenValueIsGreater()
     {
@@ -44,5 +46,26 @@ public sealed class BeGreaterThanOrEqualToTests
             value.Should().BeGreaterThanOrEqualTo(3, "threshold includes fallback mode"));
 
         Assert.Contains("because threshold includes fallback mode", ex.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void BeGreaterThanOrEqualTo_WithComparer_DoesNotThrow_WhenComparerTreatsValueAsGreater()
+    {
+        const int value = 3;
+
+        var ex = Record.Exception(() => value.Should().BeGreaterThanOrEqualTo(5, ReverseComparer));
+
+        Assert.Null(ex);
+    }
+
+    [Fact]
+    public void BeGreaterThanOrEqualTo_WithComparer_ThrowsArgumentNullException_WhenComparerIsNull()
+    {
+        const int value = 3;
+        IComparer<int>? comparer = null;
+
+        var ex = Assert.Throws<ArgumentNullException>(() => value.Should().BeGreaterThanOrEqualTo(5, comparer!));
+
+        Assert.Equal("comparer", ex.ParamName);
     }
 }

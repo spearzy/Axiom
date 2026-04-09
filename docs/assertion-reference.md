@@ -90,10 +90,15 @@ BeOfType<TExpected>()
 BeAssignableTo<TExpected>()
 NotBeAssignableTo<TExpected>()
 BeGreaterThan(value)
+BeGreaterThan(value, comparer)
 BeGreaterThanOrEqualTo(value)
+BeGreaterThanOrEqualTo(value, comparer)
 BeLessThan(value)
+BeLessThan(value, comparer)
 BeLessThanOrEqualTo(value)
+BeLessThanOrEqualTo(value, comparer)
 BeInRange(min, max)
+BeInRange(min, max, comparer)
 ```
 
 Additional extension assertions:
@@ -128,6 +133,19 @@ failedResponse.Should().BeOneOf(
 failedResponse.Should().NotBeOneOf(
     [new ApiResponse { ErrorCode = "duplicate" }, new ApiResponse { ErrorCode = "unauthorized" }],
     errorCodeComparer);
+```
+
+The ordered value comparer overloads let you apply local ordering rules to one assertion when the default runtime ordering is not the rule you want to use.
+
+```csharp
+var descendingPriority = Comparer<int>.Create(static (left, right) => right.CompareTo(left));
+
+var priority = 3;
+priority.Should().BeGreaterThan(5, descendingPriority);
+priority.Should().BeGreaterThanOrEqualTo(3, descendingPriority);
+priority.Should().BeLessThan(1, descendingPriority);
+priority.Should().BeLessThanOrEqualTo(1, descendingPriority);
+priority.Should().BeInRange(5, 1, descendingPriority);
 ```
 
 ## String Assertions

@@ -4,6 +4,8 @@ namespace Axiom.Tests.Assertions.Values.BeInRange;
 
 public sealed class BeInRangeTests
 {
+    private static readonly IComparer<int> ReverseComparer = Comparer<int>.Create(static (left, right) => right.CompareTo(left));
+
     [Fact]
     public void BeInRange_DoesNotThrow_WhenValueIsWithinInclusiveRange()
     {
@@ -54,5 +56,47 @@ public sealed class BeInRangeTests
         var ex = Assert.Throws<ArgumentException>(() => value.Should().BeInRange(1, "z"));
 
         Assert.Contains("Range bounds must support ordering comparisons.", ex.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void BeInRange_WithComparer_DoesNotThrow_WhenValueIsWithinRangeUsingExplicitOrdering()
+    {
+        const int value = 5;
+
+        var ex = Record.Exception(() => value.Should().BeInRange(10, 1, ReverseComparer));
+
+        Assert.Null(ex);
+    }
+
+    [Fact]
+    public void BeInRange_WithComparer_Throws_WhenValueIsOutsideRangeUsingExplicitOrdering()
+    {
+        const int value = 0;
+
+        var ex = Assert.Throws<InvalidOperationException>(() => value.Should().BeInRange(10, 1, ReverseComparer));
+
+        const string expected = "Expected value to be in range [10, 1], but found 0.";
+        Assert.Equal(expected, ex.Message);
+    }
+
+    [Fact]
+    public void BeInRange_WithComparer_ValidatesBoundsUsingExplicitComparer()
+    {
+        const int value = 5;
+
+        var ex = Assert.Throws<ArgumentException>(() => value.Should().BeInRange(1, 10, ReverseComparer));
+
+        Assert.Contains("minimum must be less than or equal to maximum.", ex.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void BeInRange_WithComparer_ThrowsArgumentNullException_WhenComparerIsNull()
+    {
+        const int value = 5;
+        IComparer<int>? comparer = null;
+
+        var ex = Assert.Throws<ArgumentNullException>(() => value.Should().BeInRange(1, 10, comparer!));
+
+        Assert.Equal("comparer", ex.ParamName);
     }
 }

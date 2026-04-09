@@ -403,13 +403,39 @@ public sealed class ValueAssertions<T>(T subject, string? subjectExpression)
         [CallerFilePath] string? callerFilePath = null,
         [CallerLineNumber] int callerLineNumber = 0)
     {
-        if (!TryCompareValues(Subject, threshold, out var comparison) || comparison <= 0)
+        return BeGreaterThanInternal(threshold, comparer: null, because, callerFilePath, callerLineNumber);
+    }
+
+    public AndContinuation<ValueAssertions<T>> BeGreaterThan(
+        T threshold,
+        IComparer<T> comparer,
+        string? because = null,
+        [CallerFilePath] string? callerFilePath = null,
+        [CallerLineNumber] int callerLineNumber = 0)
+    {
+        ArgumentNullException.ThrowIfNull(comparer);
+
+        return BeGreaterThanInternal(threshold, comparer, because, callerFilePath, callerLineNumber);
+    }
+
+    private AndContinuation<ValueAssertions<T>> BeGreaterThanInternal(
+        T threshold,
+        IComparer<T>? comparer,
+        string? because,
+        string? callerFilePath,
+        int callerLineNumber)
+    {
+        if (!TryCompareValues(Subject, threshold, comparer, out var comparison) || comparison <= 0)
         {
-            var failure = new Failure(SubjectLabel(),
-                new Expectation("to be greater than", threshold), Subject, because);
+            var failure = new Failure(
+                SubjectLabel(),
+                new Expectation("to be greater than", threshold),
+                Subject,
+                because);
 
             AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
         }
+
         return new AndContinuation<ValueAssertions<T>>(this);
     }
 
@@ -419,13 +445,39 @@ public sealed class ValueAssertions<T>(T subject, string? subjectExpression)
         [CallerFilePath] string? callerFilePath = null,
         [CallerLineNumber] int callerLineNumber = 0)
     {
-        if (!TryCompareValues(Subject, threshold, out var comparison) || comparison < 0)
+        return BeGreaterThanOrEqualToInternal(threshold, comparer: null, because, callerFilePath, callerLineNumber);
+    }
+
+    public AndContinuation<ValueAssertions<T>> BeGreaterThanOrEqualTo(
+        T threshold,
+        IComparer<T> comparer,
+        string? because = null,
+        [CallerFilePath] string? callerFilePath = null,
+        [CallerLineNumber] int callerLineNumber = 0)
+    {
+        ArgumentNullException.ThrowIfNull(comparer);
+
+        return BeGreaterThanOrEqualToInternal(threshold, comparer, because, callerFilePath, callerLineNumber);
+    }
+
+    private AndContinuation<ValueAssertions<T>> BeGreaterThanOrEqualToInternal(
+        T threshold,
+        IComparer<T>? comparer,
+        string? because,
+        string? callerFilePath,
+        int callerLineNumber)
+    {
+        if (!TryCompareValues(Subject, threshold, comparer, out var comparison) || comparison < 0)
         {
-            var failure = new Failure(SubjectLabel(),
-                new Expectation("to be greater than or equal to", threshold), Subject, because);
+            var failure = new Failure(
+                SubjectLabel(),
+                new Expectation("to be greater than or equal to", threshold),
+                Subject,
+                because);
 
             AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
         }
+
         return new AndContinuation<ValueAssertions<T>>(this);
     }
 
@@ -435,13 +487,39 @@ public sealed class ValueAssertions<T>(T subject, string? subjectExpression)
         [CallerFilePath] string? callerFilePath = null,
         [CallerLineNumber] int callerLineNumber = 0)
     {
-        if (!TryCompareValues(Subject, threshold, out var comparison) || comparison >= 0)
+        return BeLessThanInternal(threshold, comparer: null, because, callerFilePath, callerLineNumber);
+    }
+
+    public AndContinuation<ValueAssertions<T>> BeLessThan(
+        T threshold,
+        IComparer<T> comparer,
+        string? because = null,
+        [CallerFilePath] string? callerFilePath = null,
+        [CallerLineNumber] int callerLineNumber = 0)
+    {
+        ArgumentNullException.ThrowIfNull(comparer);
+
+        return BeLessThanInternal(threshold, comparer, because, callerFilePath, callerLineNumber);
+    }
+
+    private AndContinuation<ValueAssertions<T>> BeLessThanInternal(
+        T threshold,
+        IComparer<T>? comparer,
+        string? because,
+        string? callerFilePath,
+        int callerLineNumber)
+    {
+        if (!TryCompareValues(Subject, threshold, comparer, out var comparison) || comparison >= 0)
         {
-            var failure = new Failure(SubjectLabel(),
-                new Expectation("to be less than", threshold), Subject, because);
+            var failure = new Failure(
+                SubjectLabel(),
+                new Expectation("to be less than", threshold),
+                Subject,
+                because);
 
             AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
         }
+
         return new AndContinuation<ValueAssertions<T>>(this);
     }
 
@@ -451,13 +529,39 @@ public sealed class ValueAssertions<T>(T subject, string? subjectExpression)
         [CallerFilePath] string? callerFilePath = null,
         [CallerLineNumber] int callerLineNumber = 0)
     {
-        if (!TryCompareValues(Subject, threshold, out var comparison) || comparison > 0)
+        return BeLessThanOrEqualToInternal(threshold, comparer: null, because, callerFilePath, callerLineNumber);
+    }
+
+    public AndContinuation<ValueAssertions<T>> BeLessThanOrEqualTo(
+        T threshold,
+        IComparer<T> comparer,
+        string? because = null,
+        [CallerFilePath] string? callerFilePath = null,
+        [CallerLineNumber] int callerLineNumber = 0)
+    {
+        ArgumentNullException.ThrowIfNull(comparer);
+
+        return BeLessThanOrEqualToInternal(threshold, comparer, because, callerFilePath, callerLineNumber);
+    }
+
+    private AndContinuation<ValueAssertions<T>> BeLessThanOrEqualToInternal(
+        T threshold,
+        IComparer<T>? comparer,
+        string? because,
+        string? callerFilePath,
+        int callerLineNumber)
+    {
+        if (!TryCompareValues(Subject, threshold, comparer, out var comparison) || comparison > 0)
         {
-            var failure = new Failure(SubjectLabel(),
-                new Expectation("to be less than or equal to", threshold), Subject, because);
+            var failure = new Failure(
+                SubjectLabel(),
+                new Expectation("to be less than or equal to", threshold),
+                Subject,
+                because);
 
             AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
         }
+
         return new AndContinuation<ValueAssertions<T>>(this);
     }
 
@@ -468,7 +572,31 @@ public sealed class ValueAssertions<T>(T subject, string? subjectExpression)
         [CallerFilePath] string? callerFilePath = null,
         [CallerLineNumber] int callerLineNumber = 0)
     {
-        if (!TryCompareValues(minimum, maximum, out var boundsComparison))
+        return BeInRangeInternal(minimum, maximum, comparer: null, because, callerFilePath, callerLineNumber);
+    }
+
+    public AndContinuation<ValueAssertions<T>> BeInRange(
+        T minimum,
+        T maximum,
+        IComparer<T> comparer,
+        string? because = null,
+        [CallerFilePath] string? callerFilePath = null,
+        [CallerLineNumber] int callerLineNumber = 0)
+    {
+        ArgumentNullException.ThrowIfNull(comparer);
+
+        return BeInRangeInternal(minimum, maximum, comparer, because, callerFilePath, callerLineNumber);
+    }
+
+    private AndContinuation<ValueAssertions<T>> BeInRangeInternal(
+        T minimum,
+        T maximum,
+        IComparer<T>? comparer,
+        string? because,
+        string? callerFilePath,
+        int callerLineNumber)
+    {
+        if (!TryCompareValues(minimum, maximum, comparer, out var boundsComparison))
         {
             throw new ArgumentException("Range bounds must support ordering comparisons.", nameof(minimum));
         }
@@ -478,15 +606,19 @@ public sealed class ValueAssertions<T>(T subject, string? subjectExpression)
             throw new ArgumentException("minimum must be less than or equal to maximum.", nameof(minimum));
         }
 
-        var isLowerBoundComparable = TryCompareValues(Subject, minimum, out var lowerComparison);
-        var isUpperBoundComparable = TryCompareValues(Subject, maximum, out var upperComparison);
+        var isLowerBoundComparable = TryCompareValues(Subject, minimum, comparer, out var lowerComparison);
+        var isUpperBoundComparable = TryCompareValues(Subject, maximum, comparer, out var upperComparison);
         if (!isLowerBoundComparable || !isUpperBoundComparable || lowerComparison < 0 || upperComparison > 0)
         {
-            var failure = new Failure(SubjectLabel(),
-                new Expectation("to be in range", new InclusiveRange(minimum, maximum)), Subject, because);
+            var failure = new Failure(
+                SubjectLabel(),
+                new Expectation("to be in range", new InclusiveRange(minimum, maximum)),
+                Subject,
+                because);
 
             AssertionFailureDispatcher.Fail(FailureMessageRenderer.Render(failure), callerFilePath, callerLineNumber);
         }
+
         return new AndContinuation<ValueAssertions<T>>(this);
     }
 
@@ -542,6 +674,21 @@ public sealed class ValueAssertions<T>(T subject, string? subjectExpression)
 
         comparison = 0;
         return false;
+    }
+
+    private static bool TryCompareValues(
+        T candidate,
+        T other,
+        IComparer<T>? comparer,
+        out int comparison)
+    {
+        if (comparer is not null)
+        {
+            comparison = comparer.Compare(candidate, other);
+            return true;
+        }
+
+        return TryCompareValues(candidate, other, out comparison);
     }
 
     private static IEnumerable<T> EnsureReplayableExpectedValues(IEnumerable<T> expectedValues)
