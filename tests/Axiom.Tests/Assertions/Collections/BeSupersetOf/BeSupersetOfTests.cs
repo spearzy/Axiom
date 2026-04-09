@@ -93,6 +93,29 @@ public sealed class BeSupersetOfTests
         Assert.Equal("expectedSubset", ex.ParamName);
     }
 
+    [Fact]
+    public void BeSupersetOf_Passes_WhenComparerTreatsItemsAsEqual()
+    {
+        string[] values = ["Alpha", "beta"];
+
+        var ex = Record.Exception(() =>
+            values.Should().BeSupersetOf(["alpha"], StringComparer.OrdinalIgnoreCase));
+
+        Assert.Null(ex);
+    }
+
+    [Fact]
+    public void BeSupersetOf_ThrowsArgumentNullException_WhenComparerIsNull()
+    {
+        string[] values = ["Alpha"];
+        StringComparer? comparer = null;
+
+        var ex = Assert.Throws<ArgumentNullException>(() =>
+            values.Should().BeSupersetOf(["alpha"], comparer!));
+
+        Assert.Equal("comparer", ex.ParamName);
+    }
+
     private readonly record struct ThrowingToStringValue(int Value)
     {
         public override string ToString()

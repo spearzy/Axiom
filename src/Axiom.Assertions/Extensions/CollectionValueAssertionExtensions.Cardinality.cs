@@ -30,12 +30,34 @@ public static partial class CollectionValueAssertionExtensions
         else
         {
             CollectionAssertionEngine.AssertHaveUniqueItems(
-                assertions.Subject,
+                (IEnumerable?)assertions.Subject,
                 assertions.SubjectExpression,
                 because,
                 callerFilePath,
                 callerLineNumber);
         }
+
+        return new AndContinuation<ValueAssertions<TCollection>>(assertions);
+    }
+
+    public static AndContinuation<ValueAssertions<TCollection>> HaveUniqueItems<TCollection, TItem>(
+        this ValueAssertions<TCollection> assertions,
+        IEqualityComparer<TItem> comparer,
+        string? because = null,
+        [CallerFilePath] string? callerFilePath = null,
+        [CallerLineNumber] int callerLineNumber = 0)
+        where TCollection : IEnumerable<TItem>
+    {
+        ArgumentNullException.ThrowIfNull(assertions);
+        ArgumentNullException.ThrowIfNull(comparer);
+
+        CollectionAssertionEngine.AssertHaveUniqueItems(
+            assertions.Subject,
+            assertions.SubjectExpression,
+            comparer,
+            because,
+            callerFilePath,
+            callerLineNumber);
 
         return new AndContinuation<ValueAssertions<TCollection>>(assertions);
     }
@@ -103,6 +125,32 @@ public static partial class CollectionValueAssertionExtensions
             assertions.Subject,
             assertions.SubjectExpression,
             expectedSequence,
+            comparer: null,
+            because,
+            callerFilePath,
+            callerLineNumber);
+
+        return new AndContinuation<ValueAssertions<TCollection>>(assertions);
+    }
+
+    public static AndContinuation<ValueAssertions<TCollection>> ContainExactly<TCollection, TItem>(
+        this ValueAssertions<TCollection> assertions,
+        IEnumerable<TItem> expectedSequence,
+        IEqualityComparer<TItem> comparer,
+        string? because = null,
+        [CallerFilePath] string? callerFilePath = null,
+        [CallerLineNumber] int callerLineNumber = 0)
+        where TCollection : IEnumerable<TItem>
+    {
+        ArgumentNullException.ThrowIfNull(assertions);
+        ArgumentNullException.ThrowIfNull(expectedSequence);
+        ArgumentNullException.ThrowIfNull(comparer);
+
+        CollectionAssertionEngine.AssertContainExactly(
+            assertions.Subject,
+            assertions.SubjectExpression,
+            expectedSequence,
+            comparer,
             because,
             callerFilePath,
             callerLineNumber);
@@ -173,6 +221,32 @@ public static partial class CollectionValueAssertionExtensions
             assertions.Subject,
             assertions.SubjectExpression,
             expectedSuperset,
+            comparer: null,
+            because,
+            callerFilePath,
+            callerLineNumber);
+
+        return new AndContinuation<ValueAssertions<TCollection>>(assertions);
+    }
+
+    public static AndContinuation<ValueAssertions<TCollection>> BeSubsetOf<TCollection, TItem>(
+        this ValueAssertions<TCollection> assertions,
+        IEnumerable<TItem> expectedSuperset,
+        IEqualityComparer<TItem> comparer,
+        string? because = null,
+        [CallerFilePath] string? callerFilePath = null,
+        [CallerLineNumber] int callerLineNumber = 0)
+        where TCollection : IEnumerable<TItem>
+    {
+        ArgumentNullException.ThrowIfNull(assertions);
+        ArgumentNullException.ThrowIfNull(expectedSuperset);
+        ArgumentNullException.ThrowIfNull(comparer);
+
+        CollectionAssertionEngine.AssertBeSubsetOf(
+            assertions.Subject,
+            assertions.SubjectExpression,
+            expectedSuperset,
+            comparer,
             because,
             callerFilePath,
             callerLineNumber);
@@ -195,6 +269,32 @@ public static partial class CollectionValueAssertionExtensions
             assertions.Subject,
             assertions.SubjectExpression,
             expectedSubset,
+            comparer: null,
+            because,
+            callerFilePath,
+            callerLineNumber);
+
+        return new AndContinuation<ValueAssertions<TCollection>>(assertions);
+    }
+
+    public static AndContinuation<ValueAssertions<TCollection>> BeSupersetOf<TCollection, TItem>(
+        this ValueAssertions<TCollection> assertions,
+        IEnumerable<TItem> expectedSubset,
+        IEqualityComparer<TItem> comparer,
+        string? because = null,
+        [CallerFilePath] string? callerFilePath = null,
+        [CallerLineNumber] int callerLineNumber = 0)
+        where TCollection : IEnumerable<TItem>
+    {
+        ArgumentNullException.ThrowIfNull(assertions);
+        ArgumentNullException.ThrowIfNull(expectedSubset);
+        ArgumentNullException.ThrowIfNull(comparer);
+
+        CollectionAssertionEngine.AssertBeSupersetOf(
+            assertions.Subject,
+            assertions.SubjectExpression,
+            expectedSubset,
+            comparer,
             because,
             callerFilePath,
             callerLineNumber);
@@ -271,6 +371,7 @@ public static partial class CollectionValueAssertionExtensions
         CollectionAssertionEngine.AssertHaveUniqueItems<TItem>(
             subject,
             subjectExpression,
+            comparer: null,
             because,
             callerFilePath,
             callerLineNumber);

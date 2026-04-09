@@ -49,6 +49,7 @@ internal static partial class CollectionAssertionEngine
     public static void AssertHaveUniqueItems<T>(
         IEnumerable<T>? subject,
         string? subjectExpression,
+        IEqualityComparer<T>? comparer,
         string? because,
         string? callerFilePath,
         int callerLineNumber)
@@ -65,11 +66,11 @@ internal static partial class CollectionAssertionEngine
             return;
         }
 
-        var comparer = GetComparer<T>();
+        var equalityComparer = GetComparer(comparer);
         _ = subject.TryGetNonEnumeratedCount(out var initialCapacity);
         var seen = initialCapacity > 0
-            ? new HashSet<T>(initialCapacity, comparer)
-            : new HashSet<T>(comparer);
+            ? new HashSet<T>(initialCapacity, equalityComparer)
+            : new HashSet<T>(equalityComparer);
         var index = 0;
         foreach (var item in subject)
         {
@@ -139,6 +140,7 @@ internal static partial class CollectionAssertionEngine
         IEnumerable<T>? subject,
         string? subjectExpression,
         IEnumerable<T> expectedSequence,
+        IEqualityComparer<T>? comparer,
         string? because,
         string? callerFilePath,
         int callerLineNumber)
@@ -158,7 +160,7 @@ internal static partial class CollectionAssertionEngine
             return;
         }
 
-        var comparer = GetComparer<T>();
+        var equalityComparer = GetComparer(comparer);
         var index = 0;
         // Compare position-by-position and stop at the first deterministic difference.
         foreach (var item in subject)
@@ -174,7 +176,7 @@ internal static partial class CollectionAssertionEngine
                 return;
             }
 
-            if (!comparer.Equals(item, expectedItems[index]))
+            if (!equalityComparer.Equals(item, expectedItems[index]))
             {
                 var mismatchFailure = new Failure(
                     subjectLabel,
@@ -301,6 +303,7 @@ internal static partial class CollectionAssertionEngine
         IEnumerable<T>? subject,
         string? subjectExpression,
         IEnumerable<T> expectedSuperset,
+        IEqualityComparer<T>? comparer,
         string? because,
         string? callerFilePath,
         int callerLineNumber)
@@ -320,12 +323,12 @@ internal static partial class CollectionAssertionEngine
             return;
         }
 
-        var comparer = GetComparer<T>();
+        var equalityComparer = GetComparer(comparer);
         var index = 0;
         // Report the first missing item so subset failures are deterministic and easy to scan.
         foreach (var item in subject)
         {
-            if (ContainsItem(supersetItems, item, comparer))
+            if (ContainsItem(supersetItems, item, equalityComparer))
             {
                 index++;
                 continue;
@@ -345,6 +348,7 @@ internal static partial class CollectionAssertionEngine
         IEnumerable<T>? subject,
         string? subjectExpression,
         IEnumerable<T> expectedSubset,
+        IEqualityComparer<T>? comparer,
         string? because,
         string? callerFilePath,
         int callerLineNumber)
@@ -365,10 +369,10 @@ internal static partial class CollectionAssertionEngine
         }
 
         var subjectItems = MaterialiseExpectedSequence(subject);
-        var comparer = GetComparer<T>();
+        var equalityComparer = GetComparer(comparer);
         for (var index = 0; index < subsetItems.Length; index++)
         {
-            if (ContainsItem(subjectItems, subsetItems[index], comparer))
+            if (ContainsItem(subjectItems, subsetItems[index], equalityComparer))
             {
                 continue;
             }

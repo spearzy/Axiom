@@ -21,6 +21,7 @@ public static partial class CollectionValueAssertionExtensions
             assertions.Subject,
             assertions.SubjectExpression,
             expected,
+            comparer: null,
             because,
             callerFilePath,
             callerLineNumber);
@@ -43,6 +44,7 @@ public static partial class CollectionValueAssertionExtensions
             assertions.Subject,
             assertions.SubjectExpression,
             expectedItems,
+            comparer: null,
             because,
             callerFilePath,
             callerLineNumber);
@@ -63,6 +65,7 @@ public static partial class CollectionValueAssertionExtensions
             assertions.Subject,
             assertions.SubjectExpression,
             expectedItems,
+            comparer: null,
             because: null,
             callerFilePath: null,
             callerLineNumber: 0);
@@ -85,6 +88,7 @@ public static partial class CollectionValueAssertionExtensions
             assertions.Subject,
             assertions.SubjectExpression,
             expectedItems,
+            comparer: null,
             because,
             callerFilePath,
             callerLineNumber);
@@ -104,6 +108,7 @@ public static partial class CollectionValueAssertionExtensions
             assertions.Subject,
             assertions.SubjectExpression,
             expectedItems,
+            comparer: null,
             because: null,
             callerFilePath: null,
             callerLineNumber: 0);
@@ -126,6 +131,7 @@ public static partial class CollectionValueAssertionExtensions
             assertions.Subject,
             assertions.SubjectExpression,
             unexpectedItems,
+            comparer: null,
             because,
             callerFilePath,
             callerLineNumber);
@@ -145,6 +151,7 @@ public static partial class CollectionValueAssertionExtensions
             assertions.Subject,
             assertions.SubjectExpression,
             unexpectedItems,
+            comparer: null,
             because: null,
             callerFilePath: null,
             callerLineNumber: 0);
@@ -214,6 +221,130 @@ public static partial class CollectionValueAssertionExtensions
             assertions.Subject,
             assertions.SubjectExpression,
             unexpected,
+            comparer: null,
+            because,
+            callerFilePath,
+            callerLineNumber);
+
+        return new AndContinuation<ValueAssertions<TCollection>>(assertions);
+    }
+
+    public static AndContinuation<ValueAssertions<TCollection>> Contain<TCollection, TItem>(
+        this ValueAssertions<TCollection> assertions,
+        TItem expected,
+        IEqualityComparer<TItem> comparer,
+        string? because = null,
+        [CallerFilePath] string? callerFilePath = null,
+        [CallerLineNumber] int callerLineNumber = 0)
+        where TCollection : IEnumerable<TItem>
+    {
+        ArgumentNullException.ThrowIfNull(assertions);
+        ArgumentNullException.ThrowIfNull(comparer);
+
+        CollectionAssertionEngine.AssertContain(
+            assertions.Subject,
+            assertions.SubjectExpression,
+            expected,
+            comparer,
+            because,
+            callerFilePath,
+            callerLineNumber);
+
+        return new AndContinuation<ValueAssertions<TCollection>>(assertions);
+    }
+
+    public static AndContinuation<ValueAssertions<TCollection>> ContainAll<TCollection, TItem>(
+        this ValueAssertions<TCollection> assertions,
+        IEnumerable<TItem> expectedItems,
+        IEqualityComparer<TItem> comparer,
+        string? because = null,
+        [CallerFilePath] string? callerFilePath = null,
+        [CallerLineNumber] int callerLineNumber = 0)
+        where TCollection : IEnumerable<TItem>
+    {
+        ArgumentNullException.ThrowIfNull(assertions);
+        ArgumentNullException.ThrowIfNull(expectedItems);
+        ArgumentNullException.ThrowIfNull(comparer);
+
+        CollectionAssertionEngine.AssertContainAll(
+            assertions.Subject,
+            assertions.SubjectExpression,
+            expectedItems,
+            comparer,
+            because,
+            callerFilePath,
+            callerLineNumber);
+
+        return new AndContinuation<ValueAssertions<TCollection>>(assertions);
+    }
+
+    public static AndContinuation<ValueAssertions<TCollection>> ContainAny<TCollection, TItem>(
+        this ValueAssertions<TCollection> assertions,
+        IEnumerable<TItem> expectedItems,
+        IEqualityComparer<TItem> comparer,
+        string? because = null,
+        [CallerFilePath] string? callerFilePath = null,
+        [CallerLineNumber] int callerLineNumber = 0)
+        where TCollection : IEnumerable<TItem>
+    {
+        ArgumentNullException.ThrowIfNull(assertions);
+        ArgumentNullException.ThrowIfNull(expectedItems);
+        ArgumentNullException.ThrowIfNull(comparer);
+
+        CollectionAssertionEngine.AssertContainAny(
+            assertions.Subject,
+            assertions.SubjectExpression,
+            expectedItems,
+            comparer,
+            because,
+            callerFilePath,
+            callerLineNumber);
+
+        return new AndContinuation<ValueAssertions<TCollection>>(assertions);
+    }
+
+    public static AndContinuation<ValueAssertions<TCollection>> NotContainAny<TCollection, TItem>(
+        this ValueAssertions<TCollection> assertions,
+        IEnumerable<TItem> unexpectedItems,
+        IEqualityComparer<TItem> comparer,
+        string? because = null,
+        [CallerFilePath] string? callerFilePath = null,
+        [CallerLineNumber] int callerLineNumber = 0)
+        where TCollection : IEnumerable<TItem>
+    {
+        ArgumentNullException.ThrowIfNull(assertions);
+        ArgumentNullException.ThrowIfNull(unexpectedItems);
+        ArgumentNullException.ThrowIfNull(comparer);
+
+        CollectionAssertionEngine.AssertNotContainAny(
+            assertions.Subject,
+            assertions.SubjectExpression,
+            unexpectedItems,
+            comparer,
+            because,
+            callerFilePath,
+            callerLineNumber);
+
+        return new AndContinuation<ValueAssertions<TCollection>>(assertions);
+    }
+
+    public static AndContinuation<ValueAssertions<TCollection>> NotContain<TCollection, TItem>(
+        this ValueAssertions<TCollection> assertions,
+        TItem unexpected,
+        IEqualityComparer<TItem> comparer,
+        string? because = null,
+        [CallerFilePath] string? callerFilePath = null,
+        [CallerLineNumber] int callerLineNumber = 0)
+        where TCollection : IEnumerable<TItem>
+    {
+        ArgumentNullException.ThrowIfNull(assertions);
+        ArgumentNullException.ThrowIfNull(comparer);
+
+        CollectionAssertionEngine.AssertNotContainItem(
+            assertions.Subject,
+            assertions.SubjectExpression,
+            unexpected,
+            comparer,
             because,
             callerFilePath,
             callerLineNumber);

@@ -69,4 +69,28 @@ public sealed class HaveUniqueItemsTests
 
         Assert.Null(ex);
     }
+
+    [Fact]
+    public void HaveUniqueItems_Throws_WhenComparerFindsDuplicateItem()
+    {
+        string[] values = ["Alpha", "alpha", "Beta"];
+
+        var ex = Assert.Throws<InvalidOperationException>(() =>
+            values.Should().HaveUniqueItems(StringComparer.OrdinalIgnoreCase));
+
+        Assert.Equal(
+            "Expected values to have unique items, but found first duplicate item at index 1: \"alpha\".",
+            ex.Message);
+    }
+
+    [Fact]
+    public void HaveUniqueItems_ThrowsArgumentNullException_WhenComparerIsNull()
+    {
+        string[] values = ["Alpha"];
+        StringComparer? comparer = null;
+
+        var ex = Assert.Throws<ArgumentNullException>(() => values.Should().HaveUniqueItems(comparer!));
+
+        Assert.Equal("comparer", ex.ParamName);
+    }
 }

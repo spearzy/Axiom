@@ -94,6 +94,29 @@ public sealed class ContainExactlyTests
         Assert.Equal("expectedSequence", ex.ParamName);
     }
 
+    [Fact]
+    public void ContainExactly_Passes_WhenComparerTreatsItemsAsEqual()
+    {
+        string[] values = ["Alpha", "beta"];
+
+        var ex = Record.Exception(() =>
+            values.Should().ContainExactly(["alpha", "BETA"], StringComparer.OrdinalIgnoreCase));
+
+        Assert.Null(ex);
+    }
+
+    [Fact]
+    public void ContainExactly_ThrowsArgumentNullException_WhenComparerIsNull()
+    {
+        string[] values = ["Alpha"];
+        StringComparer? comparer = null;
+
+        var ex = Assert.Throws<ArgumentNullException>(() =>
+            values.Should().ContainExactly(["alpha"], comparer!));
+
+        Assert.Equal("comparer", ex.ParamName);
+    }
+
     private readonly record struct ThrowingToStringValue(int Value)
     {
         public override string ToString()

@@ -8,6 +8,7 @@ internal static partial class CollectionAssertionEngine
         IEnumerable<T>? subject,
         string? subjectExpression,
         T expected,
+        IEqualityComparer<T>? comparer,
         string? because,
         string? callerFilePath,
         int callerLineNumber)
@@ -24,10 +25,10 @@ internal static partial class CollectionAssertionEngine
             return;
         }
 
-        var comparer = GetComparer<T>();
+        var equalityComparer = GetComparer(comparer);
         foreach (var item in subject)
         {
-            if (comparer.Equals(item, expected))
+            if (equalityComparer.Equals(item, expected))
             {
                 return;
             }
@@ -45,6 +46,7 @@ internal static partial class CollectionAssertionEngine
         IEnumerable<T>? subject,
         string? subjectExpression,
         IEnumerable<T> expectedItems,
+        IEqualityComparer<T>? comparer,
         string? because,
         string? callerFilePath,
         int callerLineNumber)
@@ -70,10 +72,10 @@ internal static partial class CollectionAssertionEngine
         }
 
         var subjectItems = MaterialiseExpectedSequence(subject);
-        var comparer = GetComparer<T>();
+        var equalityComparer = GetComparer(comparer);
         for (var index = 0; index < expected.Length; index++)
         {
-            if (ContainsItem(subjectItems, expected[index], comparer))
+            if (ContainsItem(subjectItems, expected[index], equalityComparer))
             {
                 continue;
             }
@@ -92,6 +94,7 @@ internal static partial class CollectionAssertionEngine
         IEnumerable<T>? subject,
         string? subjectExpression,
         IEnumerable<T> expectedItems,
+        IEqualityComparer<T>? comparer,
         string? because,
         string? callerFilePath,
         int callerLineNumber)
@@ -122,10 +125,10 @@ internal static partial class CollectionAssertionEngine
             return;
         }
 
-        var comparer = GetComparer<T>();
+        var equalityComparer = GetComparer(comparer);
         foreach (var subjectItem in subject)
         {
-            if (ContainsItem(expected, subjectItem, comparer))
+            if (ContainsItem(expected, subjectItem, equalityComparer))
             {
                 return;
             }
@@ -143,6 +146,7 @@ internal static partial class CollectionAssertionEngine
         IEnumerable<T>? subject,
         string? subjectExpression,
         IEnumerable<T> unexpectedItems,
+        IEqualityComparer<T>? comparer,
         string? because,
         string? callerFilePath,
         int callerLineNumber)
@@ -167,11 +171,11 @@ internal static partial class CollectionAssertionEngine
             return;
         }
 
-        var comparer = GetComparer<T>();
+        var equalityComparer = GetComparer(comparer);
         var subjectIndex = 0;
         foreach (var subjectItem in subject)
         {
-            if (ContainsItem(unexpected, subjectItem, comparer))
+            if (ContainsItem(unexpected, subjectItem, equalityComparer))
             {
                 var matchingUnexpectedFailure = new Failure(
                     subjectLabel,
@@ -280,6 +284,7 @@ internal static partial class CollectionAssertionEngine
         IEnumerable<T>? subject,
         string? subjectExpression,
         T unexpected,
+        IEqualityComparer<T>? comparer,
         string? because,
         string? callerFilePath,
         int callerLineNumber)
@@ -296,10 +301,10 @@ internal static partial class CollectionAssertionEngine
             return;
         }
 
-        var comparer = GetComparer<T>();
+        var equalityComparer = GetComparer(comparer);
         foreach (var item in subject)
         {
-            if (!comparer.Equals(item, unexpected))
+            if (!equalityComparer.Equals(item, unexpected))
             {
                 continue;
             }

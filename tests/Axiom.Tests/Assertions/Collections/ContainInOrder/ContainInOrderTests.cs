@@ -84,6 +84,31 @@ public sealed class ContainInOrderTests
     }
 
     [Fact]
+    public void ContainInOrder_Passes_WhenComparerTreatsItemsAsEqual()
+    {
+        string[] values = ["Alpha", "beta", "Gamma"];
+
+        var ex = Record.Exception(() =>
+            values.Should().ContainInOrder(
+                ["alpha", "GAMMA"],
+                StringComparer.OrdinalIgnoreCase));
+
+        Assert.Null(ex);
+    }
+
+    [Fact]
+    public void ContainInOrder_ThrowsArgumentNullException_WhenComparerIsNull()
+    {
+        string[] values = ["Alpha"];
+        StringComparer? comparer = null;
+
+        var ex = Assert.Throws<ArgumentNullException>(() =>
+            values.Should().ContainInOrder(["alpha"], comparer!));
+
+        Assert.Equal("comparer", ex.ParamName);
+    }
+
+    [Fact]
     public void ContainInOrder_ByKey_ReturnsContinuation_WhenExpectedSelectedValuesExistInOrder()
     {
         WorkflowStep[] steps =
@@ -130,5 +155,41 @@ public sealed class ContainInOrderTests
         var ex = Assert.Throws<ArgumentNullException>(() => steps.Should().ContainInOrder([1], selector!));
 
         Assert.Equal("keySelector", ex.ParamName);
+    }
+
+    [Fact]
+    public void ContainInOrder_ByKey_Passes_WhenComparerTreatsSelectedValuesAsEqual()
+    {
+        WorkflowStep[] steps =
+        [
+            new(1, "Validate"),
+            new(2, "Enrich"),
+            new(3, "Persist")
+        ];
+
+        var ex = Record.Exception(() =>
+            steps.Should().ContainInOrder(
+                ["validate", "persist"],
+                (WorkflowStep step) => step.Name,
+                StringComparer.OrdinalIgnoreCase));
+
+        Assert.Null(ex);
+    }
+
+    [Fact]
+    public void ContainInOrder_ByKey_ThrowsArgumentNullException_WhenComparerIsNull()
+    {
+        WorkflowStep[] steps =
+        [
+            new(1, "Validate"),
+            new(2, "Enrich")
+        ];
+
+        StringComparer? comparer = null;
+
+        var ex = Assert.Throws<ArgumentNullException>(() =>
+            steps.Should().ContainInOrder(["validate"], (WorkflowStep step) => step.Name, comparer!));
+
+        Assert.Equal("comparer", ex.ParamName);
     }
 }

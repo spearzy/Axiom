@@ -107,6 +107,31 @@ public sealed class NotContainAnyTests
         Assert.Equal("unexpectedItems", ex.ParamName);
     }
 
+    [Fact]
+    public void NotContainAny_Throws_WhenComparerFindsMatchingItem()
+    {
+        string[] values = ["Alpha", "Beta"];
+
+        var ex = Assert.Throws<InvalidOperationException>(() =>
+            values.Should().NotContainAny(["gamma", "alpha"], StringComparer.OrdinalIgnoreCase));
+
+        Assert.Equal(
+            "Expected values to not contain any of [\"gamma\", \"alpha\"], but found first matching item at subject index 0: \"Alpha\".",
+            ex.Message);
+    }
+
+    [Fact]
+    public void NotContainAny_ThrowsArgumentNullException_WhenComparerIsNull()
+    {
+        string[] values = ["Alpha"];
+        StringComparer? comparer = null;
+
+        var ex = Assert.Throws<ArgumentNullException>(() =>
+            values.Should().NotContainAny(["alpha"], comparer!));
+
+        Assert.Equal("comparer", ex.ParamName);
+    }
+
     private readonly record struct ThrowingToStringValue(int Value)
     {
         public override string ToString()

@@ -107,6 +107,30 @@ public sealed class ContainAnyTests
         Assert.Equal("expectedItems", ex.ParamName);
     }
 
+    [Fact]
+    public void ContainAny_Passes_WhenComparerTreatsItemsAsEqual()
+    {
+        string[] values = ["Alpha", "Beta"];
+        IEnumerable<string> expectedItems = ["gamma", "alpha"];
+
+        var ex = Record.Exception(() =>
+            values.Should().ContainAny(expectedItems, StringComparer.OrdinalIgnoreCase));
+
+        Assert.Null(ex);
+    }
+
+    [Fact]
+    public void ContainAny_ThrowsArgumentNullException_WhenComparerIsNull()
+    {
+        string[] values = ["Alpha", "Beta"];
+        StringComparer? comparer = null;
+
+        var ex = Assert.Throws<ArgumentNullException>(() =>
+            values.Should().ContainAny(["alpha"], comparer!));
+
+        Assert.Equal("comparer", ex.ParamName);
+    }
+
     private readonly record struct ThrowingToStringValue(int Value)
     {
         public override string ToString()
