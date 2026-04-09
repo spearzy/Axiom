@@ -89,6 +89,41 @@ public sealed class CollectionBatchRoutingTests
     }
 
     [Fact]
+    public void ContainExactlyInAnyOrder_OutsideBatch_ThrowsImmediately()
+    {
+        int[] values = [1, 2, 2];
+
+        Assert.Throws<InvalidOperationException>(() => values.Should().ContainExactlyInAnyOrder([1, 2, 3]));
+    }
+
+    [Fact]
+    public void ContainExactlyInAnyOrder_InsideBatch_DoesNotThrowAtAssertionCallSite()
+    {
+        int[] values = [1, 2, 2];
+
+        using var batch = new Axiom.Core.Batch();
+        var callEx = Record.Exception(() => values.Should().ContainExactlyInAnyOrder([1, 2, 3]));
+
+        Assert.Null(callEx);
+        Assert.Throws<InvalidOperationException>(() => batch.Dispose());
+    }
+
+    [Fact]
+    public void ContainExactlyInAnyOrder_WithComparer_InsideBatch_DoesNotThrowAtAssertionCallSite()
+    {
+        string[] values = ["Alpha", "beta", "delta"];
+
+        using var batch = new Axiom.Core.Batch();
+        var callEx = Record.Exception(() =>
+            values.Should().ContainExactlyInAnyOrder(
+                ["alpha", "beta", "charlie"],
+                StringComparer.OrdinalIgnoreCase));
+
+        Assert.Null(callEx);
+        Assert.Throws<InvalidOperationException>(() => batch.Dispose());
+    }
+
+    [Fact]
     public void BeSubsetOf_OutsideBatch_ThrowsImmediately()
     {
         int[] values = [1, 4];
@@ -499,6 +534,31 @@ public sealed class CollectionBatchRoutingTests
         Assert.Contains("Batch 'collection-exact' failed with 2 assertion failure(s):", message);
         Assert.Contains("1) Expected values to contain exactly [1, 9, 3], but found item mismatch at index 1: expected 9 but found 2.", message);
         Assert.Contains("2) Expected values to contain exactly [1, 2, 3, 4], but found missing item at index 3: 4.", message);
+    }
+
+    [Fact]
+    public void Batch_Dispose_ThrowsCombinedFailures_FromContainExactlyInAnyOrderAssertions()
+    {
+        int[] values = [1, 2, 2];
+        string[] names = ["Alpha", "beta", "delta"];
+
+        var ex = Assert.Throws<InvalidOperationException>(() =>
+        {
+            using var batch = new Axiom.Core.Batch("collection-exact-any-order");
+            values.Should().ContainExactlyInAnyOrder([1, 2, 3]);
+            names.Should().ContainExactlyInAnyOrder(
+                ["alpha", "beta", "charlie"],
+                StringComparer.OrdinalIgnoreCase);
+        });
+
+        var message = ex.Message.Replace("\r\n", "\n", StringComparison.Ordinal);
+        Assert.Contains("Batch 'collection-exact-any-order' failed with 2 assertion failure(s):", message);
+        Assert.Contains(
+            "1) Expected values to contain exactly in any order [1, 2, 3], but found missing item 3: expected count 1 but found 0.",
+            message);
+        Assert.Contains(
+            "2) Expected names to contain exactly in any order [\"alpha\", \"beta\", \"charlie\"], but found missing item \"charlie\": expected count 1 but found 0.",
+            message);
     }
 
     [Fact]

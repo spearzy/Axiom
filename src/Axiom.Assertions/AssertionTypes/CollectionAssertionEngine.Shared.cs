@@ -33,6 +33,11 @@ internal static partial class CollectionAssertionEngine
         return EqualityComparer<T>.Default;
     }
 
+    private static IEqualityComparer<T> GetComparer<T>(IEqualityComparer<T>? comparer)
+    {
+        return comparer ?? GetComparer<T>();
+    }
+
     private static bool TryGetCount(IEnumerable subject, out int count)
     {
         // Prefer non-enumerating count paths when collection interfaces are available.
@@ -80,6 +85,20 @@ internal static partial class CollectionAssertionEngine
         }
 
         return false;
+    }
+
+    private static int CountOccurrences<T>(IReadOnlyList<T> values, T candidate, IEqualityComparer<T> comparer)
+    {
+        var count = 0;
+        for (var i = 0; i < values.Count; i++)
+        {
+            if (comparer.Equals(values[i], candidate))
+            {
+                count++;
+            }
+        }
+
+        return count;
     }
 
     private static string FormatSingleValue<T>(T value)

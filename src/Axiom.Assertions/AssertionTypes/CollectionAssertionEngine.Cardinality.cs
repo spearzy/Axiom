@@ -202,6 +202,101 @@ internal static partial class CollectionAssertionEngine
         }
     }
 
+    public static void AssertContainExactlyInAnyOrder<T>(
+        IEnumerable<T>? subject,
+        string? subjectExpression,
+        IEnumerable<T> expectedSequence,
+        IEqualityComparer<T>? comparer,
+        string? because,
+        string? callerFilePath,
+        int callerLineNumber)
+    {
+        var subjectLabel = SubjectLabel(subjectExpression);
+        var expectedItems = MaterialiseExpectedSequence(expectedSequence);
+        RenderedText? expectedSequenceText = null;
+
+        if (subject is null)
+        {
+            var nullFailure = new Failure(
+                subjectLabel,
+                new Expectation(
+                    "to contain exactly in any order",
+                    expectedSequenceText ??= new RenderedText(FormatSequence(expectedItems))),
+                subject,
+                because);
+            AssertionFailureDispatcher.Fail(
+                FailureMessageRenderer.Render(nullFailure),
+                callerFilePath,
+                callerLineNumber);
+            return;
+        }
+
+        var actualItems = MaterialiseExpectedSequence(subject);
+        var equalityComparer = GetComparer(comparer);
+
+        var seenExpected = new HashSet<T>(equalityComparer);
+        for (var index = 0; index < expectedItems.Length; index++)
+        {
+            var expectedItem = expectedItems[index];
+            if (!seenExpected.Add(expectedItem))
+            {
+                continue;
+            }
+
+            var expectedCount = CountOccurrences(expectedItems, expectedItem, equalityComparer);
+            var actualCount = CountOccurrences(actualItems, expectedItem, equalityComparer);
+            if (actualCount >= expectedCount)
+            {
+                continue;
+            }
+
+            var missingItemFailure = new Failure(
+                subjectLabel,
+                new Expectation(
+                    "to contain exactly in any order",
+                    expectedSequenceText ??= new RenderedText(FormatSequence(expectedItems))),
+                new RenderedText(
+                    $"missing item {FormatSingleValue(expectedItem)}: expected count {expectedCount} but found {actualCount}"),
+                because);
+            AssertionFailureDispatcher.Fail(
+                FailureMessageRenderer.Render(missingItemFailure),
+                callerFilePath,
+                callerLineNumber);
+            return;
+        }
+
+        var seenActual = new HashSet<T>(equalityComparer);
+        for (var index = 0; index < actualItems.Length; index++)
+        {
+            var actualItem = actualItems[index];
+            if (!seenActual.Add(actualItem))
+            {
+                continue;
+            }
+
+            var actualCount = CountOccurrences(actualItems, actualItem, equalityComparer);
+            var expectedCount = CountOccurrences(expectedItems, actualItem, equalityComparer);
+            if (expectedCount >= actualCount)
+            {
+                continue;
+            }
+
+            var unexpectedItemFailure = new Failure(
+                subjectLabel,
+                new Expectation(
+                    "to contain exactly in any order",
+                    expectedSequenceText ??= new RenderedText(FormatSequence(expectedItems))),
+                new RenderedText(
+                    $"unexpected item {FormatSingleValue(actualItem)}: found count {actualCount} but expected {expectedCount}"),
+                because);
+            AssertionFailureDispatcher.Fail(
+                FailureMessageRenderer.Render(unexpectedItemFailure),
+                callerFilePath,
+                callerLineNumber);
+            return;
+        }
+    }
+
     public static void AssertBeSubsetOf<T>(
         IEnumerable<T>? subject,
         string? subjectExpression,

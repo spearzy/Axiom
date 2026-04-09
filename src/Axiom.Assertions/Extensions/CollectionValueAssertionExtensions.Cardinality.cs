@@ -110,6 +110,54 @@ public static partial class CollectionValueAssertionExtensions
         return new AndContinuation<ValueAssertions<TCollection>>(assertions);
     }
 
+    public static AndContinuation<ValueAssertions<TCollection>> ContainExactlyInAnyOrder<TCollection, TItem>(
+        this ValueAssertions<TCollection> assertions,
+        IEnumerable<TItem> expectedSequence,
+        string? because = null,
+        [CallerFilePath] string? callerFilePath = null,
+        [CallerLineNumber] int callerLineNumber = 0)
+        where TCollection : IEnumerable<TItem>
+    {
+        ArgumentNullException.ThrowIfNull(assertions);
+        ArgumentNullException.ThrowIfNull(expectedSequence);
+
+        CollectionAssertionEngine.AssertContainExactlyInAnyOrder(
+            assertions.Subject,
+            assertions.SubjectExpression,
+            expectedSequence,
+            comparer: null,
+            because,
+            callerFilePath,
+            callerLineNumber);
+
+        return new AndContinuation<ValueAssertions<TCollection>>(assertions);
+    }
+
+    public static AndContinuation<ValueAssertions<TCollection>> ContainExactlyInAnyOrder<TCollection, TItem>(
+        this ValueAssertions<TCollection> assertions,
+        IEnumerable<TItem> expectedSequence,
+        IEqualityComparer<TItem> comparer,
+        string? because = null,
+        [CallerFilePath] string? callerFilePath = null,
+        [CallerLineNumber] int callerLineNumber = 0)
+        where TCollection : IEnumerable<TItem>
+    {
+        ArgumentNullException.ThrowIfNull(assertions);
+        ArgumentNullException.ThrowIfNull(expectedSequence);
+        ArgumentNullException.ThrowIfNull(comparer);
+
+        CollectionAssertionEngine.AssertContainExactlyInAnyOrder(
+            assertions.Subject,
+            assertions.SubjectExpression,
+            expectedSequence,
+            comparer,
+            because,
+            callerFilePath,
+            callerLineNumber);
+
+        return new AndContinuation<ValueAssertions<TCollection>>(assertions);
+    }
+
     public static AndContinuation<ValueAssertions<TCollection>> BeSubsetOf<TCollection, TItem>(
         this ValueAssertions<TCollection> assertions,
         IEnumerable<TItem> expectedSuperset,
