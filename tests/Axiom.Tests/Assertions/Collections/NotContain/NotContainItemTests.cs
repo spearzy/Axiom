@@ -48,4 +48,27 @@ public sealed class NotContainItemTests
         const string expected = "Expected values to not contain 1, but found <null>.";
         Assert.Equal(expected, ex.Message);
     }
+
+    [Fact]
+    public void NotContainItem_Throws_WhenComparerFindsMatchingItem()
+    {
+        string[] values = ["Alpha", "Beta"];
+
+        var ex = Assert.Throws<InvalidOperationException>(() =>
+            values.Should().NotContain("alpha", StringComparer.OrdinalIgnoreCase));
+
+        Assert.Equal("Expected values to not contain \"alpha\", but found \"Alpha\".", ex.Message);
+    }
+
+    [Fact]
+    public void NotContainItem_ThrowsArgumentNullException_WhenComparerIsNull()
+    {
+        string[] values = ["Alpha"];
+        StringComparer? comparer = null;
+
+        var ex = Assert.Throws<ArgumentNullException>(() =>
+            values.Should().NotContain("alpha", comparer!));
+
+        Assert.Equal("comparer", ex.ParamName);
+    }
 }

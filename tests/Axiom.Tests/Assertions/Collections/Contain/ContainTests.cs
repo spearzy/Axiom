@@ -37,4 +37,25 @@ public sealed class ContainTests
 
         Assert.Contains("because the input must include an admin role", ex.Message);
     }
+
+    [Fact]
+    public void Contain_Passes_WhenComparerTreatsItemsAsEqual()
+    {
+        string[] values = ["Alpha", "Beta"];
+
+        var ex = Record.Exception(() => values.Should().Contain("alpha", StringComparer.OrdinalIgnoreCase));
+
+        Assert.Null(ex);
+    }
+
+    [Fact]
+    public void Contain_ThrowsArgumentNullException_WhenComparerIsNull()
+    {
+        string[] values = ["Alpha"];
+        StringComparer? comparer = null;
+
+        var ex = Assert.Throws<ArgumentNullException>(() => values.Should().Contain("alpha", comparer!));
+
+        Assert.Equal("comparer", ex.ParamName);
+    }
 }

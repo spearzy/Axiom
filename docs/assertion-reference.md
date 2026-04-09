@@ -443,20 +443,28 @@ Available as extension methods on `ValueAssertions<TCollection>` where `TCollect
 
 ```csharp
 Contain(item)
+Contain(item, comparer)
 ContainAll(IEnumerable<TItem> expectedItems)
 ContainAll(params TItem[] expectedItems)
+ContainAll(IEnumerable<TItem> expectedItems, comparer)
 ContainAny(IEnumerable<TItem> expectedItems)
 ContainAny(params TItem[] expectedItems)
+ContainAny(IEnumerable<TItem> expectedItems, comparer)
 NotContainAny(IEnumerable<TItem> unexpectedItems)
 NotContainAny(params TItem[] unexpectedItems)
+NotContainAny(IEnumerable<TItem> unexpectedItems, comparer)
 HaveUniqueItems()
+HaveUniqueItems(comparer)
 HaveUniqueItemsBy(keySelector)
 HaveUniqueItemsBy(keySelector, comparer)
 ContainExactly(IEnumerable<TItem> expectedSequence)
+ContainExactly(IEnumerable<TItem> expectedSequence, comparer)
 ContainExactlyInAnyOrder(IEnumerable<TItem> expectedSequence)
 ContainExactlyInAnyOrder(IEnumerable<TItem> expectedSequence, comparer)
 BeSubsetOf(IEnumerable<TItem> expectedSuperset)
+BeSubsetOf(IEnumerable<TItem> expectedSuperset, comparer)
 BeSupersetOf(IEnumerable<TItem> expectedSubset)
+BeSupersetOf(IEnumerable<TItem> expectedSubset, comparer)
 HaveCount(expectedCount)
 BeEmpty()
 NotBeEmpty()
@@ -465,11 +473,14 @@ ContainSingle(predicate)
 OnlyContain(predicate)
 NotContain(predicate)
 NotContain(item)
+NotContain(item, comparer)
 AllSatisfy(assertion)
 SatisfyRespectively(params Action<TItem>[] assertionsForItems)
 SatisfyRespectively(string? because, params Action<TItem>[] assertionsForItems)
 ContainInOrder(IEnumerable<TItem> expectedSequence, bool allowGaps = true)
+ContainInOrder(IEnumerable<TItem> expectedSequence, comparer, bool allowGaps = true)
 ContainInOrder(IEnumerable<TKey> expectedSequence, Func<TItem, TKey> keySelector, bool allowGaps = true)
+ContainInOrder(IEnumerable<TKey> expectedSequence, Func<TItem, TKey> keySelector, comparer, bool allowGaps = true)
 BeInAscendingOrder()
 BeInDescendingOrder()
 BeInAscendingOrder(keySelector)
@@ -492,6 +503,8 @@ SingleItem
 
 The predicate overload gives you a strongly typed `SingleItem`. The parameterless overload is also strongly typed for common generic collection subjects such as `List<T>`, arrays, and interface-typed generic enumerables. Nongeneric collections still expose `object? SingleItem`.
 
+Local comparer overloads are available on the collection assertions whose semantics depend on item equality. Use them when you want case-insensitive or domain-specific matching for a single assertion without changing the shared comparer-provider configuration.
+
 `ContainExactly(...)` is the ordered exact-sequence assertion. `ContainExactlyInAnyOrder(...)` is the unordered exact-membership assertion: same items, same counts, no extras, and no omissions, with an opt-in comparer overload when you need custom equality.
 
 ```csharp
@@ -502,6 +515,10 @@ string[] labels = ["Alpha", "beta", "BETA"];
 labels.Should().ContainExactlyInAnyOrder(
     ["alpha", "beta", "beta"],
     StringComparer.OrdinalIgnoreCase);
+
+labels.Should().ContainAll(["alpha", "beta"], StringComparer.OrdinalIgnoreCase);
+labels.Should().NotContain("archived", StringComparer.OrdinalIgnoreCase);
+labels.Should().HaveUniqueItems(StringComparer.OrdinalIgnoreCase);
 ```
 
 ## Dictionary Assertions

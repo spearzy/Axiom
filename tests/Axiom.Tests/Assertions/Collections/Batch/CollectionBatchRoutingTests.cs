@@ -619,4 +619,95 @@ public sealed class CollectionBatchRoutingTests
         Assert.Contains("1) Expected steps to contain selected values in order [1, 3, 2], but found missing expected selected value at sequence index 2: 2.", message);
         Assert.Contains("2) Expected steps to contain selected values in order with no gaps [1, 3], but found missing adjacent ordered sequence for selected values.", message);
     }
+
+    [Fact]
+    public void ComparerOverloads_InsideBatch_DoNotThrowAtAssertionCallSite()
+    {
+        string[] values = ["Alpha", "Beta"];
+        string[] duplicates = ["Alpha", "alpha", "Gamma"];
+        WorkflowStep[] steps =
+        [
+            new(1, "Validate"),
+            new(2, "Enrich"),
+            new(3, "Persist")
+        ];
+
+        using var batch = new Axiom.Core.Batch();
+
+        var containEx = Record.Exception(() => values.Should().Contain("gamma", StringComparer.OrdinalIgnoreCase));
+        var containAllEx = Record.Exception(() => values.Should().ContainAll(["alpha", "gamma"], StringComparer.OrdinalIgnoreCase));
+        var containAnyEx = Record.Exception(() => values.Should().ContainAny(["gamma", "delta"], StringComparer.OrdinalIgnoreCase));
+        var notContainAnyEx = Record.Exception(() => values.Should().NotContainAny(["gamma", "alpha"], StringComparer.OrdinalIgnoreCase));
+        var notContainEx = Record.Exception(() => values.Should().NotContain("alpha", StringComparer.OrdinalIgnoreCase));
+        var uniqueEx = Record.Exception(() => duplicates.Should().HaveUniqueItems(StringComparer.OrdinalIgnoreCase));
+        var containExactlyEx = Record.Exception(() => values.Should().ContainExactly(["alpha", "gamma"], StringComparer.OrdinalIgnoreCase));
+        var subsetEx = Record.Exception(() => values.Should().BeSubsetOf(["alpha"], StringComparer.OrdinalIgnoreCase));
+        var supersetEx = Record.Exception(() => values.Should().BeSupersetOf(["alpha", "gamma"], StringComparer.OrdinalIgnoreCase));
+        var containInOrderEx = Record.Exception(() => values.Should().ContainInOrder(["alpha", "gamma"], StringComparer.OrdinalIgnoreCase));
+        var containInOrderByKeyEx = Record.Exception(() =>
+            steps.Should().ContainInOrder(
+                ["validate", "archive"],
+                (WorkflowStep step) => step.Name,
+                StringComparer.OrdinalIgnoreCase));
+
+        Assert.Null(containEx);
+        Assert.Null(containAllEx);
+        Assert.Null(containAnyEx);
+        Assert.Null(notContainAnyEx);
+        Assert.Null(notContainEx);
+        Assert.Null(uniqueEx);
+        Assert.Null(containExactlyEx);
+        Assert.Null(subsetEx);
+        Assert.Null(supersetEx);
+        Assert.Null(containInOrderEx);
+        Assert.Null(containInOrderByKeyEx);
+
+        Assert.Throws<InvalidOperationException>(() => batch.Dispose());
+    }
+
+    [Fact]
+    public void Batch_Dispose_ThrowsCombinedFailures_FromComparerOverloads_InCallOrder()
+    {
+        string[] values = ["Alpha", "Beta"];
+        string[] duplicates = ["Alpha", "alpha", "Gamma"];
+        WorkflowStep[] steps =
+        [
+            new(1, "Validate"),
+            new(2, "Enrich"),
+            new(3, "Persist")
+        ];
+
+        var ex = Assert.Throws<InvalidOperationException>(() =>
+        {
+            using var batch = new Axiom.Core.Batch("collection-comparers");
+            values.Should().Contain("gamma", StringComparer.OrdinalIgnoreCase);
+            values.Should().ContainAll(["alpha", "gamma"], StringComparer.OrdinalIgnoreCase);
+            values.Should().ContainAny(["gamma", "delta"], StringComparer.OrdinalIgnoreCase);
+            values.Should().NotContainAny(["gamma", "alpha"], StringComparer.OrdinalIgnoreCase);
+            values.Should().NotContain("alpha", StringComparer.OrdinalIgnoreCase);
+            duplicates.Should().HaveUniqueItems(StringComparer.OrdinalIgnoreCase);
+            values.Should().ContainExactly(["alpha", "gamma"], StringComparer.OrdinalIgnoreCase);
+            values.Should().BeSubsetOf(["alpha"], StringComparer.OrdinalIgnoreCase);
+            values.Should().BeSupersetOf(["alpha", "gamma"], StringComparer.OrdinalIgnoreCase);
+            values.Should().ContainInOrder(["alpha", "gamma"], StringComparer.OrdinalIgnoreCase);
+            steps.Should().ContainInOrder(
+                ["validate", "archive"],
+                (WorkflowStep step) => step.Name,
+                StringComparer.OrdinalIgnoreCase);
+        });
+
+        var message = ex.Message.Replace("\r\n", "\n", StringComparison.Ordinal);
+        Assert.Contains("Batch 'collection-comparers' failed with 11 assertion failure(s):", message);
+        Assert.Contains("1) Expected values to contain \"gamma\", but found System.String[].", message);
+        Assert.Contains("2) Expected values to contain all [\"alpha\", \"gamma\"], but found missing expected item at index 1: \"gamma\".", message);
+        Assert.Contains("3) Expected values to contain any of [\"gamma\", \"delta\"], but found none of the expected items were found.", message);
+        Assert.Contains("4) Expected values to not contain any of [\"gamma\", \"alpha\"], but found first matching item at subject index 0: \"Alpha\".", message);
+        Assert.Contains("5) Expected values to not contain \"alpha\", but found \"Alpha\".", message);
+        Assert.Contains("6) Expected duplicates to have unique items, but found first duplicate item at index 1: \"alpha\".", message);
+        Assert.Contains("7) Expected values to contain exactly [\"alpha\", \"gamma\"], but found item mismatch at index 1: expected \"gamma\" but found \"Beta\".", message);
+        Assert.Contains("8) Expected values to be a subset of [\"alpha\"], but found missing item at index 1: \"Beta\".", message);
+        Assert.Contains("9) Expected values to be a superset of [\"alpha\", \"gamma\"], but found missing expected item at index 1: \"gamma\".", message);
+        Assert.Contains("10) Expected values to contain items in order [\"alpha\", \"gamma\"], but found missing expected item at sequence index 1: \"gamma\".", message);
+        Assert.Contains("11) Expected steps to contain selected values in order [\"validate\", \"archive\"], but found missing expected selected value at sequence index 1: \"archive\".", message);
+    }
 }

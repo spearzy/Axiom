@@ -23,6 +23,7 @@ public static partial class CollectionValueAssertionExtensions
             assertions.Subject,
             assertions.SubjectExpression,
             expectedSequence,
+            comparer: null,
             because,
             allowGaps,
             callerFilePath,
@@ -50,6 +51,64 @@ public static partial class CollectionValueAssertionExtensions
             assertions.SubjectExpression,
             expectedSequence,
             keySelector,
+            comparer: null,
+            because,
+            allowGaps,
+            callerFilePath,
+            callerLineNumber);
+
+        return new AndContinuation<ValueAssertions<TCollection>>(assertions);
+    }
+
+    public static AndContinuation<ValueAssertions<TCollection>> ContainInOrder<TCollection, TItem>(
+        this ValueAssertions<TCollection> assertions,
+        IEnumerable<TItem> expectedSequence,
+        IEqualityComparer<TItem> comparer,
+        string? because = null,
+        bool allowGaps = true,
+        [CallerFilePath] string? callerFilePath = null,
+        [CallerLineNumber] int callerLineNumber = 0)
+        where TCollection : IEnumerable<TItem>
+    {
+        ArgumentNullException.ThrowIfNull(assertions);
+        ArgumentNullException.ThrowIfNull(expectedSequence);
+        ArgumentNullException.ThrowIfNull(comparer);
+
+        CollectionAssertionEngine.AssertContainInOrder(
+            assertions.Subject,
+            assertions.SubjectExpression,
+            expectedSequence,
+            comparer,
+            because,
+            allowGaps,
+            callerFilePath,
+            callerLineNumber);
+
+        return new AndContinuation<ValueAssertions<TCollection>>(assertions);
+    }
+
+    public static AndContinuation<ValueAssertions<TCollection>> ContainInOrder<TCollection, TItem, TKey>(
+        this ValueAssertions<TCollection> assertions,
+        IEnumerable<TKey> expectedSequence,
+        Func<TItem, TKey> keySelector,
+        IEqualityComparer<TKey> comparer,
+        string? because = null,
+        bool allowGaps = true,
+        [CallerFilePath] string? callerFilePath = null,
+        [CallerLineNumber] int callerLineNumber = 0)
+        where TCollection : IEnumerable<TItem>
+    {
+        ArgumentNullException.ThrowIfNull(assertions);
+        ArgumentNullException.ThrowIfNull(expectedSequence);
+        ArgumentNullException.ThrowIfNull(keySelector);
+        ArgumentNullException.ThrowIfNull(comparer);
+
+        CollectionAssertionEngine.AssertContainInOrderByKey(
+            assertions.Subject,
+            assertions.SubjectExpression,
+            expectedSequence,
+            keySelector,
+            comparer,
             because,
             allowGaps,
             callerFilePath,

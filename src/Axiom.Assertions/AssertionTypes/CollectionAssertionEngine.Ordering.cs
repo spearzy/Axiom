@@ -9,6 +9,7 @@ internal static partial class CollectionAssertionEngine
         IEnumerable<T>? subject,
         string? subjectExpression,
         IEnumerable<T> expectedSequence,
+        IEqualityComparer<T>? comparer,
         string? because,
         bool allowGaps,
         string? callerFilePath,
@@ -33,11 +34,11 @@ internal static partial class CollectionAssertionEngine
             return;
         }
 
-        var comparer = GetComparer<T>();
+        var equalityComparer = GetComparer(comparer);
         var expectedIndex = 0;
         var matched = allowGaps
-            ? ContainsInOrderAllowingGaps(subject, expectedItems, comparer, out expectedIndex)
-            : ContainsInOrderWithoutGaps(subject, expectedItems, comparer);
+            ? ContainsInOrderAllowingGaps(subject, expectedItems, equalityComparer, out expectedIndex)
+            : ContainsInOrderWithoutGaps(subject, expectedItems, equalityComparer);
         if (matched)
         {
             return;
@@ -59,6 +60,7 @@ internal static partial class CollectionAssertionEngine
         string? subjectExpression,
         IEnumerable<TKey> expectedSequence,
         Func<T, TKey> keySelector,
+        IEqualityComparer<TKey>? comparer,
         string? because,
         bool allowGaps,
         string? callerFilePath,
@@ -83,11 +85,11 @@ internal static partial class CollectionAssertionEngine
             return;
         }
 
-        var comparer = GetComparer<TKey>();
+        var equalityComparer = GetComparer(comparer);
         var expectedIndex = 0;
         var matched = allowGaps
-            ? ContainsProjectedInOrderAllowingGaps(subject, expectedItems, keySelector, comparer, out expectedIndex)
-            : ContainsProjectedInOrderWithoutGaps(subject, expectedItems, keySelector, comparer);
+            ? ContainsProjectedInOrderAllowingGaps(subject, expectedItems, keySelector, equalityComparer, out expectedIndex)
+            : ContainsProjectedInOrderWithoutGaps(subject, expectedItems, keySelector, equalityComparer);
         if (matched)
         {
             return;
