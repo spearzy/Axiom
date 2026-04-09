@@ -17,8 +17,30 @@ public sealed class ValueAssertions<T>(T subject, string? subjectExpression)
         [CallerFilePath] string? callerFilePath = null,
         [CallerLineNumber] int callerLineNumber = 0)
     {
-        var comparer = GetComparer();
-        if (!comparer.Equals(Subject, expected))
+        return BeInternal(expected, comparer: null, because, callerFilePath, callerLineNumber);
+    }
+
+    public AndContinuation<ValueAssertions<T>> Be(
+        T expected,
+        IEqualityComparer<T> comparer,
+        string? because = null,
+        [CallerFilePath] string? callerFilePath = null,
+        [CallerLineNumber] int callerLineNumber = 0)
+    {
+        ArgumentNullException.ThrowIfNull(comparer);
+
+        return BeInternal(expected, comparer, because, callerFilePath, callerLineNumber);
+    }
+
+    private AndContinuation<ValueAssertions<T>> BeInternal(
+        T expected,
+        IEqualityComparer<T>? comparer,
+        string? because,
+        string? callerFilePath,
+        int callerLineNumber)
+    {
+        var equalityComparer = GetComparer(comparer);
+        if (!equalityComparer.Equals(Subject, expected))
         {
             var failure = new Failure(
                 SubjectLabel(),
@@ -36,8 +58,30 @@ public sealed class ValueAssertions<T>(T subject, string? subjectExpression)
         [CallerFilePath] string? callerFilePath = null,
         [CallerLineNumber] int callerLineNumber = 0)
     {
-        var comparer = GetComparer();
-        if (comparer.Equals(Subject, unexpected))
+        return NotBeInternal(unexpected, comparer: null, because, callerFilePath, callerLineNumber);
+    }
+
+    public AndContinuation<ValueAssertions<T>> NotBe(
+        T unexpected,
+        IEqualityComparer<T> comparer,
+        string? because = null,
+        [CallerFilePath] string? callerFilePath = null,
+        [CallerLineNumber] int callerLineNumber = 0)
+    {
+        ArgumentNullException.ThrowIfNull(comparer);
+
+        return NotBeInternal(unexpected, comparer, because, callerFilePath, callerLineNumber);
+    }
+
+    private AndContinuation<ValueAssertions<T>> NotBeInternal(
+        T unexpected,
+        IEqualityComparer<T>? comparer,
+        string? because,
+        string? callerFilePath,
+        int callerLineNumber)
+    {
+        var equalityComparer = GetComparer(comparer);
+        if (equalityComparer.Equals(Subject, unexpected))
         {
             var failure = new Failure(
                 SubjectLabel(),
@@ -55,11 +99,33 @@ public sealed class ValueAssertions<T>(T subject, string? subjectExpression)
         [CallerFilePath] string? callerFilePath = null,
         [CallerLineNumber] int callerLineNumber = 0)
     {
+        return BeOneOfInternal(expectedValues, comparer: null, because, callerFilePath, callerLineNumber);
+    }
+
+    public AndContinuation<ValueAssertions<T>> BeOneOf(
+        IEnumerable<T> expectedValues,
+        IEqualityComparer<T> comparer,
+        string? because = null,
+        [CallerFilePath] string? callerFilePath = null,
+        [CallerLineNumber] int callerLineNumber = 0)
+    {
+        ArgumentNullException.ThrowIfNull(comparer);
+
+        return BeOneOfInternal(expectedValues, comparer, because, callerFilePath, callerLineNumber);
+    }
+
+    private AndContinuation<ValueAssertions<T>> BeOneOfInternal(
+        IEnumerable<T> expectedValues,
+        IEqualityComparer<T>? comparer,
+        string? because,
+        string? callerFilePath,
+        int callerLineNumber)
+    {
         ArgumentNullException.ThrowIfNull(expectedValues);
 
         var replayableExpectedValues = EnsureReplayableExpectedValues(expectedValues);
-        var comparer = GetComparer();
-        var hasMatch = TryFindMatch(replayableExpectedValues, Subject, comparer, out var hasExpectedValues);
+        var equalityComparer = GetComparer(comparer);
+        var hasMatch = TryFindMatch(replayableExpectedValues, Subject, equalityComparer, out var hasExpectedValues);
         if (!hasExpectedValues)
         {
             throw new ArgumentException("expectedValues must contain at least one value.", nameof(expectedValues));
@@ -83,11 +149,33 @@ public sealed class ValueAssertions<T>(T subject, string? subjectExpression)
         [CallerFilePath] string? callerFilePath = null,
         [CallerLineNumber] int callerLineNumber = 0)
     {
+        return NotBeOneOfInternal(unexpectedValues, comparer: null, because, callerFilePath, callerLineNumber);
+    }
+
+    public AndContinuation<ValueAssertions<T>> NotBeOneOf(
+        IEnumerable<T> unexpectedValues,
+        IEqualityComparer<T> comparer,
+        string? because = null,
+        [CallerFilePath] string? callerFilePath = null,
+        [CallerLineNumber] int callerLineNumber = 0)
+    {
+        ArgumentNullException.ThrowIfNull(comparer);
+
+        return NotBeOneOfInternal(unexpectedValues, comparer, because, callerFilePath, callerLineNumber);
+    }
+
+    private AndContinuation<ValueAssertions<T>> NotBeOneOfInternal(
+        IEnumerable<T> unexpectedValues,
+        IEqualityComparer<T>? comparer,
+        string? because,
+        string? callerFilePath,
+        int callerLineNumber)
+    {
         ArgumentNullException.ThrowIfNull(unexpectedValues);
 
         var replayableUnexpectedValues = EnsureReplayableExpectedValues(unexpectedValues);
-        var comparer = GetComparer();
-        var hasMatch = TryFindMatch(replayableUnexpectedValues, Subject, comparer, out var hasUnexpectedValues);
+        var equalityComparer = GetComparer(comparer);
+        var hasMatch = TryFindMatch(replayableUnexpectedValues, Subject, equalityComparer, out var hasUnexpectedValues);
         if (!hasUnexpectedValues)
         {
             throw new ArgumentException("unexpectedValues must contain at least one value.", nameof(unexpectedValues));
@@ -417,6 +505,11 @@ public sealed class ValueAssertions<T>(T subject, string? subjectExpression)
         }
 
         return EqualityComparer<T>.Default;
+    }
+
+    private static IEqualityComparer<T> GetComparer(IEqualityComparer<T>? comparer)
+    {
+        return comparer ?? GetComparer();
     }
 
     private static bool TryCompareValues(T candidate, T other, out int comparison)

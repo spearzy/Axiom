@@ -5,6 +5,19 @@ namespace Axiom.Tests.Assertions.Values.Batch;
 
 public sealed class ValueBatchRoutingTests
 {
+    private sealed class OddEvenMatchIntComparer : IEqualityComparer<int>
+    {
+        public bool Equals(int x, int y)
+        {
+            return x % 2 == y % 2;
+        }
+
+        public int GetHashCode(int obj)
+        {
+            return obj % 2;
+        }
+    }
+
     private sealed class Marker(string id)
     {
         public string Id { get; } = id;
@@ -53,6 +66,22 @@ public sealed class ValueBatchRoutingTests
         Assert.Contains("Batch 'values' failed with 2 assertion failure(s):", message);
         Assert.Contains("1) Expected value to be 7, but found 42.", message);
         Assert.Contains("2) Expected value to not be 42, but found 42.", message);
+    }
+
+    [Fact]
+    public void ComparerBasedValueAssertions_InsideBatch_DoNotThrowAtAssertionCallSite()
+    {
+        var value = 3;
+
+        using var batch = new Axiom.Core.Batch();
+        var callEx = Record.Exception(() =>
+        {
+            value.Should().Be(4, new OddEvenMatchIntComparer());
+            value.Should().NotBe(5, new OddEvenMatchIntComparer());
+        });
+
+        Assert.Null(callEx);
+        Assert.Throws<InvalidOperationException>(() => batch.Dispose());
     }
 
     [Fact]
@@ -111,6 +140,22 @@ public sealed class ValueBatchRoutingTests
         Assert.Contains("Batch 'one-of' failed with 2 assertion failure(s):", message);
         Assert.Contains("1) Expected value to be one of [1, 2, 3], but found 42.", message);
         Assert.Contains("2) Expected value to not be one of [41, 42, 43], but found 42.", message);
+    }
+
+    [Fact]
+    public void ComparerBasedOneOfAssertions_InsideBatch_DoNotThrowAtAssertionCallSite()
+    {
+        var value = 3;
+
+        using var batch = new Axiom.Core.Batch();
+        var callEx = Record.Exception(() =>
+        {
+            value.Should().BeOneOf([2, 4], new OddEvenMatchIntComparer());
+            value.Should().NotBeOneOf([2, 4], new OddEvenMatchIntComparer());
+        });
+
+        Assert.Null(callEx);
+        Assert.Throws<InvalidOperationException>(() => batch.Dispose());
     }
 
     [Fact]

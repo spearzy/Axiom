@@ -56,4 +56,40 @@ public sealed class BeOneOfTests
 
         Assert.Equal("expectedValues", ex.ParamName);
     }
+
+    [Fact]
+    public void BeOneOf_DoesNotThrow_WhenComparerMatchesExpectedSet()
+    {
+        const int value = 3;
+
+        var ex = Record.Exception(() =>
+            value.Should().BeOneOf([2, 4, 5], new OddEvenMatchIntComparer()));
+
+        Assert.Null(ex);
+    }
+
+    [Fact]
+    public void BeOneOf_ThrowsArgumentNullException_WhenComparerIsNull()
+    {
+        const int value = 3;
+        IEqualityComparer<int>? comparer = null;
+
+        var ex = Assert.Throws<ArgumentNullException>(() =>
+            value.Should().BeOneOf([2, 4, 5], comparer!));
+
+        Assert.Equal("comparer", ex.ParamName);
+    }
+
+    private sealed class OddEvenMatchIntComparer : IEqualityComparer<int>
+    {
+        public bool Equals(int x, int y)
+        {
+            return x % 2 == y % 2;
+        }
+
+        public int GetHashCode(int obj)
+        {
+            return obj % 2;
+        }
+    }
 }

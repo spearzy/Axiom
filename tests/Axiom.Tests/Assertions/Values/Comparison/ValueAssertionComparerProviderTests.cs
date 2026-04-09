@@ -66,6 +66,56 @@ public sealed class ValueAssertionComparerProviderTests : IDisposable
         Assert.Null(ex);
     }
 
+    [Fact]
+    public void Be_UsesExplicitComparerInsteadOfConfiguredComparerProvider()
+    {
+        AxiomServices.Configure(c => c.ComparerProvider = new OddEvenMatchIntComparerProvider());
+
+        var value = 3;
+        var ex = Assert.Throws<InvalidOperationException>(() =>
+            value.Should().Be(4, EqualityComparer<int>.Default));
+
+        const string expected = "Expected value to be 4, but found 3.";
+        Assert.Equal(expected, ex.Message);
+    }
+
+    [Fact]
+    public void NotBe_UsesExplicitComparerInsteadOfConfiguredComparerProvider()
+    {
+        AxiomServices.Configure(c => c.ComparerProvider = new OddEvenMatchIntComparerProvider());
+
+        var value = 3;
+        var ex = Record.Exception(() =>
+            value.Should().NotBe(5, EqualityComparer<int>.Default));
+
+        Assert.Null(ex);
+    }
+
+    [Fact]
+    public void BeOneOf_UsesExplicitComparerInsteadOfConfiguredComparerProvider()
+    {
+        AxiomServices.Configure(c => c.ComparerProvider = new OddEvenMatchIntComparerProvider());
+
+        var value = 3;
+        var ex = Assert.Throws<InvalidOperationException>(() =>
+            value.Should().BeOneOf([2, 4], EqualityComparer<int>.Default));
+
+        const string expected = "Expected value to be one of [2, 4], but found 3.";
+        Assert.Equal(expected, ex.Message);
+    }
+
+    [Fact]
+    public void NotBeOneOf_UsesExplicitComparerInsteadOfConfiguredComparerProvider()
+    {
+        AxiomServices.Configure(c => c.ComparerProvider = new OddEvenMatchIntComparerProvider());
+
+        var value = 3;
+        var ex = Record.Exception(() =>
+            value.Should().NotBeOneOf([2, 4], EqualityComparer<int>.Default));
+
+        Assert.Null(ex);
+    }
+
     private sealed class OddEvenMatchIntComparerProvider : IComparerProvider
     {
         public bool TryGetEqualityComparer<T>(out IEqualityComparer<T>? comparer)
