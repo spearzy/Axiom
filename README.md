@@ -9,7 +9,7 @@
 [![Version](https://img.shields.io/nuget/v/Axiom.Assertions?label=version)](https://www.nuget.org/packages/Axiom.Assertions)
 [![Downloads](https://img.shields.io/nuget/dt/Axiom.Assertions?label=downloads)](https://www.nuget.org/packages/Axiom.Assertions)
 
-Axiom is a fluent assertion library for modern .NET tests. It focuses on deterministic failure output, explicit batch aggregation, configurable equivalency, low pass-path overhead, and a docs-first workflow instead of burying everything in the repository front page.
+Axiom is a fluent assertion library for modern .NET tests. It focuses on deterministic failure output, explicit batch aggregation, configurable equivalency, low pass-path overhead, with detailed documentation.
 
 Target frameworks: `net8.0`, `net9.0`, and `net10.0`.
 
