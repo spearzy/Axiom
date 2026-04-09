@@ -482,7 +482,9 @@ ContainInOrder(IEnumerable<TItem> expectedSequence, comparer, bool allowGaps = t
 ContainInOrder(IEnumerable<TKey> expectedSequence, Func<TItem, TKey> keySelector, bool allowGaps = true)
 ContainInOrder(IEnumerable<TKey> expectedSequence, Func<TItem, TKey> keySelector, comparer, bool allowGaps = true)
 BeInAscendingOrder()
+BeInAscendingOrder(comparer)
 BeInDescendingOrder()
+BeInDescendingOrder(comparer)
 BeInAscendingOrder(keySelector)
 BeInAscendingOrder(keySelector, comparer)
 BeInDescendingOrder(keySelector)
@@ -503,7 +505,7 @@ SingleItem
 
 The predicate overload gives you a strongly typed `SingleItem`. The parameterless overload is also strongly typed for common generic collection subjects such as `List<T>`, arrays, and interface-typed generic enumerables. Nongeneric collections still expose `object? SingleItem`.
 
-Local comparer overloads are available on the collection assertions whose semantics depend on item equality. Use them when you want case-insensitive or domain-specific matching for a single assertion without changing the shared comparer-provider configuration.
+Local comparer overloads are available on the collection assertions whose semantics depend on item equality or ordering. Use them when you want case-insensitive or domain-specific matching for a single assertion without changing the shared comparer-provider configuration.
 
 `ContainExactly(...)` is the ordered exact-sequence assertion. `ContainExactlyInAnyOrder(...)` is the unordered exact-membership assertion: same items, same counts, no extras, and no omissions, with an opt-in comparer overload when you need custom equality.
 
@@ -519,6 +521,7 @@ labels.Should().ContainExactlyInAnyOrder(
 labels.Should().ContainAll(["alpha", "beta"], StringComparer.OrdinalIgnoreCase);
 labels.Should().NotContain("archived", StringComparer.OrdinalIgnoreCase);
 labels.Should().HaveUniqueItems(StringComparer.OrdinalIgnoreCase);
+labels.Should().BeInAscendingOrder(StringComparer.OrdinalIgnoreCase);
 ```
 
 ## Dictionary Assertions
