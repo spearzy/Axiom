@@ -27,11 +27,15 @@ internal static class NunitAssertStubs
                 public static EqualConstraint EqualTo(object? expected) => default!;
                 public static EqualConstraint EqualTo(string expected) => default!;
                 public static EqualConstraint EqualTo<T>(IEnumerable<T> expected) => default!;
+                public static SameAsConstraint SameAs(object? expected) => default!;
             }
 
             public static class Does
             {
+                public static ConstraintExpression Not => default!;
                 public static ContainsConstraint Contain(string expected) => default!;
+                public static StartsWithConstraint StartWith(string expected) => default!;
+                public static EndsWithConstraint EndWith(string expected) => default!;
             }
 
             public static class Has
@@ -53,6 +57,10 @@ internal static class NunitAssertStubs
                 public EmptyConstraint Empty => default!;
                 public EqualConstraint EqualTo(object? expected) => default!;
                 public EqualConstraint EqualTo(string expected) => default!;
+                public SameAsConstraint SameAs(object? expected) => default!;
+                public ContainsConstraint Contain(string expected) => default!;
+                public StartsWithConstraint StartWith(string expected) => default!;
+                public EndsWithConstraint EndWith(string expected) => default!;
             }
 
             public class EqualConstraint : ConstraintExpression
@@ -65,10 +73,13 @@ internal static class NunitAssertStubs
             public sealed class TrueConstraint : ConstraintExpression { }
             public sealed class FalseConstraint : ConstraintExpression { }
             public sealed class EmptyConstraint : ConstraintExpression { }
+            public sealed class SameAsConstraint : ConstraintExpression { }
             public sealed class ContainsConstraint : ConstraintExpression
             {
                 public ContainsConstraint IgnoreCase => this;
             }
+            public sealed class StartsWithConstraint : ConstraintExpression { }
+            public sealed class EndsWithConstraint : ConstraintExpression { }
             public sealed class CountConstraintExpression : ConstraintExpression
             {
                 public EqualConstraint EqualTo(int expected) => default!;

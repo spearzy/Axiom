@@ -37,7 +37,7 @@ The current rules focus on a few high-value areas:
 - ignored async Axiom assertion results
 - `Batch` instances created without `using`
 - high-confidence xUnit `Assert.*` migration suggestions
-- a conservative first NUnit `Assert.That(...)` migration wave
+- a conservative NUnit `Assert.That(...)` migration wave
 - a conservative first MSTest `Assert.*` migration wave
 
 ## Async Assertions Must Be Awaited
@@ -198,8 +198,15 @@ Rules:
 - `AXM1029` for `Assert.That(condition, Is.False)`
 - `AXM1030` for `Assert.That(collection, Is.Empty)`
 - `AXM1031` for `Assert.That(collection, Is.Not.Empty)`
+- `AXM1040` for `Assert.That(actual, Does.Contain(expectedSubstring))` on string subjects
+- `AXM1041` for `Assert.That(actual, Does.Not.Contain(expectedSubstring))` on string subjects
+- `AXM1042` for `Assert.That(actual, Does.StartWith(expectedPrefix))` when the prefix is an obvious non-null constant string
+- `AXM1043` for `Assert.That(actual, Does.EndWith(expectedSuffix))` when the suffix is an obvious non-null constant string
+- `AXM1044` for `Assert.That(collection, Has.Count.EqualTo(expectedCount))`
+- `AXM1045` for `Assert.That(actual, Is.SameAs(expected))`
+- `AXM1046` for `Assert.That(actual, Is.Not.SameAs(expected))`
 
-This first NUnit wave is intentionally small. It only covers simple `Assert.That(..., Is.*)` shapes that map directly to Axiom without guessing through richer constraint chains.
+The NUnit migration support is still intentionally narrow. It now covers a small set of `Does.*`, `Has.Count.EqualTo(...)`, and `Is.SameAs(...)` shapes that map directly onto the current Axiom surface without guessing through richer constraint chains.
 
 Before:
 
@@ -208,6 +215,12 @@ Assert.That(actual, Is.EqualTo(expected));
 Assert.That(value, Is.Not.Null);
 Assert.That(condition, Is.True);
 Assert.That(values, Is.Empty);
+Assert.That(actual, Does.Contain("sub"));
+Assert.That(actual, Does.Not.Contain("archived"));
+Assert.That(actual, Does.StartWith("pre"));
+Assert.That(actual, Does.EndWith("suf"));
+Assert.That(values, Has.Count.EqualTo(2));
+Assert.That(value, Is.SameAs(value));
 ```
 
 After:
@@ -217,9 +230,15 @@ actual.Should().Be(expected);
 value.Should().NotBeNull();
 condition.Should().BeTrue();
 values.Should().BeEmpty();
+actual.Should().Contain("sub");
+actual.Should().NotContain("archived");
+actual.Should().StartWith("pre");
+actual.Should().EndWith("suf");
+values.Should().HaveCount(2);
+value.Should().BeSameAs(value);
 ```
 
-These suggestions use semantic matching against NUnit's real `Assert.That(...)` API. They intentionally skip richer constraint chains, tolerance/comparer variations, `Does.*`, `Has.*`, and message-bearing overloads in this first wave.
+These suggestions use semantic matching against NUnit's real `Assert.That(...)` API. They intentionally skip tolerance/comparer variations, message-bearing overloads, richer `Does.*` chains, `Has.*` chains beyond `Has.Count.EqualTo(int)`, and prefix/suffix constraints where the expected value is not an obvious non-null constant string.
 
 ## MSTest Assert Migration Suggestions
 

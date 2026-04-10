@@ -75,6 +75,62 @@ public sealed class NunitAssertMigrationDescriptorTests
                 Assert.Equal(DiagnosticSeverity.Info, rule.DefaultSeverity);
                 Assert.Equal("Migrate NUnit Assert.That not-empty constraint to Axiom", rule.Title.ToString());
                 Assert.Equal("NUnit Assert.That(collection, Is.Not.Empty) can be migrated to 'collection.Should().NotBeEmpty()'", rule.MessageFormat.ToString());
+            },
+            rule =>
+            {
+                Assert.Equal("AXM1040", rule.Id);
+                Assert.Equal("Migration", rule.Category);
+                Assert.Equal(DiagnosticSeverity.Info, rule.DefaultSeverity);
+                Assert.Equal("Migrate NUnit Assert.That Does.Contain string constraint to Axiom", rule.Title.ToString());
+                Assert.Equal("NUnit Assert.That(actual, Does.Contain(expectedSubstring)) can be migrated to 'actual.Should().Contain(expectedSubstring)'", rule.MessageFormat.ToString());
+            },
+            rule =>
+            {
+                Assert.Equal("AXM1041", rule.Id);
+                Assert.Equal("Migration", rule.Category);
+                Assert.Equal(DiagnosticSeverity.Info, rule.DefaultSeverity);
+                Assert.Equal("Migrate NUnit Assert.That Does.Not.Contain string constraint to Axiom", rule.Title.ToString());
+                Assert.Equal("NUnit Assert.That(actual, Does.Not.Contain(expectedSubstring)) can be migrated to 'actual.Should().NotContain(expectedSubstring)'", rule.MessageFormat.ToString());
+            },
+            rule =>
+            {
+                Assert.Equal("AXM1042", rule.Id);
+                Assert.Equal("Migration", rule.Category);
+                Assert.Equal(DiagnosticSeverity.Info, rule.DefaultSeverity);
+                Assert.Equal("Migrate NUnit Assert.That Does.StartWith constraint to Axiom", rule.Title.ToString());
+                Assert.Equal("NUnit Assert.That(actual, Does.StartWith(expectedPrefix)) can be migrated to 'actual.Should().StartWith(expectedPrefix)'", rule.MessageFormat.ToString());
+            },
+            rule =>
+            {
+                Assert.Equal("AXM1043", rule.Id);
+                Assert.Equal("Migration", rule.Category);
+                Assert.Equal(DiagnosticSeverity.Info, rule.DefaultSeverity);
+                Assert.Equal("Migrate NUnit Assert.That Does.EndWith constraint to Axiom", rule.Title.ToString());
+                Assert.Equal("NUnit Assert.That(actual, Does.EndWith(expectedSuffix)) can be migrated to 'actual.Should().EndWith(expectedSuffix)'", rule.MessageFormat.ToString());
+            },
+            rule =>
+            {
+                Assert.Equal("AXM1044", rule.Id);
+                Assert.Equal("Migration", rule.Category);
+                Assert.Equal(DiagnosticSeverity.Info, rule.DefaultSeverity);
+                Assert.Equal("Migrate NUnit Assert.That Has.Count.EqualTo constraint to Axiom", rule.Title.ToString());
+                Assert.Equal("NUnit Assert.That(collection, Has.Count.EqualTo(expectedCount)) can be migrated to 'collection.Should().HaveCount(expectedCount)'", rule.MessageFormat.ToString());
+            },
+            rule =>
+            {
+                Assert.Equal("AXM1045", rule.Id);
+                Assert.Equal("Migration", rule.Category);
+                Assert.Equal(DiagnosticSeverity.Info, rule.DefaultSeverity);
+                Assert.Equal("Migrate NUnit Assert.That Is.SameAs constraint to Axiom", rule.Title.ToString());
+                Assert.Equal("NUnit Assert.That(actual, Is.SameAs(expected)) can be migrated to 'actual.Should().BeSameAs(expected)'", rule.MessageFormat.ToString());
+            },
+            rule =>
+            {
+                Assert.Equal("AXM1046", rule.Id);
+                Assert.Equal("Migration", rule.Category);
+                Assert.Equal(DiagnosticSeverity.Info, rule.DefaultSeverity);
+                Assert.Equal("Migrate NUnit Assert.That Is.Not.SameAs constraint to Axiom", rule.Title.ToString());
+                Assert.Equal("NUnit Assert.That(actual, Is.Not.SameAs(expected)) can be migrated to 'actual.Should().NotBeSameAs(expected)'", rule.MessageFormat.ToString());
             });
     }
 }

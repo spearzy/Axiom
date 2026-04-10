@@ -278,6 +278,240 @@ public sealed class NunitAssertMigrationBasicTests
     }
 
     [Fact]
+    public async Task AssertThat_DoesContain_IsFlagged_AndFixed()
+    {
+        const string source =
+            """
+                using NUnit.Framework;
+
+                public sealed class Sample
+                {
+                    public void Check(string actual, string expectedSubstring)
+                    {
+                        {|AXM1040:Assert.That(actual, Does.Contain(expectedSubstring))|};
+                    }
+                }
+                """;
+
+        const string fixedSource =
+            """
+                using NUnit.Framework;
+                using Axiom.Assertions;
+
+                public sealed class Sample
+                {
+                    public void Check(string actual, string expectedSubstring)
+                    {
+                        actual.Should().Contain(expectedSubstring);
+                    }
+                }
+                """;
+
+        await AnalyzerVerifier.VerifyCodeFixAsync<NunitAssertMigrationAnalyzer, NunitAssertMigrationCodeFixProvider>(source, fixedSource);
+    }
+
+    [Fact]
+    public async Task AssertThat_DoesNotContain_IsFlagged_AndFixed()
+    {
+        const string source =
+            """
+                using NUnit.Framework;
+
+                public sealed class Sample
+                {
+                    public void Check(string actual, string unexpectedSubstring)
+                    {
+                        {|AXM1041:Assert.That(actual, Does.Not.Contain(unexpectedSubstring))|};
+                    }
+                }
+                """;
+
+        const string fixedSource =
+            """
+                using NUnit.Framework;
+                using Axiom.Assertions;
+
+                public sealed class Sample
+                {
+                    public void Check(string actual, string unexpectedSubstring)
+                    {
+                        actual.Should().NotContain(unexpectedSubstring);
+                    }
+                }
+                """;
+
+        await AnalyzerVerifier.VerifyCodeFixAsync<NunitAssertMigrationAnalyzer, NunitAssertMigrationCodeFixProvider>(source, fixedSource);
+    }
+
+    [Fact]
+    public async Task AssertThat_DoesStartWith_IsFlagged_AndFixed()
+    {
+        const string source =
+            """
+                using NUnit.Framework;
+
+                public sealed class Sample
+                {
+                    public void Check(string actual)
+                    {
+                        {|AXM1042:Assert.That(actual, Does.StartWith("pre"))|};
+                    }
+                }
+                """;
+
+        const string fixedSource =
+            """
+                using NUnit.Framework;
+                using Axiom.Assertions;
+
+                public sealed class Sample
+                {
+                    public void Check(string actual)
+                    {
+                        actual.Should().StartWith("pre");
+                    }
+                }
+                """;
+
+        await AnalyzerVerifier.VerifyCodeFixAsync<NunitAssertMigrationAnalyzer, NunitAssertMigrationCodeFixProvider>(source, fixedSource);
+    }
+
+    [Fact]
+    public async Task AssertThat_DoesEndWith_IsFlagged_AndFixed()
+    {
+        const string source =
+            """
+                using NUnit.Framework;
+
+                public sealed class Sample
+                {
+                    public void Check(string actual)
+                    {
+                        {|AXM1043:Assert.That(actual, Does.EndWith("suf"))|};
+                    }
+                }
+                """;
+
+        const string fixedSource =
+            """
+                using NUnit.Framework;
+                using Axiom.Assertions;
+
+                public sealed class Sample
+                {
+                    public void Check(string actual)
+                    {
+                        actual.Should().EndWith("suf");
+                    }
+                }
+                """;
+
+        await AnalyzerVerifier.VerifyCodeFixAsync<NunitAssertMigrationAnalyzer, NunitAssertMigrationCodeFixProvider>(source, fixedSource);
+    }
+
+    [Fact]
+    public async Task AssertThat_HasCountEqualTo_IsFlagged_AndFixed()
+    {
+        const string source =
+            """
+                using System.Collections.Generic;
+                using NUnit.Framework;
+
+                public sealed class Sample
+                {
+                    public void Check(List<int> values, int expectedCount)
+                    {
+                        {|AXM1044:Assert.That(values, Has.Count.EqualTo(expectedCount))|};
+                    }
+                }
+                """;
+
+        const string fixedSource =
+            """
+                using System.Collections.Generic;
+                using NUnit.Framework;
+                using Axiom.Assertions;
+                using Axiom.Assertions.Extensions;
+
+                public sealed class Sample
+                {
+                    public void Check(List<int> values, int expectedCount)
+                    {
+                        values.Should().HaveCount(expectedCount);
+                    }
+                }
+                """;
+
+        await AnalyzerVerifier.VerifyCodeFixAsync<NunitAssertMigrationAnalyzer, NunitAssertMigrationCodeFixProvider>(source, fixedSource);
+    }
+
+    [Fact]
+    public async Task AssertThat_IsSameAs_IsFlagged_AndFixed()
+    {
+        const string source =
+            """
+                using NUnit.Framework;
+
+                public sealed class Sample
+                {
+                    public void Check(object actual, object expected)
+                    {
+                        {|AXM1045:Assert.That(actual, Is.SameAs(expected))|};
+                    }
+                }
+                """;
+
+        const string fixedSource =
+            """
+                using NUnit.Framework;
+                using Axiom.Assertions;
+
+                public sealed class Sample
+                {
+                    public void Check(object actual, object expected)
+                    {
+                        actual.Should().BeSameAs(expected);
+                    }
+                }
+                """;
+
+        await AnalyzerVerifier.VerifyCodeFixAsync<NunitAssertMigrationAnalyzer, NunitAssertMigrationCodeFixProvider>(source, fixedSource);
+    }
+
+    [Fact]
+    public async Task AssertThat_IsNotSameAs_IsFlagged_AndFixed()
+    {
+        const string source =
+            """
+                using NUnit.Framework;
+
+                public sealed class Sample
+                {
+                    public void Check(object actual, object expected)
+                    {
+                        {|AXM1046:Assert.That(actual, Is.Not.SameAs(expected))|};
+                    }
+                }
+                """;
+
+        const string fixedSource =
+            """
+                using NUnit.Framework;
+                using Axiom.Assertions;
+
+                public sealed class Sample
+                {
+                    public void Check(object actual, object expected)
+                    {
+                        actual.Should().NotBeSameAs(expected);
+                    }
+                }
+                """;
+
+        await AnalyzerVerifier.VerifyCodeFixAsync<NunitAssertMigrationAnalyzer, NunitAssertMigrationCodeFixProvider>(source, fixedSource);
+    }
+
+    [Fact]
     public async Task FullyQualified_AssertThat_EqualTo_IsFlagged_AndFixed()
     {
         const string source =
@@ -439,7 +673,27 @@ public sealed class NunitAssertMigrationBasicTests
     }
 
     [Fact]
-    public async Task UnsupportedDoesContain_IsNotFlagged()
+    public async Task DoesContain_WithCollectionSubject_IsNotFlagged()
+    {
+        const string source =
+            """
+                using System.Collections.Generic;
+                using NUnit.Framework;
+
+                public sealed class Sample
+                {
+                    public void Check(List<string> values)
+                    {
+                        Assert.That(values, Does.Contain("sub"));
+                    }
+                }
+                """;
+
+        await AnalyzerVerifier.VerifyAnalyzerAsync<NunitAssertMigrationAnalyzer>(source);
+    }
+
+    [Fact]
+    public async Task HasCount_WithStringSubject_IsNotFlagged()
     {
         const string source =
             """
@@ -449,7 +703,7 @@ public sealed class NunitAssertMigrationBasicTests
                 {
                     public void Check(string actual)
                     {
-                        Assert.That(actual, Does.Contain("sub"));
+                        Assert.That(actual, Has.Count.EqualTo(2));
                     }
                 }
                 """;
@@ -458,18 +712,36 @@ public sealed class NunitAssertMigrationBasicTests
     }
 
     [Fact]
-    public async Task UnsupportedHasCount_IsNotFlagged()
+    public async Task DoesStartWith_WithVariableExpectedPrefix_IsNotFlagged()
     {
         const string source =
             """
-                using System.Collections.Generic;
                 using NUnit.Framework;
 
                 public sealed class Sample
                 {
-                    public void Check(List<int> values)
+                    public void Check(string actual, string expectedPrefix)
                     {
-                        Assert.That(values, Has.Count.EqualTo(2));
+                        Assert.That(actual, Does.StartWith(expectedPrefix));
+                    }
+                }
+                """;
+
+        await AnalyzerVerifier.VerifyAnalyzerAsync<NunitAssertMigrationAnalyzer>(source);
+    }
+
+    [Fact]
+    public async Task IsSameAs_WithStringSubject_IsNotFlagged()
+    {
+        const string source =
+            """
+                using NUnit.Framework;
+
+                public sealed class Sample
+                {
+                    public void Check(string actual, string expected)
+                    {
+                        Assert.That(actual, Is.SameAs(expected));
                     }
                 }
                 """;

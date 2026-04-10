@@ -71,6 +71,20 @@ namespace NUnit.Framework
         public static FalseConstraint False => default!;
         public static EmptyConstraint Empty => default!;
         public static EqualConstraint EqualTo(object? expected) => default!;
+        public static SameAsConstraint SameAs(object? expected) => default!;
+    }
+
+    public static class Does
+    {
+        public static ConstraintExpression Not => default!;
+        public static ContainsConstraint Contain(string expected) => default!;
+        public static StartsWithConstraint StartWith(string expected) => default!;
+        public static EndsWithConstraint EndWith(string expected) => default!;
+    }
+
+    public static class Has
+    {
+        public static CountConstraintExpression Count => default!;
     }
 }
 
@@ -86,6 +100,10 @@ namespace NUnit.Framework.Constraints
         public FalseConstraint False => default!;
         public EmptyConstraint Empty => default!;
         public EqualConstraint EqualTo(object? expected) => default!;
+        public SameAsConstraint SameAs(object? expected) => default!;
+        public ContainsConstraint Contain(string expected) => default!;
+        public StartsWithConstraint StartWith(string expected) => default!;
+        public EndsWithConstraint EndWith(string expected) => default!;
     }
 
     public sealed class EqualConstraint : ConstraintExpression { }
@@ -93,6 +111,14 @@ namespace NUnit.Framework.Constraints
     public sealed class TrueConstraint : ConstraintExpression { }
     public sealed class FalseConstraint : ConstraintExpression { }
     public sealed class EmptyConstraint : ConstraintExpression { }
+    public sealed class SameAsConstraint : ConstraintExpression { }
+    public sealed class ContainsConstraint : ConstraintExpression { }
+    public sealed class StartsWithConstraint : ConstraintExpression { }
+    public sealed class EndsWithConstraint : ConstraintExpression { }
+    public sealed class CountConstraintExpression : ConstraintExpression
+    {
+        public EqualConstraint EqualTo(int expected) => default!;
+    }
 }
 
 namespace Microsoft.VisualStudio.TestTools.UnitTesting

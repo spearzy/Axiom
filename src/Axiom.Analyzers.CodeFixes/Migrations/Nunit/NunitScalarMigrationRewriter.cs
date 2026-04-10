@@ -25,6 +25,13 @@ internal static class NunitScalarMigrationRewriter
             NunitAssertMigrationKind.BeFalse => "BeFalse",
             NunitAssertMigrationKind.BeEmpty => "BeEmpty",
             NunitAssertMigrationKind.NotBeEmpty => "NotBeEmpty",
+            NunitAssertMigrationKind.ContainSubstring => "Contain",
+            NunitAssertMigrationKind.NotContainSubstring => "NotContain",
+            NunitAssertMigrationKind.StartWith => "StartWith",
+            NunitAssertMigrationKind.EndWith => "EndWith",
+            NunitAssertMigrationKind.HaveCount => "HaveCount",
+            NunitAssertMigrationKind.BeSameAs => "BeSameAs",
+            NunitAssertMigrationKind.NotBeSameAs => "NotBeSameAs",
             _ => throw new ArgumentOutOfRangeException(nameof(kind)),
         };
     }

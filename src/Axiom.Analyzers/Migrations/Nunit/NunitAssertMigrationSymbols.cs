@@ -8,7 +8,10 @@ internal sealed class NunitAssertMigrationSymbols
         Compilation compilation,
         INamedTypeSymbol? nunitAssertType,
         INamedTypeSymbol? nunitIsType,
+        INamedTypeSymbol? nunitDoesType,
+        INamedTypeSymbol? nunitHasType,
         INamedTypeSymbol? constraintExpressionType,
+        INamedTypeSymbol? countConstraintExpressionType,
         INamedTypeSymbol? resolveConstraintType,
         INamedTypeSymbol? enumerableType,
         INamedTypeSymbol? genericEnumerableType,
@@ -27,7 +30,10 @@ internal sealed class NunitAssertMigrationSymbols
         Compilation = compilation;
         NunitAssertType = nunitAssertType;
         NunitIsType = nunitIsType;
+        NunitDoesType = nunitDoesType;
+        NunitHasType = nunitHasType;
         ConstraintExpressionType = constraintExpressionType;
+        CountConstraintExpressionType = countConstraintExpressionType;
         ResolveConstraintType = resolveConstraintType;
         EnumerableType = enumerableType;
         GenericEnumerableType = genericEnumerableType;
@@ -47,7 +53,10 @@ internal sealed class NunitAssertMigrationSymbols
     public Compilation Compilation { get; }
     public INamedTypeSymbol? NunitAssertType { get; }
     private INamedTypeSymbol? NunitIsType { get; }
+    private INamedTypeSymbol? NunitDoesType { get; }
+    private INamedTypeSymbol? NunitHasType { get; }
     private INamedTypeSymbol? ConstraintExpressionType { get; }
+    private INamedTypeSymbol? CountConstraintExpressionType { get; }
     private INamedTypeSymbol? ResolveConstraintType { get; }
     private INamedTypeSymbol? EnumerableType { get; }
     private INamedTypeSymbol? GenericEnumerableType { get; }
@@ -66,7 +75,10 @@ internal sealed class NunitAssertMigrationSymbols
     public bool IsEnabled =>
         NunitAssertType is not null &&
         NunitIsType is not null &&
+        NunitDoesType is not null &&
+        NunitHasType is not null &&
         ConstraintExpressionType is not null &&
+        CountConstraintExpressionType is not null &&
         ResolveConstraintType is not null;
 
     public static NunitAssertMigrationSymbols Create(Compilation compilation)
@@ -75,7 +87,10 @@ internal sealed class NunitAssertMigrationSymbols
             compilation,
             compilation.GetTypeByMetadataName("NUnit.Framework.Assert"),
             compilation.GetTypeByMetadataName("NUnit.Framework.Is"),
+            compilation.GetTypeByMetadataName("NUnit.Framework.Does"),
+            compilation.GetTypeByMetadataName("NUnit.Framework.Has"),
             compilation.GetTypeByMetadataName("NUnit.Framework.Constraints.ConstraintExpression"),
+            compilation.GetTypeByMetadataName("NUnit.Framework.Constraints.CountConstraintExpression"),
             compilation.GetTypeByMetadataName("NUnit.Framework.Constraints.IResolveConstraint"),
             compilation.GetTypeByMetadataName("System.Collections.IEnumerable"),
             compilation.GetTypeByMetadataName("System.Collections.Generic.IEnumerable`1"),
@@ -110,6 +125,21 @@ internal sealed class NunitAssertMigrationSymbols
         => ConstraintExpressionType is not null &&
            type is not null &&
            SymbolEqualityComparer.Default.Equals(type.OriginalDefinition, ConstraintExpressionType);
+
+    public bool IsDoesType(ITypeSymbol? type)
+        => NunitDoesType is not null &&
+           type is not null &&
+           SymbolEqualityComparer.Default.Equals(type.OriginalDefinition, NunitDoesType);
+
+    public bool IsHasType(ITypeSymbol? type)
+        => NunitHasType is not null &&
+           type is not null &&
+           SymbolEqualityComparer.Default.Equals(type.OriginalDefinition, NunitHasType);
+
+    public bool IsCountConstraintExpressionType(ITypeSymbol? type)
+        => CountConstraintExpressionType is not null &&
+           type is not null &&
+           SymbolEqualityComparer.Default.Equals(type.OriginalDefinition, CountConstraintExpressionType);
 
     public bool IsEnumerableLike(ITypeSymbol type)
     {
@@ -177,6 +207,12 @@ internal sealed class NunitAssertMigrationSymbols
 
     public bool SupportsEmptyMigrationReceiver(ITypeSymbol type)
         => IsEnumerableLike(type) && !IsAsyncEnumerableLike(type);
+
+    public bool SupportsReferenceEqualityMigrationReceiver(ITypeSymbol type)
+        => type.IsReferenceType && !UsesSpecializedShouldReceiver(type);
+
+    public bool SupportsCountMigrationReceiver(ITypeSymbol type)
+        => IsEnumerableLike(type) && !IsAsyncEnumerableLike(type) && !IsStringType(type);
 
     public static bool IsNullableOrReferenceType(ITypeSymbol type)
     {

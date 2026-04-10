@@ -13,6 +13,13 @@ internal enum NunitAssertMigrationKind
     BeFalse,
     BeEmpty,
     NotBeEmpty,
+    ContainSubstring,
+    NotContainSubstring,
+    StartWith,
+    EndWith,
+    HaveCount,
+    BeSameAs,
+    NotBeSameAs,
 }
 
 internal sealed class NunitAssertMigrationSpec
@@ -98,7 +105,49 @@ internal static class NunitAssertMigrationSpecs
             NunitAssertMigrationKind.NotBeEmpty,
             "Migrate NUnit Assert.That not-empty constraint to Axiom",
             "NUnit Assert.That(collection, Is.Not.Empty) can be migrated to 'collection.Should().NotBeEmpty()'",
-            "Convert to 'collection.Should().NotBeEmpty()'")
+            "Convert to 'collection.Should().NotBeEmpty()'"),
+        new(
+            AxiomAnalyzerIds.MigrateNunitAssertThatContainsSubstring,
+            NunitAssertMigrationKind.ContainSubstring,
+            "Migrate NUnit Assert.That Does.Contain string constraint to Axiom",
+            "NUnit Assert.That(actual, Does.Contain(expectedSubstring)) can be migrated to 'actual.Should().Contain(expectedSubstring)'",
+            "Convert to 'actual.Should().Contain(expectedSubstring)'"),
+        new(
+            AxiomAnalyzerIds.MigrateNunitAssertThatDoesNotContainSubstring,
+            NunitAssertMigrationKind.NotContainSubstring,
+            "Migrate NUnit Assert.That Does.Not.Contain string constraint to Axiom",
+            "NUnit Assert.That(actual, Does.Not.Contain(expectedSubstring)) can be migrated to 'actual.Should().NotContain(expectedSubstring)'",
+            "Convert to 'actual.Should().NotContain(expectedSubstring)'"),
+        new(
+            AxiomAnalyzerIds.MigrateNunitAssertThatStartsWith,
+            NunitAssertMigrationKind.StartWith,
+            "Migrate NUnit Assert.That Does.StartWith constraint to Axiom",
+            "NUnit Assert.That(actual, Does.StartWith(expectedPrefix)) can be migrated to 'actual.Should().StartWith(expectedPrefix)'",
+            "Convert to 'actual.Should().StartWith(expectedPrefix)'"),
+        new(
+            AxiomAnalyzerIds.MigrateNunitAssertThatEndsWith,
+            NunitAssertMigrationKind.EndWith,
+            "Migrate NUnit Assert.That Does.EndWith constraint to Axiom",
+            "NUnit Assert.That(actual, Does.EndWith(expectedSuffix)) can be migrated to 'actual.Should().EndWith(expectedSuffix)'",
+            "Convert to 'actual.Should().EndWith(expectedSuffix)'"),
+        new(
+            AxiomAnalyzerIds.MigrateNunitAssertThatHasCount,
+            NunitAssertMigrationKind.HaveCount,
+            "Migrate NUnit Assert.That Has.Count.EqualTo constraint to Axiom",
+            "NUnit Assert.That(collection, Has.Count.EqualTo(expectedCount)) can be migrated to 'collection.Should().HaveCount(expectedCount)'",
+            "Convert to 'collection.Should().HaveCount(expectedCount)'"),
+        new(
+            AxiomAnalyzerIds.MigrateNunitAssertThatSameAs,
+            NunitAssertMigrationKind.BeSameAs,
+            "Migrate NUnit Assert.That Is.SameAs constraint to Axiom",
+            "NUnit Assert.That(actual, Is.SameAs(expected)) can be migrated to 'actual.Should().BeSameAs(expected)'",
+            "Convert to 'actual.Should().BeSameAs(expected)'"),
+        new(
+            AxiomAnalyzerIds.MigrateNunitAssertThatNotSameAs,
+            NunitAssertMigrationKind.NotBeSameAs,
+            "Migrate NUnit Assert.That Is.Not.SameAs constraint to Axiom",
+            "NUnit Assert.That(actual, Is.Not.SameAs(expected)) can be migrated to 'actual.Should().NotBeSameAs(expected)'",
+            "Convert to 'actual.Should().NotBeSameAs(expected)'")
     ];
 
     public static ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } =
@@ -106,7 +155,16 @@ internal static class NunitAssertMigrationSpecs
 
     public static bool TryGetByDiagnosticId(string diagnosticId, out NunitAssertMigrationSpec spec)
     {
-        spec = All.FirstOrDefault(candidate => candidate.DiagnosticId == diagnosticId)!;
-        return spec is not null;
+        foreach (var candidate in All)
+        {
+            if (candidate.DiagnosticId == diagnosticId)
+            {
+                spec = candidate;
+                return true;
+            }
+        }
+
+        spec = null!;
+        return false;
     }
 }

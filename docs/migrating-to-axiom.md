@@ -13,7 +13,7 @@ The built-in migration analyzers help with a growing set of safe, mechanical rew
 
 ## What Can Be Migrated Automatically Today
 
-The current analyzer and code-fix wave focuses on high-confidence xUnit `Assert.*` shapes plus conservative first NUnit and MSTest migration waves.
+The current analyzer and code-fix wave focuses on high-confidence xUnit `Assert.*` shapes plus conservative NUnit and MSTest migration waves.
 
 | Source style | Axiom style |
 | --- | --- |
@@ -55,6 +55,13 @@ The current analyzer and code-fix wave focuses on high-confidence xUnit `Assert.
 | `Assert.That(condition, Is.False)` | `condition.Should().BeFalse()` |
 | `Assert.That(collection, Is.Empty)` | `collection.Should().BeEmpty()` |
 | `Assert.That(collection, Is.Not.Empty)` | `collection.Should().NotBeEmpty()` |
+| `Assert.That(actual, Does.Contain(expectedSubstring))` on string subjects | `actual.Should().Contain(expectedSubstring)` |
+| `Assert.That(actual, Does.Not.Contain(expectedSubstring))` on string subjects | `actual.Should().NotContain(expectedSubstring)` |
+| `Assert.That(actual, Does.StartWith(expectedPrefix))` when `expectedPrefix` is an obvious non-null constant string | `actual.Should().StartWith(expectedPrefix)` |
+| `Assert.That(actual, Does.EndWith(expectedSuffix))` when `expectedSuffix` is an obvious non-null constant string | `actual.Should().EndWith(expectedSuffix)` |
+| `Assert.That(collection, Has.Count.EqualTo(expectedCount))` | `collection.Should().HaveCount(expectedCount)` |
+| `Assert.That(actual, Is.SameAs(expected))` | `actual.Should().BeSameAs(expected)` |
+| `Assert.That(actual, Is.Not.SameAs(expected))` | `actual.Should().NotBeSameAs(expected)` |
 | `Assert.AreEqual(expected, actual)` | `actual.Should().Be(expected)` |
 | `Assert.AreNotEqual(expected, actual)` | `actual.Should().NotBe(expected)` |
 | `Assert.IsNull(value)` | `value.Should().BeNull()` |
@@ -71,7 +78,7 @@ These suggestions ship in:
 - `Axiom.Assertions` by default
 - `Axiom.Analyzers` if you only want the diagnostics
 
-The NUnit and MSTest support is intentionally narrower than the xUnit support today. These first waves only handle the simple shapes that map directly to Axiom without carrying extra framework-specific semantics across.
+The NUnit and MSTest support is intentionally narrower than the xUnit support today. These waves only handle shapes that map directly to Axiom without carrying extra framework-specific semantics across.
 
 ## What Still Needs Manual Migration
 
@@ -87,7 +94,7 @@ It skips cases where the rewrite is not obviously semantics-preserving yet, incl
 - nongeneric `Assert.Single(subject)` when you use the returned value
 - `Assert.Throws<TException>(...)` when you use the returned exception outside the `string? paramName, Action testCode` overload
 - `Assert.Throws<TException>(paramName, ...)` when `paramName` is not an obvious non-null constant string
-- richer NUnit constraint chains such as `Does.*`, `Has.*`, comparer/tolerance variants, and message-bearing `Assert.That(...)` overloads
+- richer NUnit constraint chains, comparer/tolerance variants, message-bearing `Assert.That(...)` overloads, `Has.*` chains beyond `Has.Count.EqualTo(int)`, and `Does.StartWith(...)` / `Does.EndWith(...)` when the expected prefix or suffix is not an obvious non-null constant string
 - MSTest message-bearing, comparer, precision, and other assertion-family overloads
 - most structural-comparison assertions
 

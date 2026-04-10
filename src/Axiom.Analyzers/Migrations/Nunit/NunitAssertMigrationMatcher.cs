@@ -111,6 +111,13 @@ internal static class NunitAssertMigrationMatcher
             NunitAssertMigrationKind.BeFalse => TryMatchPropertyConstraint(constraintOperation, symbols, "False", negated: false),
             NunitAssertMigrationKind.BeEmpty => TryMatchPropertyConstraint(constraintOperation, symbols, "Empty", negated: false),
             NunitAssertMigrationKind.NotBeEmpty => TryMatchPropertyConstraint(constraintOperation, symbols, "Empty", negated: true),
+            NunitAssertMigrationKind.ContainSubstring => TryMatchDoesStringMethod(constraintOperation, symbols, "Contain", negated: false, out expectedExpression, out expectedArgument),
+            NunitAssertMigrationKind.NotContainSubstring => TryMatchDoesStringMethod(constraintOperation, symbols, "Contain", negated: true, out expectedExpression, out expectedArgument),
+            NunitAssertMigrationKind.StartWith => TryMatchDoesStringMethod(constraintOperation, symbols, "StartWith", negated: false, out expectedExpression, out expectedArgument),
+            NunitAssertMigrationKind.EndWith => TryMatchDoesStringMethod(constraintOperation, symbols, "EndWith", negated: false, out expectedExpression, out expectedArgument),
+            NunitAssertMigrationKind.HaveCount => TryMatchCountEqualTo(constraintOperation, symbols, out expectedExpression, out expectedArgument),
+            NunitAssertMigrationKind.BeSameAs => TryMatchSameAs(constraintOperation, symbols, negated: false, out expectedExpression, out expectedArgument),
+            NunitAssertMigrationKind.NotBeSameAs => TryMatchSameAs(constraintOperation, symbols, negated: true, out expectedExpression, out expectedArgument),
             _ => false,
         };
     }
@@ -177,6 +184,111 @@ internal static class NunitAssertMigrationMatcher
                symbols.IsIsType(propertyReference.Property.ContainingType);
     }
 
+    private static bool TryMatchDoesStringMethod(
+        IOperation constraintOperation,
+        NunitAssertMigrationSymbols symbols,
+        string methodName,
+        bool negated,
+        out ExpressionSyntax? expectedExpression,
+        out IArgumentOperation? expectedArgument)
+    {
+        expectedExpression = null;
+        expectedArgument = null;
+
+        if (constraintOperation is not IInvocationOperation invocation ||
+            invocation.Syntax is not InvocationExpressionSyntax invocationSyntax ||
+            invocation.TargetMethod.Name != methodName ||
+            invocation.Arguments.Length != 1)
+        {
+            return false;
+        }
+
+        if (negated)
+        {
+            if (!symbols.IsConstraintExpressionType(invocation.TargetMethod.ContainingType) ||
+                !IsDirectDoesNotExpression(invocation.Instance, symbols))
+            {
+                return false;
+            }
+        }
+        else
+        {
+            if (invocation.Instance is not null ||
+                !symbols.IsDoesType(invocation.TargetMethod.ContainingType))
+            {
+                return false;
+            }
+        }
+
+        expectedExpression = invocationSyntax.ArgumentList.Arguments[0].Expression;
+        expectedArgument = invocation.Arguments[0];
+        return true;
+    }
+
+    private static bool TryMatchCountEqualTo(
+        IOperation constraintOperation,
+        NunitAssertMigrationSymbols symbols,
+        out ExpressionSyntax? expectedExpression,
+        out IArgumentOperation? expectedArgument)
+    {
+        expectedExpression = null;
+        expectedArgument = null;
+
+        if (constraintOperation is not IInvocationOperation invocation ||
+            invocation.Syntax is not InvocationExpressionSyntax invocationSyntax ||
+            invocation.TargetMethod.Name != "EqualTo" ||
+            invocation.Arguments.Length != 1 ||
+            !symbols.IsCountConstraintExpressionType(invocation.TargetMethod.ContainingType) ||
+            !IsDirectHasCountExpression(invocation.Instance, symbols))
+        {
+            return false;
+        }
+
+        expectedExpression = invocationSyntax.ArgumentList.Arguments[0].Expression;
+        expectedArgument = invocation.Arguments[0];
+        return true;
+    }
+
+    private static bool TryMatchSameAs(
+        IOperation constraintOperation,
+        NunitAssertMigrationSymbols symbols,
+        bool negated,
+        out ExpressionSyntax? expectedExpression,
+        out IArgumentOperation? expectedArgument)
+    {
+        expectedExpression = null;
+        expectedArgument = null;
+
+        if (constraintOperation is not IInvocationOperation invocation ||
+            invocation.Syntax is not InvocationExpressionSyntax invocationSyntax ||
+            invocation.TargetMethod.Name != "SameAs" ||
+            invocation.Arguments.Length != 1)
+        {
+            return false;
+        }
+
+        if (negated)
+        {
+            if (!symbols.IsConstraintExpressionType(invocation.TargetMethod.ContainingType) ||
+                !IsDirectNotExpression(invocation.Instance, symbols))
+            {
+                return false;
+            }
+        }
+        else
+        {
+            if (invocation.Instance is not null ||
+                !symbols.IsIsType(invocation.TargetMethod.ContainingType))
+            {
+                return false;
+            }
+        }
+
+        expectedExpression = invocationSyntax.ArgumentList.Arguments[0].Expression;
+        expectedArgument = invocation.Arguments[0];
+        return true;
+    }
+
     private static bool IsDirectNotExpression(IOperation? operation, NunitAssertMigrationSymbols symbols)
     {
         var unwrapped = operation is null ? null : UnwrapConversions(operation);
@@ -185,6 +297,26 @@ internal static class NunitAssertMigrationMatcher
                propertyReference.Instance is null &&
                symbols.IsIsType(propertyReference.Property.ContainingType) &&
                symbols.IsConstraintExpressionType(propertyReference.Type);
+    }
+
+    private static bool IsDirectDoesNotExpression(IOperation? operation, NunitAssertMigrationSymbols symbols)
+    {
+        var unwrapped = operation is null ? null : UnwrapConversions(operation);
+        return unwrapped is IPropertyReferenceOperation propertyReference &&
+               propertyReference.Property.Name == "Not" &&
+               propertyReference.Instance is null &&
+               symbols.IsDoesType(propertyReference.Property.ContainingType) &&
+               symbols.IsConstraintExpressionType(propertyReference.Type);
+    }
+
+    private static bool IsDirectHasCountExpression(IOperation? operation, NunitAssertMigrationSymbols symbols)
+    {
+        var unwrapped = operation is null ? null : UnwrapConversions(operation);
+        return unwrapped is IPropertyReferenceOperation propertyReference &&
+               propertyReference.Property.Name == "Count" &&
+               propertyReference.Instance is null &&
+               symbols.IsHasType(propertyReference.Property.ContainingType) &&
+               symbols.IsCountConstraintExpressionType(propertyReference.Type);
     }
 
     private static bool IsSupportedSubject(
@@ -204,6 +336,14 @@ internal static class NunitAssertMigrationMatcher
                 => IsSupportedReceiverExpression(subjectArgument, subjectType, static type => type.SpecialType == SpecialType.System_Boolean),
             NunitAssertMigrationKind.BeEmpty or NunitAssertMigrationKind.NotBeEmpty
                 => IsSupportedReceiverExpression(subjectArgument, subjectType, symbols.SupportsEmptyMigrationReceiver),
+            NunitAssertMigrationKind.ContainSubstring or NunitAssertMigrationKind.NotContainSubstring
+                => IsSupportedStringConstraintSubject(subjectArgument, subjectType, expectedArgument, symbols, requireConstantExpected: false),
+            NunitAssertMigrationKind.StartWith or NunitAssertMigrationKind.EndWith
+                => IsSupportedStringConstraintSubject(subjectArgument, subjectType, expectedArgument, symbols, requireConstantExpected: true),
+            NunitAssertMigrationKind.HaveCount
+                => IsSupportedCountSubject(subjectArgument, subjectType, expectedArgument, symbols),
+            NunitAssertMigrationKind.BeSameAs or NunitAssertMigrationKind.NotBeSameAs
+                => IsSupportedReferenceEqualitySubject(subjectArgument, subjectType, expectedArgument, symbols),
             _ => false,
         };
     }
@@ -257,6 +397,72 @@ internal static class NunitAssertMigrationMatcher
                symbols.IsSpanOrMemoryLike(type);
     }
 
+    private static bool IsSupportedStringConstraintSubject(
+        IArgumentOperation subjectArgument,
+        ITypeSymbol subjectType,
+        IArgumentOperation? expectedArgument,
+        NunitAssertMigrationSymbols symbols,
+        bool requireConstantExpected)
+    {
+        if (expectedArgument is null ||
+            !IsSupportedReceiverExpression(subjectArgument, subjectType, symbols.SupportsEqualityMigrationReceiver) ||
+            subjectType.SpecialType != SpecialType.System_String)
+        {
+            return false;
+        }
+
+        var expectedOperation = UnwrapConversions(expectedArgument.Value);
+        if (expectedOperation.Type?.SpecialType != SpecialType.System_String)
+        {
+            return false;
+        }
+
+        if (!requireConstantExpected)
+        {
+            return true;
+        }
+
+        return expectedOperation.ConstantValue is { HasValue: true, Value: string };
+    }
+
+    private static bool IsSupportedCountSubject(
+        IArgumentOperation subjectArgument,
+        ITypeSymbol subjectType,
+        IArgumentOperation? expectedArgument,
+        NunitAssertMigrationSymbols symbols)
+    {
+        if (expectedArgument is null ||
+            !IsSupportedReceiverExpression(subjectArgument, subjectType, symbols.SupportsCountMigrationReceiver))
+        {
+            return false;
+        }
+
+        var expectedType = UnwrapConversions(expectedArgument.Value).Type;
+        return expectedType?.SpecialType == SpecialType.System_Int32;
+    }
+
+    private static bool IsSupportedReferenceEqualitySubject(
+        IArgumentOperation subjectArgument,
+        ITypeSymbol subjectType,
+        IArgumentOperation? expectedArgument,
+        NunitAssertMigrationSymbols symbols)
+    {
+        if (expectedArgument is null ||
+            !IsSupportedReceiverExpression(subjectArgument, subjectType, symbols.SupportsReferenceEqualityMigrationReceiver))
+        {
+            return false;
+        }
+
+        var expectedType = UnwrapConversions(expectedArgument.Value).Type;
+        if (expectedType is null)
+        {
+            return false;
+        }
+
+        var conversion = symbols.Compilation.ClassifyConversion(expectedType, subjectType);
+        return conversion.Exists && conversion.IsImplicit;
+    }
+
     private static bool IsSupportedReceiverExpression(
         IArgumentOperation argument,
         ITypeSymbol subjectType,
@@ -301,5 +507,6 @@ internal static class NunitAssertMigrationMatcher
         => kind is NunitAssertMigrationKind.BeTrue or
                     NunitAssertMigrationKind.BeFalse or
                     NunitAssertMigrationKind.BeEmpty or
-                    NunitAssertMigrationKind.NotBeEmpty;
+                    NunitAssertMigrationKind.NotBeEmpty or
+                    NunitAssertMigrationKind.HaveCount;
 }
