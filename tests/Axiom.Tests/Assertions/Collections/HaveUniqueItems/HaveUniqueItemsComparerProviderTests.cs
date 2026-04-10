@@ -72,6 +72,28 @@ public sealed class HaveUniqueItemsComparerProviderTests : IDisposable
         Assert.Null(ex);
     }
 
+    [Fact]
+    public void HaveUniqueItems_UsesExplicitComparerInsteadOfConfiguredComparerProvider()
+    {
+        AxiomServices.Configure(c => c.ComparerProvider = new OddEvenMatchIntComparerProvider());
+        int[] values = [1, 3, 2];
+
+        var ex = Record.Exception(() => values.Should().HaveUniqueItems(EqualityComparer<int>.Default));
+
+        Assert.Null(ex);
+    }
+
+    [Fact]
+    public void HaveUniqueItems_FallsBackToDefaultComparer_WhenProviderDoesNotSupplyOne()
+    {
+        AxiomServices.Configure(c => c.ComparerProvider = new EmptyComparerProvider());
+        int[] values = [1, 3, 2];
+
+        var ex = Record.Exception(() => values.Should().HaveUniqueItems());
+
+        Assert.Null(ex);
+    }
+
     private static async IAsyncEnumerable<int> CreateAsyncSequence(params int[] items)
     {
         foreach (var item in items)
@@ -106,6 +128,15 @@ public sealed class HaveUniqueItemsComparerProviderTests : IDisposable
         public int GetHashCode(int obj)
         {
             return obj % 2;
+        }
+    }
+
+    private sealed class EmptyComparerProvider : IComparerProvider
+    {
+        public bool TryGetEqualityComparer<T>(out IEqualityComparer<T>? comparer)
+        {
+            comparer = null;
+            return false;
         }
     }
 }

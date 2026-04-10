@@ -139,6 +139,34 @@ public sealed class ContainInOrderAsyncTests : IDisposable
     }
 
     [Fact]
+    public async Task ContainInOrderAsync_UsesExplicitComparerInsteadOfConfiguredComparerProvider()
+    {
+        AxiomServices.Configure(c => c.ComparerProvider = new CaseInsensitiveStringComparerProvider());
+        var values = CreateAsyncSequence("started", "COMPLETED", "Finished");
+
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+            await values.Should().ContainInOrderAsync(["STARTED", "completed"], StringComparer.Ordinal));
+
+        Assert.Equal(
+            "Expected values to contain items in order [\"STARTED\", \"completed\"], but found missing expected item at sequence index 0: \"STARTED\".",
+            ex.Message);
+    }
+
+    [Fact]
+    public async Task ContainInOrderAsync_FallsBackToDefaultComparer_WhenProviderDoesNotSupplyOne()
+    {
+        AxiomServices.Configure(c => c.ComparerProvider = new EmptyComparerProvider());
+        var values = CreateAsyncSequence("started", "COMPLETED", "Finished");
+
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(async () =>
+            await values.Should().ContainInOrderAsync(["STARTED", "completed"]));
+
+        Assert.Equal(
+            "Expected values to contain items in order [\"STARTED\", \"completed\"], but found missing expected item at sequence index 0: \"STARTED\".",
+            ex.Message);
+    }
+
+    [Fact]
     public async Task ContainInOrderAsync_ThrowsArgumentNullException_WhenComparerIsNull()
     {
         var values = CreateAsyncSequence("started", "completed");
@@ -304,6 +332,15 @@ public sealed class ContainInOrderAsyncTests : IDisposable
                 return true;
             }
 
+            comparer = null;
+            return false;
+        }
+    }
+
+    private sealed class EmptyComparerProvider : IComparerProvider
+    {
+        public bool TryGetEqualityComparer<T>(out IEqualityComparer<T>? comparer)
+        {
             comparer = null;
             return false;
         }

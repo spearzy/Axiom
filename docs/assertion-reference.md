@@ -135,6 +135,26 @@ failedResponse.Should().NotBeOneOf(
     errorCodeComparer);
 ```
 
+Across assertion APIs that resolve equality comparers from either a local overload or the configured comparer provider, precedence is:
+
+1. explicit local comparer passed to the assertion
+2. configured comparer provider
+3. runtime default behavior
+
+This means a comparer passed to a single assertion overrides any configured provider for that call only.
+
+```csharp
+var stateLabels = new[] { "Alpha", "beta" };
+var statusLookup = new Dictionary<int, string>
+{
+    [1] = "Created",
+    [2] = "Queued",
+};
+
+stateLabels.Should().Contain("beta", StringComparer.OrdinalIgnoreCase);
+statusLookup.Should().ContainValue("queued", StringComparer.OrdinalIgnoreCase);
+```
+
 The ordered value comparer overloads let you apply local ordering rules to one assertion when the default runtime ordering is not the rule you want to use.
 
 ```csharp
