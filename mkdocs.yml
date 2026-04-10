@@ -1,5 +1,5 @@
-site_name: Axiom Docs
-site_description: Deterministic fluent assertions for modern .NET tests.
+site_name: Axiom Assertions
+site_description: Deterministic fluent assertions for .NET tests with batching, analyzers, equivalency, and vector and retrieval assertions.
 site_url: https://spearzy.github.io/Axiom/
 repo_url: https://github.com/spearzy/Axiom
 repo_name: spearzy/Axiom
@@ -26,14 +26,22 @@ nav:
   - Home: index.md
   - Getting Started: getting-started.md
   - Assertion Reference: assertion-reference.md
-  - Equivalency: equivalency.md
-  - Custom Assertions: custom-assertions.md
-  - Analyzers: analyzers.md
-  - Migrating to Axiom: migrating-to-axiom.md
-  - Vectors: vectors.md
-  - Benchmarks: benchmarks.md
+  - Compare and Migrate:
+      - Migrate from xUnit Assert to Axiom: migrate-from-xunit-assert.md
+      - Migrating to Axiom: migrating-to-axiom.md
+      - Axiom vs FluentAssertions: axiom-vs-fluentassertions.md
+      - Axiom vs Shouldly: axiom-vs-shouldly.md
+  - Guides:
+      - .NET Assertion Library: dotnet-assertion-library.md
+      - Equivalency: equivalency.md
+      - Vectors: vectors.md
+      - Vector Assertions for AI and Retrieval Tests in .NET: vector-assertions-for-ai-and-retrieval-tests-in-dotnet.md
+      - Custom Assertions: custom-assertions.md
+      - Analyzers: analyzers.md
+      - Benchmarks: benchmarks.md
 markdown_extensions:
   - admonition
   - tables
+  - meta
   - toc:
       permalink: true

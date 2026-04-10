@@ -1,6 +1,6 @@
-# Axiom
+# Axiom Assertions for .NET
 
-Axiom is a fluent assertion library for modern .NET tests. It is designed around deterministic failure output, explicit batch aggregation, low pass-path overhead, and configurable equivalency.
+Axiom Assertions is a fluent assertion library for .NET tests. It is designed around deterministic failure output, explicit batch aggregation, low pass-path overhead, configurable equivalency, and optional vector and retrieval assertions.
 
 Target frameworks: `net8.0`, `net9.0`, and `net10.0`.
 

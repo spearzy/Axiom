@@ -1,4 +1,4 @@
-# Axiom
+# Axiom Assertions for .NET
 
 ![Axiom](assets/images/axiom-logo.png)
 
@@ -9,7 +9,7 @@
 [![Version](https://img.shields.io/nuget/v/Axiom.Assertions?label=version)](https://www.nuget.org/packages/Axiom.Assertions)
 [![Downloads](https://img.shields.io/nuget/dt/Axiom.Assertions?label=downloads)](https://www.nuget.org/packages/Axiom.Assertions)
 
-Axiom is a fluent assertion library for modern .NET tests. It focuses on deterministic failure output, explicit batch aggregation, configurable equivalency, low pass-path overhead, with detailed documentation.
+Axiom Assertions is a fluent assertion library for .NET tests. It focuses on deterministic failure output, explicit batch aggregation, configurable equivalency, analyzer-backed migration help, and optional vector and retrieval assertions.
 
 Target frameworks: `net8.0`, `net9.0`, and `net10.0`.
 
@@ -96,8 +96,13 @@ Use the docs site for the full guides and reference:
 - [Getting Started](https://spearzy.github.io/Axiom/getting-started/)
 - [Assertion Reference](https://spearzy.github.io/Axiom/assertion-reference/)
 - [Migration Guide](https://spearzy.github.io/Axiom/migrating-to-axiom/)
+- [Migrate from xUnit Assert to Axiom](https://spearzy.github.io/Axiom/migrate-from-xunit-assert/)
+- [Axiom vs FluentAssertions](https://spearzy.github.io/Axiom/axiom-vs-fluentassertions/)
+- [Axiom vs Shouldly](https://spearzy.github.io/Axiom/axiom-vs-shouldly/)
+- [.NET assertion library](https://spearzy.github.io/Axiom/dotnet-assertion-library/)
 - [Equivalency Guide](https://spearzy.github.io/Axiom/equivalency/)
 - [Vectors Guide](https://spearzy.github.io/Axiom/vectors/)
+- [Vector assertions for AI and retrieval tests in .NET](https://spearzy.github.io/Axiom/vector-assertions-for-ai-and-retrieval-tests-in-dotnet/)
 - [Analyzers Guide](https://spearzy.github.io/Axiom/analyzers/)
 - [Benchmarks](https://spearzy.github.io/Axiom/benchmarks/)
 

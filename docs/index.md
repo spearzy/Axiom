@@ -1,6 +1,49 @@
-# Axiom Docs
+---
+title: Axiom Assertions for .NET
+description: Deterministic fluent assertions for .NET tests, with explicit batching, analyzers, equivalency, and optional vector and retrieval assertions.
+---
 
-Axiom is a fluent assertion library for modern .NET tests. It focuses on deterministic failure output, explicit `Batch` aggregation, low pass-path overhead, and a package lineup that stays clear about what each piece is for.
+# Axiom Assertions for .NET
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "name": "Axiom Assertions",
+  "alternateName": "Axiom",
+  "url": "https://spearzy.github.io/Axiom/",
+  "description": "Deterministic fluent assertions for .NET tests, with explicit batching, analyzers, equivalency, and optional vector and retrieval assertions."
+}
+</script>
+
+Axiom Assertions is a deterministic fluent assertion library for .NET tests. It focuses on stable failure output, explicit grouped assertions with `Batch`, configurable equivalency, and a package layout that stays clear about what is core and what is optional.
+
+Axiom is still early in adoption, so these docs focus on what is implemented today and the test scenarios it currently covers well.
+
+## What Axiom Focuses On
+
+- deterministic failure messages that stay stable in CI and code review
+- explicit multi-assertion aggregation with `Batch`
+- built-in equivalency support with configurable defaults
+- analyzers and code fixes shipped with the normal `Axiom.Assertions` install path
+- optional vector and retrieval assertions without forcing AI-specific APIs into the base package
+
+## Install
+
+Most test projects should start with `Axiom.Assertions`:
+
+```bash
+dotnet add package Axiom.Assertions
+```
+
+Install the optional packages only when they fit the test suite you are building:
+
+```bash
+dotnet add package Axiom.Analyzers
+dotnet add package Axiom.Vectors
+```
+
+Install `Axiom.Core` directly only when you want low-level primitives such as `Batch`, formatting, or configuration without the full fluent assertion surface.
 
 ## Package Lineup
 
@@ -8,52 +51,42 @@ Axiom is a fluent assertion library for modern .NET tests. It focuses on determi
 
 The default package for most test projects.
 
-- Fluent `Should()` assertions
-- Built-in equivalency, async, collection, string, and exception assertions
-- Bundled Axiom analyzers/code fixes
+- fluent `Should()` assertions
+- built-in equivalency, async, collection, string, and exception assertions
+- bundled Axiom analyzers and code fixes
 
-```bash
-dotnet add package Axiom.Assertions
-```
+### Axiom.Core
+
+Install this directly when you want low-level primitives such as `Batch`, formatting, or configuration without the full fluent assertion surface.
 
 ### Axiom.Analyzers
 
-Optional standalone analyzers package.
-
-Install this only if you want the diagnostics without the runtime assertion library.
-
-```bash
-dotnet add package Axiom.Analyzers
-```
+Install this separately when you want the diagnostics without the runtime assertion library.
 
 ### Axiom.Vectors
 
-Optional package for vector and embedding-style test scenarios.
-
-- dimension checks
-- NaN/infinity validation
-- approximate equality
-- cosine similarity thresholds
-- normalization checks
-
-```bash
-dotnet add package Axiom.Vectors
-```
+Install this when you want vector, embedding, and retrieval-focused assertions for AI and ranking tests in .NET.
 
 ## Where To Start
 
-- New to Axiom: start with [Getting Started](getting-started.md)
-- Need the full API catalog: go to [Assertion Reference](assertion-reference.md)
+- New to the library? Start with [Getting Started](getting-started.md)
+- For the API catalog: go to [Assertion Reference](assertion-reference.md)
+- Migrating a test suite: read [Migrating to Axiom](migrating-to-axiom.md) or the focused [Migrate from xUnit Assert to Axiom](migrate-from-xunit-assert.md) guide
+- Evaluating trade-offs: read [Axiom vs FluentAssertions](axiom-vs-fluentassertions.md), [Axiom vs Shouldly](axiom-vs-shouldly.md), or the broader [.NET assertion library](dotnet-assertion-library.md) page
 - Working with structural comparison: go to [Equivalency](equivalency.md)
-- Building team/domain assertions: go to [Custom Assertions](custom-assertions.md)
-- Using the diagnostics only: go to [Analyzers](analyzers.md)
-- Migrating an existing xUnit-style suite: go to [Migrating to Axiom](migrating-to-axiom.md)
-- Testing embeddings or vector outputs: go to [Vectors](vectors.md)
+- Testing embeddings or ranked retrieval: go to [Vectors](vectors.md) or the focused [Vector assertions for AI and retrieval tests in .NET](vector-assertions-for-ai-and-retrieval-tests-in-dotnet.md)
+- Using diagnostics only: go to [Analyzers](analyzers.md)
 
-## What Axiom Is Good At
+## A Quick Example
 
-- Stable, deterministic failure messages
-- Explicit grouped failures with `Batch`
-- Strong async assertion support
-- Configurable object-graph equivalency
-- Optional package layers for analyzers and vector assertions
+```csharp
+using Axiom.Assertions;
+using Axiom.Core;
+
+user.Name.Should().NotBeNull();
+user.Email.Should().Contain("@");
+
+using var batch = Assert.Batch("profile");
+user.Name.Should().StartWith("A");
+user.Roles.Should().Contain("admin");
+```

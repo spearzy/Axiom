@@ -1,3 +1,8 @@
+---
+title: Getting Started with Axiom Assertions for .NET
+description: Install Axiom Assertions for .NET, write your first assertions, and find the right guides for migration, equivalency, analyzers, and vector testing.
+---
+
 # Getting Started
 
 ## Install Axiom.Assertions
@@ -15,7 +20,7 @@ That gives you:
 - bundled Axiom analyzers/code fixes
 - framework-native failure behavior by default for xUnit, NUnit, and MSTest
 
-You do not need `AxiomSetup.cs` just to start using Axiom.
+You do not need `AxiomSetup.cs` just to start using Axiom Assertions.
 
 ## Start Using It
 
@@ -116,8 +121,11 @@ embedding.Should().HaveCosineSimilarityWith(expected).AtLeast(0.995f);
 ## Next Steps
 
 - Browse the full [Assertion Reference](assertion-reference.md)
+- Read [Migrate from xUnit Assert to Axiom](migrate-from-xunit-assert.md) if you are coming from classic xUnit assertions
+- Read [Migrating to Axiom](migrating-to-axiom.md) for the broader migration guide
+- Compare [Axiom vs FluentAssertions](axiom-vs-fluentassertions.md) or [Axiom vs Shouldly](axiom-vs-shouldly.md) if you are choosing a library
+- Read [.NET assertion library](dotnet-assertion-library.md) for the broader category overview
 - Read the [Equivalency](equivalency.md) guide for object-graph configuration
 - Read [Custom Assertions](custom-assertions.md) when you want domain-specific extensions
 - Read [Analyzers](analyzers.md) for the shipped diagnostics
-- Read [Migrating to Axiom](migrating-to-axiom.md) if you are converting an existing xUnit-style suite
-- Read [Vectors](vectors.md) for embedding-style assertions
+- Read [Vectors](vectors.md) or [Vector assertions for AI and retrieval tests in .NET](vector-assertions-for-ai-and-retrieval-tests-in-dotnet.md) for embedding and retrieval-style assertions
