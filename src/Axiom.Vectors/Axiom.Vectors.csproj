@@ -2,11 +2,13 @@
   <PropertyGroup>
     <PackageId>Axiom.Vectors</PackageId>
     <TargetFrameworks>net10.0;net9.0;net8.0</TargetFrameworks>
-    <Description>Vector and embedding-focused assertions for AI and similarity test scenarios in Axiom.</Description>
-    <PackageTags>assertions;testing;dotnet;unit-testing;vectors;embeddings;ai;cosine-similarity</PackageTags>
+    <Description>Optional extension on top of Axiom.Assertions for vector, embedding, and ranked retrieval assertions in .NET tests.</Description>
+    <PackageReadmeFile>PACKAGE_README.md</PackageReadmeFile>
+    <PackageTags>dotnet;testing;assertions;vectors;embeddings;retrieval</PackageTags>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Axiom.Assertions\Axiom.Assertions.csproj" />
+    <None Include="PACKAGE_README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
 </Project>

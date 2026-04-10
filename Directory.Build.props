@@ -18,9 +18,7 @@
     <PackageProjectUrl>https://github.com/spearzy/Axiom</PackageProjectUrl>
     <RepositoryUrl>https://github.com/spearzy/Axiom</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-    <PackageReadmeFile>NUGET_README.md</PackageReadmeFile>
     <PackageIcon>assets/images/axiom-icon-dark.png</PackageIcon>
-    <PackageTags>assertions;testing;dotnet;unit-testing</PackageTags>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
@@ -29,7 +27,6 @@
   </PropertyGroup>
 
   <ItemGroup Condition="'$(MSBuildProjectName)' == 'Axiom.Core' or '$(MSBuildProjectName)' == 'Axiom.Assertions' or '$(MSBuildProjectName)' == 'Axiom.Analyzers' or '$(MSBuildProjectName)' == 'Axiom.Vectors'">
-    <None Include="$(MSBuildThisFileDirectory)NUGET_README.md" Pack="true" PackagePath="\" />
     <None Include="$(MSBuildThisFileDirectory)assets/images/axiom-logo.png" Pack="true" PackagePath="assets/images/" />
     <None Include="$(MSBuildThisFileDirectory)assets/images/axiom-icon-dark.png" Pack="true" PackagePath="assets/images/" />
     <None Include="$(MSBuildThisFileDirectory)assets/images/axiom-icon-light.png" Pack="true" PackagePath="assets/images/" />

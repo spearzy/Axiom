@@ -2,7 +2,8 @@
   <PropertyGroup>
     <PackageId>Axiom.Analyzers</PackageId>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <Description>Roslyn analyzers and code fixes for common Axiom assertion mistakes.</Description>
+    <Description>Roslyn analyzers and code fixes for Axiom assertions, without the runtime assertion APIs.</Description>
+    <PackageReadmeFile>PACKAGE_README.md</PackageReadmeFile>
     <IncludeBuildOutput>false</IncludeBuildOutput>
     <NoPackageAnalysis>true</NoPackageAnalysis>
     <IsRoslynComponent>true</IsRoslynComponent>
@@ -10,12 +11,13 @@
     <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
     <NoWarn>$(NoWarn);RS2007;RS2008</NoWarn>
     <IncludeSymbols>false</IncludeSymbols>
-    <PackageTags>analyzers;roslyn;testing;dotnet;assertions</PackageTags>
+    <PackageTags>dotnet;analyzers;roslyn;testing;assertions</PackageTags>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.11.0" PrivateAssets="all" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.13.0" PrivateAssets="all" />
+    <None Include="PACKAGE_README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
 
   <ItemGroup>

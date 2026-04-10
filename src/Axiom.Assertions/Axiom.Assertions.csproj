@@ -2,12 +2,15 @@
   <PropertyGroup>
     <PackageId>Axiom.Assertions</PackageId>
     <TargetFrameworks>net10.0;net9.0;net8.0</TargetFrameworks>
-    <Description>Fluent assertion APIs for strings, values, collections, exceptions, and equivalency in Axiom.</Description>
+    <Description>Main fluent assertion package for .NET tests, with deterministic failure output, batching, equivalency, async assertions, and bundled analyzers.</Description>
+    <PackageReadmeFile>PACKAGE_README.md</PackageReadmeFile>
+    <PackageTags>dotnet;testing;assertions;equivalency</PackageTags>
     <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);AddBundledAnalyzersToPackage</TargetsForTfmSpecificContentInPackage>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Axiom.Core\Axiom.Core.csproj" />
+    <None Include="PACKAGE_README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
 
   <Target Name="BuildBundledAnalyzersForPack" Condition="'$(TargetFramework)' == 'net10.0' and '$(NoBuild)' != 'true'">

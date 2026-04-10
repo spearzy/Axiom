@@ -2,6 +2,12 @@
   <PropertyGroup>
     <PackageId>Axiom.Core</PackageId>
     <TargetFrameworks>net10.0;net9.0;net8.0</TargetFrameworks>
-    <Description>Core batching, failure modelling, formatting, and extensibility primitives for Axiom assertions.</Description>
+    <Description>Low-level batching, failure, formatting, and configuration primitives for advanced Axiom integrations. Not the default install path for most test projects.</Description>
+    <PackageReadmeFile>PACKAGE_README.md</PackageReadmeFile>
+    <PackageTags>dotnet;testing;assertions;batching;infrastructure</PackageTags>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="PACKAGE_README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
 </Project>
