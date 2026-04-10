@@ -111,6 +111,41 @@ public sealed class XunitAssertMigrationContainmentTests
     }
 
     [Fact]
+    public async Task AssertContains_StringComparisonOverload_IsFlagged_AndFixed()
+    {
+        const string source =
+            """
+                using System;
+                using Xunit;
+
+                public sealed class Sample
+                {
+                    public void Check(string actual)
+                    {
+                        Assert.Contains("sub", actual, StringComparison.OrdinalIgnoreCase);
+                    }
+                }
+                """;
+
+        const string fixedSource =
+            """
+                using System;
+                using Xunit;
+                using Axiom.Assertions;
+
+                public sealed class Sample
+                {
+                    public void Check(string actual)
+                    {
+                        actual.Should().Contain("sub", StringComparison.OrdinalIgnoreCase);
+                    }
+                }
+                """;
+
+        await AnalyzerVerifier.VerifyAppliedCodeFixAsync<XunitAssertMigrationAnalyzer, XunitAssertMigrationCodeFixProvider>(source, fixedSource);
+    }
+
+    [Fact]
     public async Task AssertContains_StringCollectionOverload_UsesCollectionDiagnostic()
     {
         const string source =
@@ -670,6 +705,41 @@ public sealed class XunitAssertMigrationContainmentTests
     }
 
     [Fact]
+    public async Task AssertDoesNotContain_StringComparisonOverload_IsFlagged_AndFixed()
+    {
+        const string source =
+            """
+                using System;
+                using Xunit;
+
+                public sealed class Sample
+                {
+                    public void Check(string actual)
+                    {
+                        Assert.DoesNotContain("sub", actual, StringComparison.OrdinalIgnoreCase);
+                    }
+                }
+                """;
+
+        const string fixedSource =
+            """
+                using System;
+                using Xunit;
+                using Axiom.Assertions;
+
+                public sealed class Sample
+                {
+                    public void Check(string actual)
+                    {
+                        actual.Should().NotContain("sub", StringComparison.OrdinalIgnoreCase);
+                    }
+                }
+                """;
+
+        await AnalyzerVerifier.VerifyAppliedCodeFixAsync<XunitAssertMigrationAnalyzer, XunitAssertMigrationCodeFixProvider>(source, fixedSource);
+    }
+
+    [Fact]
     public async Task AssertDoesNotContain_StringOverload_WithImplicitStringReceiver_IsNotFlagged()
     {
         const string source =
@@ -808,7 +878,7 @@ public sealed class XunitAssertMigrationContainmentTests
     }
 
     [Fact]
-    public async Task AssertStartsWith_StringComparisonOverload_IsNotFlagged()
+    public async Task AssertStartsWith_StringComparisonOverload_IsFlagged_AndFixed()
     {
         const string source =
             """
@@ -824,7 +894,22 @@ public sealed class XunitAssertMigrationContainmentTests
                 }
                 """;
 
-        await AnalyzerVerifier.VerifyAnalyzerAsync<XunitAssertMigrationAnalyzer>(source);
+        const string fixedSource =
+            """
+                using System;
+                using Xunit;
+                using Axiom.Assertions;
+
+                public sealed class Sample
+                {
+                    public void Check(string actual)
+                    {
+                        actual.Should().StartWith("pre", StringComparison.OrdinalIgnoreCase);
+                    }
+                }
+                """;
+
+        await AnalyzerVerifier.VerifyAppliedCodeFixAsync<XunitAssertMigrationAnalyzer, XunitAssertMigrationCodeFixProvider>(source, fixedSource);
     }
 
     [Fact]
@@ -942,7 +1027,7 @@ public sealed class XunitAssertMigrationContainmentTests
     }
 
     [Fact]
-    public async Task AssertEndsWith_StringComparisonOverload_IsNotFlagged()
+    public async Task AssertEndsWith_StringComparisonOverload_IsFlagged_AndFixed()
     {
         const string source =
             """
@@ -958,7 +1043,22 @@ public sealed class XunitAssertMigrationContainmentTests
                 }
                 """;
 
-        await AnalyzerVerifier.VerifyAnalyzerAsync<XunitAssertMigrationAnalyzer>(source);
+        const string fixedSource =
+            """
+                using System;
+                using Xunit;
+                using Axiom.Assertions;
+
+                public sealed class Sample
+                {
+                    public void Check(string actual)
+                    {
+                        actual.Should().EndWith("suf", StringComparison.OrdinalIgnoreCase);
+                    }
+                }
+                """;
+
+        await AnalyzerVerifier.VerifyAppliedCodeFixAsync<XunitAssertMigrationAnalyzer, XunitAssertMigrationCodeFixProvider>(source, fixedSource);
     }
 
     [Fact]

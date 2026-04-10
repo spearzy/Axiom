@@ -13,6 +13,7 @@ internal sealed class XunitAssertMigrationMatch
         InvocationExpressionSyntax invocationSyntax,
         ExpressionSyntax subjectExpression,
         ExpressionSyntax? expectedExpression,
+        ExpressionSyntax? additionalArgumentExpression,
         TypeSyntax? typeArgumentSyntax,
         bool requiresAssertionsExtensionsNamespace,
         bool appendSingleItem,
@@ -23,6 +24,7 @@ internal sealed class XunitAssertMigrationMatch
         InvocationSyntax = invocationSyntax;
         SubjectExpression = subjectExpression;
         ExpectedExpression = expectedExpression;
+        AdditionalArgumentExpression = additionalArgumentExpression;
         TypeArgumentSyntax = typeArgumentSyntax;
         RequiresAssertionsExtensionsNamespace = requiresAssertionsExtensionsNamespace;
         AppendSingleItem = appendSingleItem;
@@ -34,6 +36,7 @@ internal sealed class XunitAssertMigrationMatch
     public InvocationExpressionSyntax InvocationSyntax { get; }
     public ExpressionSyntax SubjectExpression { get; }
     public ExpressionSyntax? ExpectedExpression { get; }
+    public ExpressionSyntax? AdditionalArgumentExpression { get; }
     public TypeSyntax? TypeArgumentSyntax { get; }
     public bool RequiresAssertionsExtensionsNamespace { get; }
     public bool AppendSingleItem { get; }
@@ -87,6 +90,7 @@ internal static class XunitAssertMigrationMatcher
             var arguments = invocationSyntax.ArgumentList.Arguments;
             var subjectExpression = GetSubjectExpression(spec.Kind, arguments);
             var expectedExpression = GetExpectedExpression(spec.Kind, arguments);
+            var additionalArgumentExpression = GetAdditionalArgumentExpression(spec.Kind, arguments);
             var typeArgumentSyntax = GetTypeArgumentSyntax(spec.Kind, invocationSyntax);
 
             // Some fixes only make sense for generic source calls.
@@ -101,6 +105,7 @@ internal static class XunitAssertMigrationMatcher
                 invocationSyntax,
                 subjectExpression,
                 expectedExpression,
+                additionalArgumentExpression,
                 typeArgumentSyntax,
                 RequiresAssertionsExtensionsNamespace(spec.Kind, GetSubjectType(spec.Kind, invocation.TargetMethod.Parameters)),
                 appendSingleItem: resultIsConsumed && spec.Kind is XunitAssertMigrationKind.ContainSingle or XunitAssertMigrationKind.ContainSingleMatching,
@@ -266,6 +271,28 @@ internal static class XunitAssertMigrationMatcher
                 => arguments[1].Expression,
             _ => null,
         };
+
+    private static ExpressionSyntax? GetAdditionalArgumentExpression(
+        XunitAssertMigrationKind kind,
+        SeparatedSyntaxList<ArgumentSyntax> arguments)
+    {
+        if (arguments.Count != 3)
+        {
+            return null;
+        }
+
+        return kind switch
+        {
+            XunitAssertMigrationKind.Be or
+            XunitAssertMigrationKind.NotBe or
+            XunitAssertMigrationKind.ContainSubstring or
+            XunitAssertMigrationKind.NotContainSubstring or
+            XunitAssertMigrationKind.StartWith or
+            XunitAssertMigrationKind.EndWith
+                => arguments[2].Expression,
+            _ => null,
+        };
+    }
 
     private static TypeSyntax? GetTypeArgumentSyntax(
         XunitAssertMigrationKind kind,

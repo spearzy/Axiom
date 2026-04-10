@@ -583,7 +583,85 @@ public sealed class XunitAssertMigrationBasicTests
     }
 
     [Fact]
-    public async Task ComparerOverload_IsNotFlagged()
+    public async Task ComparerOverload_IsFlagged_AndFixed()
+    {
+        const string source =
+            """
+                using System.Collections.Generic;
+                using Xunit;
+
+                public sealed class Sample
+                {
+                    public void Check(OrderId expected, OrderId actual, IEqualityComparer<OrderId> comparer)
+                    {
+                        Assert.Equal(expected, actual, comparer);
+                    }
+                }
+
+                public sealed record OrderId(string Value);
+                """;
+
+        const string fixedSource =
+            """
+                using System.Collections.Generic;
+                using Xunit;
+                using Axiom.Assertions;
+
+                public sealed class Sample
+                {
+                    public void Check(OrderId expected, OrderId actual, IEqualityComparer<OrderId> comparer)
+                    {
+                        actual.Should().Be(expected, comparer);
+                    }
+                }
+
+                public sealed record OrderId(string Value);
+                """;
+
+        await AnalyzerVerifier.VerifyAppliedCodeFixAsync<XunitAssertMigrationAnalyzer, XunitAssertMigrationCodeFixProvider>(source, fixedSource);
+    }
+
+    [Fact]
+    public async Task NotEqualComparerOverload_IsFlagged_AndFixed()
+    {
+        const string source =
+            """
+                using System.Collections.Generic;
+                using Xunit;
+
+                public sealed class Sample
+                {
+                    public void Check(OrderId expected, OrderId actual, IEqualityComparer<OrderId> comparer)
+                    {
+                        Assert.NotEqual(expected, actual, comparer);
+                    }
+                }
+
+                public sealed record OrderId(string Value);
+                """;
+
+        const string fixedSource =
+            """
+                using System.Collections.Generic;
+                using Xunit;
+                using Axiom.Assertions;
+
+                public sealed class Sample
+                {
+                    public void Check(OrderId expected, OrderId actual, IEqualityComparer<OrderId> comparer)
+                    {
+                        actual.Should().NotBe(expected, comparer);
+                    }
+                }
+
+                public sealed record OrderId(string Value);
+                """;
+
+        await AnalyzerVerifier.VerifyAppliedCodeFixAsync<XunitAssertMigrationAnalyzer, XunitAssertMigrationCodeFixProvider>(source, fixedSource);
+    }
+
+    [Fact]
+    public async Task StringComparerOverload_IsNotFlagged()
     {
         const string source =
             """

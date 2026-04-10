@@ -49,10 +49,16 @@ internal static class XunitContainmentMigrationMatcher
         XunitAssertMigrationSymbols symbols)
     {
         var method = invocation.TargetMethod;
-        if (method.Parameters.Length != 2 ||
+        if (method.Parameters.Length is not 2 and not 3 ||
             method.Parameters[0].Type.SpecialType != SpecialType.System_String ||
             method.Parameters[1].Type.SpecialType != SpecialType.System_String ||
-            invocation.Arguments.Length != 2)
+            invocation.Arguments.Length != method.Parameters.Length)
+        {
+            return false;
+        }
+
+        if (invocation.Arguments.Length == 3 &&
+            !IsStringComparisonArgument(invocation.Arguments[2], symbols))
         {
             return false;
         }
@@ -65,16 +71,30 @@ internal static class XunitContainmentMigrationMatcher
         XunitAssertMigrationSymbols symbols)
     {
         var method = invocation.TargetMethod;
-        if (method.Parameters.Length != 2 ||
+        if (method.Parameters.Length is not 2 and not 3 ||
             method.Parameters[0].Type.SpecialType != SpecialType.System_String ||
             method.Parameters[1].Type.SpecialType != SpecialType.System_String ||
-            invocation.Arguments.Length != 2)
+            invocation.Arguments.Length != method.Parameters.Length)
+        {
+            return false;
+        }
+
+        if (invocation.Arguments.Length == 3 &&
+            !IsStringComparisonArgument(invocation.Arguments[2], symbols))
         {
             return false;
         }
 
         return XunitAssertMigrationMatcher.IsSupportedExpectedConstantStringExpression(invocation.Arguments[0]) &&
                IsSupportedStringReceiverExpression(invocation.Arguments[1], symbols);
+    }
+
+    private static bool IsStringComparisonArgument(
+        IArgumentOperation argument,
+        XunitAssertMigrationSymbols symbols)
+    {
+        var comparisonType = XunitAssertMigrationMatcher.GetArgumentType(argument);
+        return comparisonType is not null && symbols.IsStringComparisonType(comparisonType);
     }
 
     private static bool IsSupportedStringReceiverExpression(
