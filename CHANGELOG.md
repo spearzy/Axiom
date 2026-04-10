@@ -4,6 +4,19 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project follows [Semantic Versioning](https://semver.org/).
 
+## [1.9.0] - 2026-04-10
+
+### Added
+- Added local comparer overloads for core value assertions, including equality and ordered comparison checks.
+
+### Changed
+- Made comparer precedence explicit across assertion APIs that support local comparers or configured comparer providers.
+- Updated comparison, migration, category, and identity docs so the docs site and package guidance more clearly describe Axiom Assertions for .NET.
+- Hardened NuGet metadata so `Axiom.Assertions`, `Axiom.Core`, `Axiom.Analyzers`, and `Axiom.Vectors` are more clearly differentiated for consumers.
+
+### Fixed
+- Tightened regression coverage around local comparison paths, comparer precedence, and related docs examples.
+
 ## [1.8.0] - 2026-04-09
 
 ### Added

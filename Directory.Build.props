@@ -23,7 +23,7 @@
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
-    <VersionPrefix>1.8.0</VersionPrefix>
+    <VersionPrefix>1.9.0</VersionPrefix>
   </PropertyGroup>
 
   <ItemGroup Condition="'$(MSBuildProjectName)' == 'Axiom.Core' or '$(MSBuildProjectName)' == 'Axiom.Assertions' or '$(MSBuildProjectName)' == 'Axiom.Analyzers' or '$(MSBuildProjectName)' == 'Axiom.Vectors'">
