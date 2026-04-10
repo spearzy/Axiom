@@ -43,7 +43,7 @@ That default package already brings the analyzers with it.
 
 Some tests should stay manual during migration:
 
-- assertions with custom comparers or precision rules
+- assertions with precision rules or xUnit comparer overloads that do not have a direct, semantics-preserving Axiom equivalent yet
 - structural comparisons that are really object-graph assertions
 - exception assertions where the returned exception is used in detail
 - tests that currently hide several behaviors inside a long chain of `Assert.*` calls

@@ -19,6 +19,8 @@ The current analyzer and code-fix wave focuses on high-confidence xUnit `Assert.
 | --- | --- |
 | `Assert.Equal(expected, actual)` | `actual.Should().Be(expected)` |
 | `Assert.NotEqual(expected, actual)` | `actual.Should().NotBe(expected)` |
+| `Assert.Equal(expected, actual, comparer)` for non-string value assertions | `actual.Should().Be(expected, comparer)` |
+| `Assert.NotEqual(expected, actual, comparer)` for non-string value assertions | `actual.Should().NotBe(expected, comparer)` |
 | `Assert.Null(value)` | `value.Should().BeNull()` |
 | `Assert.NotNull(value)` | `value.Should().NotBeNull()` |
 | `Assert.True(condition)` | `condition.Should().BeTrue()` |
@@ -29,8 +31,12 @@ The current analyzer and code-fix wave focuses on high-confidence xUnit `Assert.
 | `Assert.DoesNotContain(item, collection)` | `collection.Should().NotContain(item)` |
 | `Assert.Contains(expectedSubstring, actualString)` | `actualString.Should().Contain(expectedSubstring)` |
 | `Assert.DoesNotContain(expectedSubstring, actualString)` | `actualString.Should().NotContain(expectedSubstring)` |
+| `Assert.Contains(expectedSubstring, actualString, comparison)` | `actualString.Should().Contain(expectedSubstring, comparison)` |
+| `Assert.DoesNotContain(expectedSubstring, actualString, comparison)` | `actualString.Should().NotContain(expectedSubstring, comparison)` |
 | `Assert.StartsWith(expectedPrefix, actualString)` | `actualString.Should().StartWith(expectedPrefix)` |
 | `Assert.EndsWith(expectedSuffix, actualString)` | `actualString.Should().EndWith(expectedSuffix)` |
+| `Assert.StartsWith(expectedPrefix, actualString, comparison)` when `expectedPrefix` is an obvious non-null constant string | `actualString.Should().StartWith(expectedPrefix, comparison)` |
+| `Assert.EndsWith(expectedSuffix, actualString, comparison)` when `expectedSuffix` is an obvious non-null constant string | `actualString.Should().EndWith(expectedSuffix, comparison)` |
 | `Assert.Contains(key, dictionary)` | `dictionary.Should().ContainKey(key)` or `.WhoseValue` when you use the associated value |
 | `Assert.DoesNotContain(key, dictionary)` | `dictionary.Should().NotContainKey(key)` |
 | `Assert.Single(subject)` | `subject.Should().ContainSingle()` or `.SingleItem` when you use the item |
@@ -73,8 +79,10 @@ The migration tooling is conservative on purpose.
 
 It skips cases where the rewrite is not obviously semantics-preserving yet, including:
 
-- overloads with custom comparers, precision, inspectors, or messages
-- `Assert.StartsWith(...)` and `Assert.EndsWith(...)` overloads that use `StringComparison`, `Memory<char>`, or `Span<char>`
+- precision, inspectors, and message-bearing overloads
+- string-equality overloads such as `Assert.Equal(..., ignoreCase: ...)`
+- comparer-bearing equality overloads that would land on Axiom's specialized string assertion surface rather than a direct local-comparer value assertion
+- `Assert.StartsWith(...)` and `Assert.EndsWith(...)` overloads that use `Memory<char>` or `Span<char>`
 - `Assert.StartsWith(...)` and `Assert.EndsWith(...)` when the expected prefix or suffix is not an obvious non-null constant string
 - nongeneric `Assert.Single(subject)` when you use the returned value
 - `Assert.Throws<TException>(...)` when you use the returned exception outside the `string? paramName, Action testCode` overload

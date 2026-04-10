@@ -11,7 +11,9 @@ namespace Xunit
     public static class Assert
     {
         public static void Equal<T>(T expected, T actual) { }
+        public static void Equal<T>(T expected, T actual, IEqualityComparer<T> comparer) { }
         public static void NotEqual<T>(T expected, T actual) { }
+        public static void NotEqual<T>(T expected, T actual, IEqualityComparer<T> comparer) { }
         public static void Null(object? value) { }
         public static T NotNull<T>(T value) => value;
         public static void True(bool condition) { }
@@ -20,6 +22,7 @@ namespace Xunit
         public static void NotEmpty(IEnumerable collection) { }
         public static void Contains<T>(T expected, IEnumerable<T> collection) { }
         public static void Contains(string expectedSubstring, string actualString) { }
+        public static void Contains(string expectedSubstring, string actualString, StringComparison comparisonType) { }
         public static TValue Contains<TKey, TValue>(TKey expected, IDictionary<TKey, TValue> collection) => default!;
         public static TValue Contains<TKey, TValue>(TKey expected, IReadOnlyDictionary<TKey, TValue> collection) => default!;
         public static TValue Contains<TKey, TValue>(TKey expected, ConcurrentDictionary<TKey, TValue> collection) => default!;
@@ -28,6 +31,7 @@ namespace Xunit
         public static TValue Contains<TKey, TValue>(TKey expected, ReadOnlyDictionary<TKey, TValue> collection) => default!;
         public static void DoesNotContain<T>(T expected, IEnumerable<T> collection) { }
         public static void DoesNotContain(string expectedSubstring, string actualString) { }
+        public static void DoesNotContain(string expectedSubstring, string actualString, StringComparison comparisonType) { }
         public static void DoesNotContain<TKey, TValue>(TKey expected, IDictionary<TKey, TValue> collection) { }
         public static void DoesNotContain<TKey, TValue>(TKey expected, IReadOnlyDictionary<TKey, TValue> collection) { }
         public static void DoesNotContain<TKey, TValue>(TKey expected, ConcurrentDictionary<TKey, TValue> collection) { }
@@ -35,7 +39,9 @@ namespace Xunit
         public static void DoesNotContain<TKey, TValue>(TKey expected, ImmutableDictionary<TKey, TValue> collection) { }
         public static void DoesNotContain<TKey, TValue>(TKey expected, ReadOnlyDictionary<TKey, TValue> collection) { }
         public static void StartsWith(string expectedPrefix, string actualString) { }
+        public static void StartsWith(string expectedPrefix, string actualString, StringComparison comparisonType) { }
         public static void EndsWith(string expectedSuffix, string actualString) { }
+        public static void EndsWith(string expectedSuffix, string actualString, StringComparison comparisonType) { }
         public static T Single<T>(IEnumerable<T> collection) => default!;
         public static T Single<T>(IEnumerable<T> collection, Predicate<T> predicate) => default!;
         public static object Single(IEnumerable collection) => default!;

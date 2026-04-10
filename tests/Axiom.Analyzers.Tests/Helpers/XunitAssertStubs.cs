@@ -48,6 +48,7 @@ internal static class XunitAssertStubs
 
                 public static void Contains<T>(T expected, IEnumerable<T> collection) { }
                 public static void Contains(string expectedSubstring, string actualString) { }
+                public static void Contains(string expectedSubstring, string actualString, StringComparison comparisonType) { }
                 public static TValue Contains<TKey, TValue>(TKey expected, IDictionary<TKey, TValue> collection) => default!;
                 public static TValue Contains<TKey, TValue>(TKey expected, IReadOnlyDictionary<TKey, TValue> collection) => default!;
                 public static TValue Contains<TKey, TValue>(TKey expected, ConcurrentDictionary<TKey, TValue> collection) => default!;
@@ -57,6 +58,7 @@ internal static class XunitAssertStubs
 
                 public static void DoesNotContain<T>(T expected, IEnumerable<T> collection) { }
                 public static void DoesNotContain(string expectedSubstring, string actualString) { }
+                public static void DoesNotContain(string expectedSubstring, string actualString, StringComparison comparisonType) { }
                 public static void DoesNotContain<TKey, TValue>(TKey expected, IDictionary<TKey, TValue> collection) { }
                 public static void DoesNotContain<TKey, TValue>(TKey expected, IReadOnlyDictionary<TKey, TValue> collection) { }
                 public static void DoesNotContain<TKey, TValue>(TKey expected, ConcurrentDictionary<TKey, TValue> collection) { }

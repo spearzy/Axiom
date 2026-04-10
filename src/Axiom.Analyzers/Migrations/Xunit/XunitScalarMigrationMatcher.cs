@@ -33,7 +33,7 @@ internal static class XunitScalarMigrationMatcher
         IInvocationOperation invocation,
         XunitAssertMigrationSymbols symbols)
     {
-        if (invocation.Arguments.Length != 2)
+        if (invocation.Arguments.Length is not 2 and not 3)
         {
             return false;
         }
@@ -45,9 +45,25 @@ internal static class XunitScalarMigrationMatcher
             return false;
         }
 
+        if (invocation.Arguments.Length == 3 &&
+            !IsSupportedEqualityComparerArgument(invocation.Arguments[2], symbols))
+        {
+            return false;
+        }
+
         return !IsUnsupportedEqualityType(expectedType, symbols) &&
                !IsUnsupportedEqualityType(actualType, symbols) &&
-               symbols.SupportsEqualityMigrationReceiver(actualType);
+               (invocation.Arguments.Length == 3
+                   ? symbols.SupportsLocalEqualityComparerMigrationReceiver(actualType)
+                   : symbols.SupportsEqualityMigrationReceiver(actualType));
+    }
+
+    private static bool IsSupportedEqualityComparerArgument(
+        IArgumentOperation argument,
+        XunitAssertMigrationSymbols symbols)
+    {
+        var comparerType = XunitAssertMigrationMatcher.GetArgumentType(argument);
+        return comparerType is not null && symbols.IsEqualityComparerType(comparerType);
     }
 
     private static bool IsUnsupportedEqualityType(

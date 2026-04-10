@@ -105,8 +105,8 @@ The analyzer offers a code fix for the common local declaration case by converti
 
 Rules:
 
-- `AXM1001` for `Assert.Equal(expected, actual)`
-- `AXM1002` for `Assert.NotEqual(expected, actual)`
+- `AXM1001` for `Assert.Equal(expected, actual)` and safe non-string comparer overloads
+- `AXM1002` for `Assert.NotEqual(expected, actual)` and safe non-string comparer overloads
 - `AXM1003` for `Assert.Null(value)`
 - `AXM1004` for `Assert.NotNull(value)`
 - `AXM1005` for `Assert.True(condition)`
@@ -121,13 +121,13 @@ Rules:
 - `AXM1014` for `Assert.Throws<TException>(...)`, including non-null constant `paramName` + `Action` overloads and appending `.Thrown` when the exception is used
 - `AXM1015` for `Assert.IsType<T>(actual)`
 - `AXM1016` for `Assert.IsAssignableFrom<T>(actual)`
-- `AXM1017` for `Assert.Contains(expectedSubstring, actualString)`
-- `AXM1018` for `Assert.DoesNotContain(expectedSubstring, actualString)`
+- `AXM1017` for `Assert.Contains(expectedSubstring, actualString)` and `StringComparison` overloads
+- `AXM1018` for `Assert.DoesNotContain(expectedSubstring, actualString)` and `StringComparison` overloads
 - `AXM1019` for `Assert.Single(collection, predicate)`, appending `.SingleItem` when the matched item is used
 - `AXM1020` for `Assert.Contains(key, dictionary)`, appending `.WhoseValue` when the associated value is used
 - `AXM1021` for `Assert.DoesNotContain(key, dictionary)`
-- `AXM1022` for `Assert.StartsWith(expectedPrefix, actualString)`
-- `AXM1023` for `Assert.EndsWith(expectedSuffix, actualString)`
+- `AXM1022` for `Assert.StartsWith(expectedPrefix, actualString)` and `StringComparison` overloads when the prefix is an obvious non-null constant string
+- `AXM1023` for `Assert.EndsWith(expectedSuffix, actualString)` and `StringComparison` overloads when the suffix is an obvious non-null constant string
 
 The migration support is intentionally narrow and high-confidence. It only offers diagnostics and code fixes for xUnit assertion shapes that map cleanly to Axiom's fluent API without changing value flow or subtle overload semantics.
 
@@ -135,12 +135,14 @@ Before:
 
 ```csharp axiom-context=migration-gallery
 Assert.Equal(expected, actual);
+Assert.Equal(42, 42, EqualityComparer<int>.Default);
 Assert.True(condition);
 Assert.Empty(values);
 Assert.Contains(expected, values);
 Assert.Contains("sub", actual);
-Assert.StartsWith("pre", actual);
-Assert.EndsWith("suf", actual);
+Assert.Contains("sub", actual, StringComparison.OrdinalIgnoreCase);
+Assert.StartsWith("pre", actual, StringComparison.OrdinalIgnoreCase);
+Assert.EndsWith("suf", actual, StringComparison.OrdinalIgnoreCase);
 Assert.Contains(key, lookup);
 var found = Assert.Contains(key, lookup);
 var item = Assert.Single(values);
@@ -153,12 +155,14 @@ After:
 
 ```csharp axiom-context=migration-gallery
 actual.Should().Be(expected);
+42.Should().Be(42, EqualityComparer<int>.Default);
 condition.Should().BeTrue();
 values.Should().BeEmpty();
 values.Should().Contain(expected);
 actual.Should().Contain("sub");
-actual.Should().StartWith("pre");
-actual.Should().EndWith("suf");
+actual.Should().Contain("sub", StringComparison.OrdinalIgnoreCase);
+actual.Should().StartWith("pre", StringComparison.OrdinalIgnoreCase);
+actual.Should().EndWith("suf", StringComparison.OrdinalIgnoreCase);
 lookup.Should().ContainKey(key);
 var found = lookup.Should().ContainKey(key).WhoseValue;
 var item = values.Should().ContainSingle().SingleItem;
@@ -173,8 +177,10 @@ The dictionary-key rules follow Axiom's `ContainKey` and `NotContainKey` receive
 
 They also intentionally skip shapes that are not obviously semantics-preserving yet, including:
 
-- overloads with custom comparers, precision, inspectors, or user messages
-- `Assert.StartsWith(...)` and `Assert.EndsWith(...)` overloads that use `StringComparison`, `Memory<char>`, or `Span<char>`
+- precision, inspectors, and user-message overloads
+- string-equality overloads that rely on xUnit's dedicated string semantics such as `Assert.Equal(..., ignoreCase: ...)`
+- comparer-bearing equality overloads that would need to land on Axiom's specialized string assertion surface rather than a direct local-comparer value assertion
+- `Assert.StartsWith(...)` and `Assert.EndsWith(...)` overloads that use `Memory<char>` or `Span<char>`
 - `Assert.StartsWith(...)` and `Assert.EndsWith(...)` when the expected prefix or suffix is not an obvious non-null constant string
 - nongeneric `Assert.Single(subject)` calls when the returned item is used
 - `Assert.Throws<TException>(...)` consumed-result shapes outside the `string? paramName, Action testCode` overload

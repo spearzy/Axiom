@@ -11,6 +11,7 @@ internal static class XunitContainmentMigrationRewriter
             match.SubjectExpression,
             GetMethodName(match.Spec.Kind),
             match.ExpectedExpression,
+            match.AdditionalArgumentExpression,
             match.TypeArgumentSyntax);
 
         if (match.AppendWhoseValue)

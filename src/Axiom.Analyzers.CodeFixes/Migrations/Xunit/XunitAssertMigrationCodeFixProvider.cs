@@ -194,13 +194,23 @@ public sealed class XunitAssertMigrationCodeFixProvider : CodeFixProvider
         ExpressionSyntax? argumentExpression = null,
         TypeSyntax? typeArgumentSyntax = null)
     {
+        return BuildShouldCall(subjectExpression, methodName, argumentExpression, additionalArgumentExpression: null, typeArgumentSyntax);
+    }
+
+    internal static ExpressionSyntax BuildShouldCall(
+        ExpressionSyntax subjectExpression,
+        string methodName,
+        ExpressionSyntax? argumentExpression,
+        ExpressionSyntax? additionalArgumentExpression,
+        TypeSyntax? typeArgumentSyntax)
+    {
         var shouldInvocation = BuildShouldInvocation(subjectExpression);
         var assertionMethod = SyntaxFactory.MemberAccessExpression(
             SyntaxKind.SimpleMemberAccessExpression,
             shouldInvocation,
             BuildMethodName(methodName, typeArgumentSyntax));
 
-        return BuildInvocation(assertionMethod, argumentExpression);
+        return BuildInvocation(assertionMethod, argumentExpression, additionalArgumentExpression);
     }
 
     internal static ExpressionSyntax BuildShouldInvocation(ExpressionSyntax subjectExpression)
@@ -232,16 +242,36 @@ public sealed class XunitAssertMigrationCodeFixProvider : CodeFixProvider
         ExpressionSyntax targetExpression,
         ExpressionSyntax? argumentExpression = null)
     {
+        return BuildInvocation(targetExpression, argumentExpression, additionalArgumentExpression: null);
+    }
+
+    internal static ExpressionSyntax BuildInvocation(
+        ExpressionSyntax targetExpression,
+        ExpressionSyntax? argumentExpression,
+        ExpressionSyntax? additionalArgumentExpression)
+    {
         if (argumentExpression is null)
         {
             return SyntaxFactory.InvocationExpression(targetExpression, SyntaxFactory.ArgumentList());
         }
 
+        if (additionalArgumentExpression is null)
+        {
+            return SyntaxFactory.InvocationExpression(
+                targetExpression,
+                SyntaxFactory.ArgumentList(
+                    SyntaxFactory.SingletonSeparatedList(
+                        SyntaxFactory.Argument(argumentExpression.WithoutTrivia()))));
+        }
+
         return SyntaxFactory.InvocationExpression(
             targetExpression,
             SyntaxFactory.ArgumentList(
-                SyntaxFactory.SingletonSeparatedList(
-                    SyntaxFactory.Argument(argumentExpression.WithoutTrivia()))));
+                SyntaxFactory.SeparatedList(
+                [
+                    SyntaxFactory.Argument(argumentExpression.WithoutTrivia()),
+                    SyntaxFactory.Argument(additionalArgumentExpression.WithoutTrivia()),
+                ])));
     }
 
     internal static ExpressionSyntax AppendMemberAccess(

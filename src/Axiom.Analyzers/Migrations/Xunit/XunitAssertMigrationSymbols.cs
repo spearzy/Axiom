@@ -8,6 +8,7 @@ internal sealed class XunitAssertMigrationSymbols
         INamedTypeSymbol? xunitAssertType,
         INamedTypeSymbol? enumerableType,
         INamedTypeSymbol? genericEnumerableType,
+        INamedTypeSymbol? genericEqualityComparerType,
         INamedTypeSymbol? asyncEnumerableType,
         INamedTypeSymbol? dictionaryType,
         INamedTypeSymbol? readOnlyDictionaryType,
@@ -23,6 +24,7 @@ internal sealed class XunitAssertMigrationSymbols
         INamedTypeSymbol? genericTaskType,
         INamedTypeSymbol? valueTaskType,
         INamedTypeSymbol? genericValueTaskType,
+        INamedTypeSymbol? stringComparisonType,
         INamedTypeSymbol? spanType,
         INamedTypeSymbol? readOnlySpanType,
         INamedTypeSymbol? memoryType,
@@ -31,6 +33,7 @@ internal sealed class XunitAssertMigrationSymbols
         XunitAssertType = xunitAssertType;
         EnumerableType = enumerableType;
         GenericEnumerableType = genericEnumerableType;
+        GenericEqualityComparerType = genericEqualityComparerType;
         AsyncEnumerableType = asyncEnumerableType;
         DictionaryType = dictionaryType;
         ReadOnlyDictionaryType = readOnlyDictionaryType;
@@ -46,6 +49,7 @@ internal sealed class XunitAssertMigrationSymbols
         GenericTaskType = genericTaskType;
         ValueTaskType = valueTaskType;
         GenericValueTaskType = genericValueTaskType;
+        StringComparisonType = stringComparisonType;
         SpanType = spanType;
         ReadOnlySpanType = readOnlySpanType;
         MemoryType = memoryType;
@@ -56,6 +60,7 @@ internal sealed class XunitAssertMigrationSymbols
 
     private INamedTypeSymbol? EnumerableType { get; }
     private INamedTypeSymbol? GenericEnumerableType { get; }
+    private INamedTypeSymbol? GenericEqualityComparerType { get; }
     private INamedTypeSymbol? AsyncEnumerableType { get; }
     private INamedTypeSymbol? DictionaryType { get; }
     private INamedTypeSymbol? ReadOnlyDictionaryType { get; }
@@ -71,6 +76,7 @@ internal sealed class XunitAssertMigrationSymbols
     private INamedTypeSymbol? GenericTaskType { get; }
     private INamedTypeSymbol? ValueTaskType { get; }
     private INamedTypeSymbol? GenericValueTaskType { get; }
+    private INamedTypeSymbol? StringComparisonType { get; }
     private INamedTypeSymbol? SpanType { get; }
     private INamedTypeSymbol? ReadOnlySpanType { get; }
     private INamedTypeSymbol? MemoryType { get; }
@@ -84,6 +90,7 @@ internal sealed class XunitAssertMigrationSymbols
             compilation.GetTypeByMetadataName("Xunit.Assert"),
             compilation.GetTypeByMetadataName("System.Collections.IEnumerable"),
             compilation.GetTypeByMetadataName("System.Collections.Generic.IEnumerable`1"),
+            compilation.GetTypeByMetadataName("System.Collections.Generic.IEqualityComparer`1"),
             compilation.GetTypeByMetadataName("System.Collections.Generic.IAsyncEnumerable`1"),
             compilation.GetTypeByMetadataName("System.Collections.Generic.IDictionary`2"),
             compilation.GetTypeByMetadataName("System.Collections.Generic.IReadOnlyDictionary`2"),
@@ -99,6 +106,7 @@ internal sealed class XunitAssertMigrationSymbols
             compilation.GetTypeByMetadataName("System.Threading.Tasks.Task`1"),
             compilation.GetTypeByMetadataName("System.Threading.Tasks.ValueTask"),
             compilation.GetTypeByMetadataName("System.Threading.Tasks.ValueTask`1"),
+            compilation.GetTypeByMetadataName("System.StringComparison"),
             compilation.GetTypeByMetadataName("System.Span`1"),
             compilation.GetTypeByMetadataName("System.ReadOnlySpan`1"),
             compilation.GetTypeByMetadataName("System.Memory`1"),
@@ -195,6 +203,11 @@ internal sealed class XunitAssertMigrationSymbols
         return IsStringType(type) || !UsesSpecializedShouldReceiver(type);
     }
 
+    public bool SupportsLocalEqualityComparerMigrationReceiver(ITypeSymbol type)
+    {
+        return !UsesSpecializedShouldReceiver(type);
+    }
+
     public bool SupportsNullMigrationReceiver(ITypeSymbol type)
     {
         return IsStringType(type) || !UsesSpecializedShouldReceiver(type);
@@ -213,6 +226,28 @@ internal sealed class XunitAssertMigrationSymbols
     public bool SupportsStringContainmentMigrationReceiver(ITypeSymbol type)
     {
         return IsStringType(type);
+    }
+
+    public bool IsEqualityComparerType(ITypeSymbol type)
+    {
+        if (GenericEqualityComparerType is null)
+        {
+            return false;
+        }
+
+        if (type is INamedTypeSymbol namedType &&
+            SymbolEqualityComparer.Default.Equals(namedType.OriginalDefinition, GenericEqualityComparerType))
+        {
+            return true;
+        }
+
+        return ImplementsInterface(type, GenericEqualityComparerType);
+    }
+
+    public bool IsStringComparisonType(ITypeSymbol type)
+    {
+        return StringComparisonType is not null &&
+               SymbolEqualityComparer.Default.Equals(type, StringComparisonType);
     }
 
     public bool SupportsDictionaryKeyContainmentMigrationReceiver(ITypeSymbol type)

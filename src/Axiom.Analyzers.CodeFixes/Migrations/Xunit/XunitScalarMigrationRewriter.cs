@@ -11,6 +11,7 @@ internal static class XunitScalarMigrationRewriter
             match.SubjectExpression,
             GetMethodName(match.Spec.Kind),
             match.ExpectedExpression,
+            match.AdditionalArgumentExpression,
             match.TypeArgumentSyntax);
     }
 
