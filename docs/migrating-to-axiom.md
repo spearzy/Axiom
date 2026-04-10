@@ -1,6 +1,13 @@
+---
+title: Migrating to Axiom Assertions for .NET
+description: Move a .NET test suite onto Axiom Assertions in stages, with focused guidance for analyzer-driven rewrites, structural assertions, and manual migration decisions.
+---
+
 # Migrating to Axiom
 
-This page is for teams moving an existing test suite onto Axiom in stages.
+This page is for teams moving an existing test suite onto Axiom Assertions in stages.
+
+If your starting point is mostly xUnit `Assert.*`, the quickest companion guide is [Migrate from xUnit Assert to Axiom](migrate-from-xunit-assert.md).
 
 The built-in migration analyzers help with a growing set of safe, mechanical rewrites. Structural assertions still need engineering judgment. That is normal. This guide tries to make that judgment simpler.
 
@@ -218,4 +225,6 @@ That keeps the migration trustworthy.
 
 ## Where To Go Next
 
-For the structural-comparison rules, defaults, and failure-output examples, read [Equivalency](equivalency.md).
+- Read [Migrate from xUnit Assert to Axiom](migrate-from-xunit-assert.md) for the xUnit-focused path
+- Read [Axiom vs FluentAssertions](axiom-vs-fluentassertions.md) or [Axiom vs Shouldly](axiom-vs-shouldly.md) if you are still choosing an assertion library
+- For the structural-comparison rules, defaults, and failure-output examples, read [Equivalency](equivalency.md)

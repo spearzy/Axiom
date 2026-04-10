@@ -1,8 +1,15 @@
+---
+title: Vector Assertions for AI and Retrieval Tests in .NET
+description: Use Axiom.Vectors for vector, embedding, and retrieval assertions in .NET tests, including similarity, normalization, and ranked retrieval quality.
+---
+
 # Vectors
 
 `Axiom.Vectors` adds vector and embedding-focused assertions without pushing that API surface into `Axiom.Assertions`.
 
 Install it when you want to assert dimensions, numeric validity, approximate equality, dot products, distances, cosine similarity, zero-vector shape, normalization, or ranked retrieval quality directly in tests. It builds on top of the main Axiom assertion infrastructure, so `Batch`, failure strategies, and deterministic messages behave the same way.
+
+If you are specifically looking for retrieval and AI-oriented test scenarios, the focused page [Vector assertions for AI and retrieval tests in .NET](vector-assertions-for-ai-and-retrieval-tests-in-dotnet.md) is the quickest overview.
 
 ```bash
 dotnet add package Axiom.Vectors
