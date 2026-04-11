@@ -4,6 +4,8 @@ Use custom assertions when the same domain rule keeps showing up and the built-i
 
 `AssertionContext.Create(...)` is the supported entry point for building on `ValueAssertions<T>` and `StringAssertions` while keeping Axiom's normal failure rendering, `Batch` aggregation, and configured failure strategy. Collection custom assertions continue to build on `ValueAssertions<TCollection>`.
 
+When your custom assertion compares values, prefer `context.GetEqualityComparer<T>()` over ad hoc equality checks so the assertion uses the same comparer rules as the rest of Axiom.
+
 ## The Core Pattern
 
 Most custom assertions follow the same small shape:
@@ -33,7 +35,7 @@ public static class InvoiceAssertionExtensions
 
         var context = AssertionContext.Create(assertions);
 
-        if (!string.Equals(context.Subject.Currency, expectedCurrency, StringComparison.Ordinal))
+        if (!context.GetEqualityComparer<string>().Equals(context.Subject.Currency, expectedCurrency))
         {
             context.Fail(
                 new Expectation("to have currency", expectedCurrency),
@@ -269,11 +271,13 @@ Use `context.Fail(...)` instead of throwing exceptions yourself.
 
 That means your custom assertions automatically behave like first-party Axiom assertions in aggregated test scenarios.
 
-## Failure Messages And `because`
+## Failure Messages, `because`, And Comparison Rules
 
 Pass an `Expectation` plus the actual value to `context.Fail(...)`. Axiom renders the message using the same formatter and subject label as the built-in assertions.
 
 Forward `because`, `callerFilePath`, and `callerLineNumber` from your extension method so your custom assertion behaves like first-party Axiom code.
+
+If your custom assertion needs equality semantics, use `context.GetEqualityComparer<T>()` so it follows the same comparer rules as first-party Axiom assertions.
 
 ## Keeping The Surface Healthy
 

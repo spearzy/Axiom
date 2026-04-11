@@ -1,4 +1,5 @@
 using Axiom.Assertions.Chaining;
+using Axiom.Core.Configuration;
 using Axiom.Core.Failures;
 
 namespace Axiom.Assertions.Authoring;
@@ -21,6 +22,17 @@ public readonly struct AssertionContext<TAssertions, TSubject>
     public AndContinuation<TAssertions> And()
     {
         return new AndContinuation<TAssertions>(Assertions);
+    }
+
+    public IEqualityComparer<TValue> GetEqualityComparer<TValue>()
+    {
+        if (AxiomServices.Configuration.ComparerProvider.TryGetEqualityComparer<TValue>(out var comparer) &&
+            comparer is not null)
+        {
+            return comparer;
+        }
+
+        return EqualityComparer<TValue>.Default;
     }
 
     public void Fail(
