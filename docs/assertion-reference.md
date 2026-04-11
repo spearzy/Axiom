@@ -63,6 +63,7 @@ Assertions
 Subject
 SubjectLabel
 And()
+GetEqualityComparer<T>()
 Fail(expectation, actual, because = null, callerFilePath = null, callerLineNumber = 0)
 ```
 
@@ -155,13 +156,13 @@ failedResponse.Should().NotBeOneOf(
     errorCodeComparer);
 ```
 
-Across assertion APIs that resolve equality comparers from either a local overload or the configured comparer provider, precedence is:
+When an assertion can use either a comparer passed to the call or one configured in Axiom, it uses this order:
 
 1. explicit local comparer passed to the assertion
-2. configured comparer provider
+2. configured comparer from Axiom configuration
 3. runtime default behavior
 
-This means a comparer passed to a single assertion overrides any configured provider for that call only.
+This means a comparer passed to a single assertion overrides the configured comparer for that call only.
 
 ```csharp
 var stateLabels = new[] { "Alpha", "beta" };

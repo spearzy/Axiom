@@ -121,7 +121,7 @@ internal static class ApiResponseAssertionExtensions
 
         var context = AssertionContext.Create(assertions);
 
-        if (!string.Equals(context.Subject.ErrorCode, expectedErrorCode, StringComparison.Ordinal))
+        if (!context.GetEqualityComparer<string?>().Equals(context.Subject.ErrorCode, expectedErrorCode))
         {
             context.Fail(
                 new Expectation("to have error code", expectedErrorCode),

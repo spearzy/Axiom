@@ -2,13 +2,17 @@ using System.Runtime.CompilerServices;
 using Axiom.Assertions.Authoring;
 using Axiom.Assertions.Chaining;
 using Axiom.Assertions.AssertionTypes;
-using Axiom.Core.Failures;
 using AxiomAssert = Axiom.Core.Assert;
 
 namespace Axiom.Tests.Authoring;
 
-public sealed class CustomAssertionAuthoringTests
+public sealed class CustomAssertionAuthoringTests : IDisposable
 {
+    public void Dispose()
+    {
+        AxiomServices.Reset();
+    }
+
     [Fact]
     public void CustomAssertion_CanPass_AndReturnContinuation()
     {
@@ -63,6 +67,17 @@ public sealed class CustomAssertionAuthoringTests
 
         Assert.Equal("assertions", ex.ParamName);
     }
+
+    [Fact]
+    public void CustomAssertion_UsesConfiguredComparerProvider_WhenAuthorUsesContextComparer()
+    {
+        AxiomServices.Configure(c => c.ComparerProvider = new CaseInsensitiveStringComparerProvider());
+
+        var invoice = new Invoice(new DateOnly(2026, 3, 1), "GBP");
+        var ex = Record.Exception(() => invoice.Should().HaveCurrency("gbp"));
+
+        Assert.Null(ex);
+    }
 }
 
 internal static class InvoiceAssertionExtensions
@@ -100,7 +115,7 @@ internal static class InvoiceAssertionExtensions
 
         var context = AssertionContext.Create(assertions);
 
-        if (!string.Equals(context.Subject.Currency, expectedCurrency, StringComparison.Ordinal))
+        if (!context.GetEqualityComparer<string>().Equals(context.Subject.Currency, expectedCurrency))
         {
             context.Fail(
                 new Expectation("to have currency", expectedCurrency),
@@ -115,3 +130,18 @@ internal static class InvoiceAssertionExtensions
 }
 
 internal sealed record Invoice(DateOnly DueDate, string Currency);
+
+internal sealed class CaseInsensitiveStringComparerProvider : IComparerProvider
+{
+    public bool TryGetEqualityComparer<T>(out IEqualityComparer<T>? comparer)
+    {
+        if (typeof(T) == typeof(string))
+        {
+            comparer = (IEqualityComparer<T>)StringComparer.OrdinalIgnoreCase;
+            return true;
+        }
+
+        comparer = null;
+        return false;
+    }
+}
