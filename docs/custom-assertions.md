@@ -2,13 +2,13 @@
 
 Use custom assertions when the same domain rule keeps showing up and the built-in Axiom assertions start to read too mechanically.
 
-`AssertionContext.Create(...)` is the supported entry point for building on `ValueAssertions<T>` while keeping Axiom's normal failure rendering, `Batch` aggregation, and configured failure strategy.
+`AssertionContext.Create(...)` is the supported entry point for building on `ValueAssertions<T>` and `StringAssertions` while keeping Axiom's normal failure rendering, `Batch` aggregation, and configured failure strategy. Collection custom assertions continue to build on `ValueAssertions<TCollection>`.
 
 ## The Core Pattern
 
 Most custom assertions follow the same small shape:
 
-1. Create a context from the incoming `ValueAssertions<T>`.
+1. Create a context from the incoming assertion receiver.
 2. Read the domain object through `context.Subject`.
 3. Call `context.Fail(...)` when the rule is broken.
 4. Return `context.And()` so the assertion chains naturally.
@@ -46,6 +46,87 @@ public static class InvoiceAssertionExtensions
         return context.And();
     }
 }
+```
+
+## String Receiver Example
+
+```csharp
+public static class RouteStringAssertionExtensions
+{
+    public static AndContinuation<StringAssertions> HaveSegmentCount(
+        this StringAssertions assertions,
+        int expectedSegmentCount,
+        string? because = null,
+        [CallerFilePath] string? callerFilePath = null,
+        [CallerLineNumber] int callerLineNumber = 0)
+    {
+        var context = AssertionContext.Create(assertions);
+        var actualSegmentCount = context.Subject?.Split('/', StringSplitOptions.RemoveEmptyEntries).Length ?? 0;
+
+        if (actualSegmentCount != expectedSegmentCount)
+        {
+            context.Fail(
+                new Expectation("to have segment count", expectedSegmentCount),
+                actualSegmentCount,
+                because,
+                callerFilePath,
+                callerLineNumber);
+        }
+
+        return context.And();
+    }
+}
+```
+
+Consumer usage:
+
+```csharp
+"/orders/123".Should().HaveSegmentCount(2).And.StartWith("/orders");
+```
+
+## Collection Receiver Example
+
+```csharp
+public static class CollectionAssertionExtensions
+{
+    public static AndContinuation<ValueAssertions<TCollection>> HaveCountAtLeast<TCollection>(
+        this ValueAssertions<TCollection> assertions,
+        int minimumCount,
+        string? because = null,
+        [CallerFilePath] string? callerFilePath = null,
+        [CallerLineNumber] int callerLineNumber = 0)
+        where TCollection : IEnumerable
+    {
+        var context = AssertionContext.Create(assertions);
+        var actualCount = 0;
+
+        if (context.Subject is not null)
+        {
+            foreach (var _ in context.Subject)
+            {
+                actualCount++;
+            }
+        }
+
+        if (actualCount < minimumCount)
+        {
+            context.Fail(
+                new Expectation("to have at least", minimumCount),
+                actualCount,
+                because,
+                callerFilePath,
+                callerLineNumber);
+        }
+
+        return context.And();
+    }
+}
+```
+
+Consumer usage:
+
+```csharp
+new[] { "alex", "bea" }.Should().HaveCountAtLeast(2).And.Contain("alex");
 ```
 
 ## Practical Example: API Responses

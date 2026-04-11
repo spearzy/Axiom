@@ -49,7 +49,12 @@ Available in `Axiom.Assertions.Authoring`.
 AssertionContext.Create(assertions)
 ```
 
-`AssertionContext.Create(...)` currently supports `ValueAssertions<T>` and returns `AssertionContext<ValueAssertions<T>, T>`.
+`AssertionContext.Create(...)` supports:
+
+- `ValueAssertions<T>` and returns `AssertionContext<ValueAssertions<T>, T>`
+- `StringAssertions` and returns `AssertionContext<StringAssertions, string?>`
+
+Collection subjects still work through `ValueAssertions<TCollection>`. The new part here is direct support for `StringAssertions`.
 
 `AssertionContext<TAssertions, TSubject>` exposes:
 
@@ -62,6 +67,21 @@ Fail(expectation, actual, because = null, callerFilePath = null, callerLineNumbe
 ```
 
 Use it when you want to build domain-specific assertions that still respect `Batch`, the configured failure strategy, and Axiom's standard message rendering.
+
+Examples:
+
+```csharp
+var responseContext = AssertionContext.Create(response.Should());
+// AssertionContext<ValueAssertions<ApiResponse>, ApiResponse>
+
+var routeContext = AssertionContext.Create("orders/123".Should());
+// AssertionContext<StringAssertions, string?>
+
+var namesContext = AssertionContext.Create(new[] { "alex", "bea" }.Should());
+// AssertionContext<ValueAssertions<string[]>, string[]>
+```
+
+The collection example is still value-based authoring on a collection subject. It is not a separate collection-specific authoring API.
 
 ## Value Assertions
 
