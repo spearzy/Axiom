@@ -114,6 +114,14 @@ jobs:
           --output artifacts/packages
           /p:PackageVersion=${{ steps.version.outputs.version }}
 
+      - name: Pack Axiom.Http
+        run: >
+          dotnet pack src/Axiom.Http/Axiom.Http.csproj
+          -c Release
+          --no-build
+          --output artifacts/packages
+          /p:PackageVersion=${{ steps.version.outputs.version }}
+
       - name: Consumer analyzer smoke test (standalone)
         run: >
           bash eng/ci/run-analyzers-package-smoke.sh
@@ -162,6 +170,12 @@ jobs:
       - name: Json package smoke test
         run: >
           bash eng/ci/run-json-smoke.sh
+          "$GITHUB_WORKSPACE/artifacts/packages"
+          "${{ steps.version.outputs.version }}"
+
+      - name: Http package smoke test
+        run: >
+          bash eng/ci/run-http-smoke.sh
           "$GITHUB_WORKSPACE/artifacts/packages"
           "${{ steps.version.outputs.version }}"
 

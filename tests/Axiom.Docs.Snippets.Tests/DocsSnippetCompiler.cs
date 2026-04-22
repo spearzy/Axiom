@@ -356,6 +356,8 @@ internal sealed class DocsSnippetCompiler
         AddReference(references, typeof(Axiom.Core.Assert).Assembly.Location);
         AddReference(references, typeof(Axiom.Assertions.ShouldExtensions).Assembly.Location);
         AddReference(references, typeof(Axiom.Assertions.AssertionTypes.ValueAssertions<>).Assembly.Location);
+        AddReference(references, typeof(Axiom.Json.JsonAssertions).Assembly.Location);
+        AddReference(references, typeof(Axiom.Http.HttpResponseAssertions).Assembly.Location);
         AddReference(references, typeof(Axiom.Vectors.VectorAssertions<float>).Assembly.Location);
         AddReference(references, typeof(System.Collections.Immutable.ImmutableArray).Assembly.Location);
 

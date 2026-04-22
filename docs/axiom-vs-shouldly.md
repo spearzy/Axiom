@@ -15,7 +15,7 @@ Axiom is worth evaluating when you want:
 
 - deterministic failure messages with a predictable structure
 - explicit grouped failures with `Batch`
-- a clearer separation between the main assertion package, analyzers, and optional JSON and vector support
+- a clearer separation between the main assertion package, analyzers, and optional JSON, HTTP, and vector support
 - stronger emphasis on equivalency configuration and retrieval-oriented assertions
 
 ```csharp
@@ -47,6 +47,6 @@ Neither approach is inherently right. The important thing is which one helps you
 
 ## A Practical Rule Of Thumb
 
-Evaluate Axiom when deterministic messages, explicit batching, analyzers, equivalency, optional JSON assertions, or optional AI and retrieval assertions solve a real problem for the team.
+Evaluate Axiom when deterministic messages, explicit batching, analyzers, equivalency, optional JSON or HTTP assertions, or optional AI and retrieval assertions solve a real problem for the team.
 
 Stay with Shouldly when the natural-language assertion style is the main reason for the choice and that style is already serving the team well.

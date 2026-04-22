@@ -12,7 +12,7 @@
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(MSBuildProjectName)' == 'Axiom.Core' or '$(MSBuildProjectName)' == 'Axiom.Assertions' or '$(MSBuildProjectName)' == 'Axiom.Analyzers' or '$(MSBuildProjectName)' == 'Axiom.Vectors' or '$(MSBuildProjectName)' == 'Axiom.Json'">
+  <PropertyGroup Condition="'$(MSBuildProjectName)' == 'Axiom.Core' or '$(MSBuildProjectName)' == 'Axiom.Assertions' or '$(MSBuildProjectName)' == 'Axiom.Analyzers' or '$(MSBuildProjectName)' == 'Axiom.Vectors' or '$(MSBuildProjectName)' == 'Axiom.Json' or '$(MSBuildProjectName)' == 'Axiom.Http'">
     <Authors>Axiom contributors</Authors>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/spearzy/Axiom</PackageProjectUrl>
@@ -26,7 +26,7 @@
     <VersionPrefix>2.1.0</VersionPrefix>
   </PropertyGroup>
 
-  <ItemGroup Condition="'$(MSBuildProjectName)' == 'Axiom.Core' or '$(MSBuildProjectName)' == 'Axiom.Assertions' or '$(MSBuildProjectName)' == 'Axiom.Analyzers' or '$(MSBuildProjectName)' == 'Axiom.Vectors' or '$(MSBuildProjectName)' == 'Axiom.Json'">
+  <ItemGroup Condition="'$(MSBuildProjectName)' == 'Axiom.Core' or '$(MSBuildProjectName)' == 'Axiom.Assertions' or '$(MSBuildProjectName)' == 'Axiom.Analyzers' or '$(MSBuildProjectName)' == 'Axiom.Vectors' or '$(MSBuildProjectName)' == 'Axiom.Json' or '$(MSBuildProjectName)' == 'Axiom.Http'">
     <None Include="$(MSBuildThisFileDirectory)assets/images/axiom-logo.png" Pack="true" PackagePath="assets/images/" />
     <None Include="$(MSBuildThisFileDirectory)assets/images/axiom-icon-dark.png" Pack="true" PackagePath="assets/images/" />
     <None Include="$(MSBuildThisFileDirectory)assets/images/axiom-icon-light.png" Pack="true" PackagePath="assets/images/" />

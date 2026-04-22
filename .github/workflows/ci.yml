@@ -161,6 +161,9 @@ jobs:
       - name: Json package smoke test
         run: bash eng/ci/run-json-smoke.sh "$GITHUB_WORKSPACE/artifacts/packages"
 
+      - name: Http package smoke test
+        run: bash eng/ci/run-http-smoke.sh "$GITHUB_WORKSPACE/artifacts/packages"
+
       - name: Consumer smoke test (NUnit)
         run: bash eng/ci/run-consumer-smoke.sh "$GITHUB_WORKSPACE/artifacts/packages" nunit
 

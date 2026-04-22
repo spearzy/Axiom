@@ -1,5 +1,5 @@
 site_name: Axiom Assertions
-site_description: Deterministic fluent assertions for .NET tests with batching, analyzers, equivalency, JSON assertions, and vector and retrieval assertions.
+site_description: Deterministic fluent assertions for .NET tests with batching, analyzers, equivalency, and optional JSON, HTTP/API, vector, and retrieval assertions.
 site_url: https://spearzy.github.io/Axiom/
 repo_url: https://github.com/spearzy/Axiom
 repo_name: spearzy/Axiom
@@ -35,6 +35,7 @@ nav:
       - .NET Assertion Library: dotnet-assertion-library.md
       - Equivalency: equivalency.md
       - JSON: json.md
+      - HTTP and API Assertions: http.md
       - Vectors: vectors.md
       - Vector Assertions for AI and Retrieval Tests in .NET: vector-assertions-for-ai-and-retrieval-tests-in-dotnet.md
       - Custom Assertions: custom-assertions.md

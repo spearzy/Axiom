@@ -26,6 +26,7 @@ All fluent assertions either:
 | `ValueTask<T>` | `subject.Should()` | `TaskAssertions<T>` |
 | `JsonDocument?` with `using Axiom.Json;` | `subject.Should()` | `JsonAssertions` |
 | `JsonElement` with `using Axiom.Json;` | `subject.Should()` | `JsonAssertions` |
+| `HttpResponseMessage?` with `using Axiom.Http;` | `subject.Should()` | `HttpResponseAssertions` |
 | `float[]?` with `using Axiom.Vectors;` | `subject.Should()` | `VectorAssertions<float>` |
 | `double[]?` with `using Axiom.Vectors;` | `subject.Should()` | `VectorAssertions<double>` |
 | `ReadOnlyMemory<float>` with `using Axiom.Vectors;` | `subject.Should()` | `VectorAssertions<float>` |
@@ -132,6 +133,77 @@ actualJson.Should().HaveJsonPath("$.roles[1]");
 using var document = JsonDocument.Parse(actualJson);
 document.Should().HaveJsonNumberAtPath("$.id", 1m);
 document.RootElement.Should().NotHaveJsonPath("$.deletedAt");
+```
+
+## HTTP Assertions
+
+Available in `Axiom.Http`.
+
+The first wave is intentionally focused on `HttpResponseMessage` and composes with `Axiom.Json` for JSON body checks.
+
+```csharp
+HaveStatusCode(HttpStatusCode expected)
+NotHaveStatusCode(HttpStatusCode unexpected)
+HaveStatusCode(int expected)
+NotHaveStatusCode(int unexpected)
+HaveHeader(name)
+NotHaveHeader(name)
+HaveHeaderValue(name, expectedValue)
+HaveHeaderValues(name, expectedValues)
+HaveContentType(expectedMediaType)
+HaveContentTypeWithCharset(expectedMediaType, expectedCharset)
+HaveJsonBodyEquivalentTo(string expectedJson)
+HaveJsonBodyEquivalentTo(JsonDocument expectedJson)
+HaveJsonBodyEquivalentTo(JsonElement expectedJson)
+HaveJsonPath(path)
+NotHaveJsonPath(path)
+HaveJsonStringAtPath(path, expectedValue)
+HaveJsonNumberAtPath(path, decimal expectedValue)
+HaveJsonNumberAtPath(path, double expectedValue)
+HaveJsonBooleanAtPath(path, expectedValue)
+HaveJsonNullAtPath(path)
+HaveProblemDetails()
+HaveProblemDetailsTitle(expectedTitle)
+HaveProblemDetailsStatus(expectedStatus)
+HaveProblemDetailsType(expectedType)
+HaveProblemDetailsDetail(expectedDetail)
+```
+
+Current first-wave HTTP semantics:
+
+- status-code assertions are exact and are the primary shape
+- header lookup checks both response headers and content headers
+- `HaveHeaderValue(...)` expects exactly one header value
+- `HaveHeaderValues(...)` requires exact value count and exact order
+- JSON body assertions reuse `Axiom.Json` comparison and path semantics
+- ProblemDetails assertions require `application/problem+json`
+
+```csharp
+using System.Net;
+using System.Net.Http;
+using System.Text;
+using Axiom.Http;
+
+using var response = new HttpResponseMessage(HttpStatusCode.BadRequest)
+{
+    Content = new StringContent(
+        """
+        {
+          "type": "https://example.test/problems/validation",
+          "title": "Validation failed",
+          "status": 400,
+          "detail": "Name is required."
+        }
+        """,
+        Encoding.UTF8,
+        "application/problem+json")
+};
+
+response.Should().HaveStatusCode(HttpStatusCode.BadRequest);
+response.Should().HaveContentType("application/problem+json");
+response.Should().HaveJsonPath("$.title");
+response.Should().HaveProblemDetailsTitle("Validation failed");
+response.Should().HaveProblemDetailsStatus(400);
 ```
 
 ## Value Assertions

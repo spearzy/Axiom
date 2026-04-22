@@ -15,9 +15,9 @@ Axiom is worth evaluating when you care most about:
 
 - deterministic failure output that stays stable across environments
 - explicit grouped failures with `Batch`
-- a package layout that keeps core assertions, analyzers, JSON support, and vector support clearly separated
+- a package layout that keeps core assertions, analyzers, JSON support, HTTP support, and vector support clearly separated
 - a narrower and more explicit surface than older assertion libraries
-- built-in optional JSON assertions without pushing that API into every test project
+- built-in optional JSON and HTTP assertions without pushing those APIs into every test project
 - built-in retrieval and ranking assertions for AI and search-related test suites
 
 ```csharp
@@ -60,6 +60,6 @@ If structural comparison is the main thing you care about, read [Equivalency](eq
 
 ## A Practical Rule Of Thumb
 
-Evaluate Axiom when deterministic messages, explicit batching, analyzer-backed migration support, optional JSON assertions, or vector and retrieval assertions solve a real problem in your test suite.
+Evaluate Axiom when deterministic messages, explicit batching, analyzer-backed migration support, optional JSON or HTTP assertions, or vector and retrieval assertions solve a real problem in your test suite.
 
 Stay with FluentAssertions when you want the broader and more established general-purpose fluent assertion ecosystem, or when your current FluentAssertions suite is already serving the team well.
