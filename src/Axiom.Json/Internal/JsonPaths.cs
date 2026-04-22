@@ -95,7 +95,7 @@ internal sealed class JsonPath
             displayBuilder.Append('.').Append(propertyName);
         }
 
-        return new JsonPath([..segments], displayBuilder.ToString());
+        return new JsonPath([.. segments], displayBuilder.ToString());
     }
 
     public static string Append(string currentPath, JsonPathSegment segment)
