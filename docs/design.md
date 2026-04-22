@@ -15,6 +15,7 @@ This document captures the design direction for Axiom.
 - `Axiom.Assertions`: built-in assertion sets and chaining APIs.
 - `Axiom.Analyzers`: Roslyn analyzers and code fixes for common Axiom usage mistakes.
 - `Axiom.Json`: optional JSON-focused assertions layered on top of Axiom's core assertion pipeline.
+- `Axiom.Http`: optional `HttpResponseMessage` assertions layered on top of Axiom's core assertion pipeline and `Axiom.Json`.
 - `Axiom.Vectors`: optional vector and embedding-focused assertions layered on top of Axiom's core assertion pipeline.
 
 ## Open Questions

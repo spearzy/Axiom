@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <PackageId>Axiom.Http</PackageId>
+    <TargetFrameworks>net10.0;net9.0;net8.0</TargetFrameworks>
+    <Description>Optional extension on top of Axiom.Assertions and Axiom.Json for deterministic HttpResponseMessage assertions in .NET tests.</Description>
+    <PackageReadmeFile>PACKAGE_README.md</PackageReadmeFile>
+    <PackageTags>dotnet;testing;assertions;http;api;json</PackageTags>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Axiom.Assertions\Axiom.Assertions.csproj" />
+    <ProjectReference Include="..\Axiom.Json\Axiom.Json.csproj" />
+    <None Include="PACKAGE_README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+</Project>

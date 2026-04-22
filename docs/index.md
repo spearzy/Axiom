@@ -1,6 +1,6 @@
 ---
 title: Axiom Assertions for .NET
-description: Deterministic fluent assertions for .NET tests, with explicit batching, analyzers, equivalency, optional JSON assertions, and vector and retrieval assertions.
+description: Deterministic fluent assertions for .NET tests, with explicit batching, analyzers, equivalency, and optional JSON, HTTP/API, vector, and retrieval assertions.
 ---
 
 # Axiom Assertions for .NET
@@ -12,7 +12,7 @@ description: Deterministic fluent assertions for .NET tests, with explicit batch
   "name": "Axiom Assertions",
   "alternateName": "Axiom",
   "url": "https://spearzy.github.io/Axiom/",
-  "description": "Deterministic fluent assertions for .NET tests, with explicit batching, analyzers, equivalency, optional JSON assertions, and vector and retrieval assertions."
+  "description": "Deterministic fluent assertions for .NET tests, with explicit batching, analyzers, equivalency, and optional JSON, HTTP/API, vector, and retrieval assertions."
 }
 </script>
 
@@ -27,6 +27,7 @@ Axiom is still early in adoption, so these docs focus on what is implemented tod
 - built-in equivalency support with configurable defaults
 - analyzers and code fixes shipped with the normal `Axiom.Assertions` install path
 - optional JSON assertions without bloating the main package
+- optional HTTP and API-response assertions without pushing that surface into every test project
 - optional vector and retrieval assertions without forcing AI-specific APIs into the base package
 
 ## Install
@@ -42,6 +43,7 @@ Install the optional packages only when they fit the test suite you are building
 ```bash
 dotnet add package Axiom.Analyzers
 dotnet add package Axiom.Json
+dotnet add package Axiom.Http
 dotnet add package Axiom.Vectors
 ```
 
@@ -69,6 +71,10 @@ Install this separately when you want the diagnostics without the runtime assert
 
 Install this when you want structural JSON equivalency and simple JSON path assertions on top of the main Axiom assertion library.
 
+### Axiom.Http
+
+Install this when you want `HttpResponseMessage` assertions for exact status codes, headers, content types, JSON bodies, and ProblemDetails-style API responses.
+
 ### Axiom.Vectors
 
 Install this when you want vector, embedding, and retrieval-focused assertions for AI and ranking tests in .NET.
@@ -81,6 +87,7 @@ Install this when you want vector, embedding, and retrieval-focused assertions f
 - Evaluating trade-offs: read [Axiom vs FluentAssertions](axiom-vs-fluentassertions.md), [Axiom vs Shouldly](axiom-vs-shouldly.md), or the broader [.NET assertion library](dotnet-assertion-library.md) page
 - Working with structural comparison: go to [Equivalency](equivalency.md)
 - Working with JSON payloads or documents: go to [JSON](json.md)
+- Testing HTTP or API responses: go to [HTTP and API assertions](http.md)
 - Testing embeddings or ranked retrieval: go to [Vectors](vectors.md) or the focused [Vector assertions for AI and retrieval tests in .NET](vector-assertions-for-ai-and-retrieval-tests-in-dotnet.md)
 - Using diagnostics only: go to [Analyzers](analyzers.md)
 

@@ -9,7 +9,7 @@
 [![Version](https://img.shields.io/nuget/v/Axiom.Assertions?label=version)](https://www.nuget.org/packages/Axiom.Assertions)
 [![Downloads](https://img.shields.io/nuget/dt/Axiom.Assertions?label=downloads)](https://www.nuget.org/packages/Axiom.Assertions)
 
-Axiom Assertions is a fluent assertion library for .NET tests. It focuses on deterministic failure output, explicit batch aggregation, configurable equivalency, analyzer-backed migration help, and optional JSON, vector, and retrieval assertions.
+Axiom Assertions is a fluent assertion library for .NET tests. It focuses on deterministic failure output, explicit batch aggregation, configurable equivalency, analyzer-backed migration help, and optional JSON, HTTP/API, vector, and retrieval assertions.
 
 Target frameworks: `net8.0`, `net9.0`, and `net10.0`.
 
@@ -31,6 +31,7 @@ Install the other packages when you need something more specific:
 dotnet add package Axiom.Core
 dotnet add package Axiom.Analyzers
 dotnet add package Axiom.Json
+dotnet add package Axiom.Http
 dotnet add package Axiom.Vectors
 ```
 
@@ -85,6 +86,26 @@ actualJson.Should().BeJsonEquivalentTo(expectedJson);
 actualJson.Should().HaveJsonStringAtPath("$.name", "Ada");
 ```
 
+HTTP and API responses:
+
+```csharp
+using System.Net;
+using System.Net.Http;
+using System.Text;
+using Axiom.Http;
+
+using var response = new HttpResponseMessage(HttpStatusCode.BadRequest)
+{
+    Content = new StringContent(
+        """{ "title": "Validation failed", "status": 400 }""",
+        Encoding.UTF8,
+        "application/problem+json")
+};
+
+response.Should().HaveStatusCode(HttpStatusCode.BadRequest);
+response.Should().HaveProblemDetailsTitle("Validation failed");
+```
+
 ## Packages
 
 | Package | Use it when you want... |
@@ -93,6 +114,7 @@ actualJson.Should().HaveJsonStringAtPath("$.name", "Ada");
 | [`Axiom.Core`](https://www.nuget.org/packages/Axiom.Core) | low-level primitives such as `Batch`, formatting, and configuration without the full assertion surface |
 | [`Axiom.Analyzers`](https://www.nuget.org/packages/Axiom.Analyzers) | the analyzers and code fixes without the runtime assertion library |
 | [`Axiom.Json`](https://www.nuget.org/packages/Axiom.Json) | structural JSON equivalency and simple JSON path assertions on top of the main Axiom assertion library |
+| [`Axiom.Http`](https://www.nuget.org/packages/Axiom.Http) | `HttpResponseMessage` assertions for exact status codes, headers, content types, JSON bodies, and ProblemDetails-style API responses |
 | [`Axiom.Vectors`](https://www.nuget.org/packages/Axiom.Vectors) | vector, embedding, and ranked retrieval assertions on top of the main Axiom assertion library |
 
 ## Why Axiom
@@ -101,6 +123,7 @@ actualJson.Should().HaveJsonStringAtPath("$.name", "Ada");
 - Explicit multi-assertion aggregation with `Batch`.
 - Strong equivalency support with configurable defaults.
 - Analyzer support bundled into the normal `Axiom.Assertions` install path.
+- Optional HTTP/API response assertions without pushing that surface into every test project.
 - Optional vector and retrieval assertions without complicating the core package.
 
 ## Docs
@@ -116,6 +139,7 @@ Use the docs site for the full guides and reference:
 - [.NET assertion library](https://spearzy.github.io/Axiom/dotnet-assertion-library/)
 - [Equivalency Guide](https://spearzy.github.io/Axiom/equivalency/)
 - [JSON Guide](https://spearzy.github.io/Axiom/json/)
+- [HTTP/API Guide](https://spearzy.github.io/Axiom/http/)
 - [Vectors Guide](https://spearzy.github.io/Axiom/vectors/)
 - [Vector assertions for AI and retrieval tests in .NET](https://spearzy.github.io/Axiom/vector-assertions-for-ai-and-retrieval-tests-in-dotnet/)
 - [Analyzers Guide](https://spearzy.github.io/Axiom/analyzers/)

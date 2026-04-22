@@ -1,6 +1,6 @@
 ---
 title: Getting Started with Axiom Assertions for .NET
-description: Install Axiom Assertions for .NET, write your first assertions, and find the right guides for migration, equivalency, JSON assertions, analyzers, and vector testing.
+description: Install Axiom Assertions for .NET, write your first assertions, and find the right guides for migration, equivalency, JSON, HTTP/API, analyzer, and vector testing.
 ---
 
 # Getting Started
@@ -45,6 +45,12 @@ Install `Axiom.Json` when you want structural JSON equivalency and simple JSON p
 
 ```bash
 dotnet add package Axiom.Json
+```
+
+Install `Axiom.Http` when you want deterministic `HttpResponseMessage` assertions for exact status codes, headers, content types, JSON bodies, and ProblemDetails-style API responses:
+
+```bash
+dotnet add package Axiom.Http
 ```
 
 Install `Axiom.Vectors` only when you want vector and embedding-focused assertions:
@@ -137,6 +143,26 @@ actualJson.Should().HaveJsonStringAtPath("$.name", "Ada");
 actualJson.Should().HaveJsonPath("$.roles[1]");
 ```
 
+## HTTP Example
+
+```csharp
+using System.Net;
+using System.Net.Http;
+using System.Text;
+using Axiom.Http;
+
+using var response = new HttpResponseMessage(HttpStatusCode.BadRequest)
+{
+    Content = new StringContent(
+        """{ "title": "Validation failed", "status": 400 }""",
+        Encoding.UTF8,
+        "application/problem+json")
+};
+
+response.Should().HaveStatusCode(HttpStatusCode.BadRequest);
+response.Should().HaveProblemDetailsTitle("Validation failed");
+```
+
 ## Next Steps
 
 - Browse the full [Assertion Reference](assertion-reference.md)
@@ -147,5 +173,6 @@ actualJson.Should().HaveJsonPath("$.roles[1]");
 - Read the [Equivalency](equivalency.md) guide for object-graph configuration
 - Read [Custom Assertions](custom-assertions.md) when you want domain-specific extensions
 - Read [JSON](json.md) when you want JSON equivalency or path assertions
+- Read [HTTP and API assertions](http.md) when you want `HttpResponseMessage` checks
 - Read [Analyzers](analyzers.md) for the shipped diagnostics
 - Read [Vectors](vectors.md) or [Vector assertions for AI and retrieval tests in .NET](vector-assertions-for-ai-and-retrieval-tests-in-dotnet.md) for embedding and retrieval-style assertions

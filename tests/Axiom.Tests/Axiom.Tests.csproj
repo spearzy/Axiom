@@ -17,6 +17,7 @@
     <ProjectReference Include="..\..\src\Axiom.Assertions\Axiom.Assertions.csproj" />
     <ProjectReference Include="..\..\src\Axiom.Vectors\Axiom.Vectors.csproj" />
     <ProjectReference Include="..\..\src\Axiom.Json\Axiom.Json.csproj" />
+    <ProjectReference Include="..\..\src\Axiom.Http\Axiom.Http.csproj" />
   </ItemGroup>
 
   <ItemGroup>

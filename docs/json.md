@@ -15,6 +15,8 @@ It focuses on a small first wave:
 
 It does not add HTTP helpers, ASP.NET helpers, direct `Newtonsoft.Json` support, or a full JSONPath engine.
 
+If your subject is `HttpResponseMessage` rather than raw JSON content, use [HTTP and API assertions](http.md). `Axiom.Http` reuses `Axiom.Json` internally for response-body JSON checks.
+
 ## Install
 
 ```bash
@@ -151,7 +153,7 @@ Invalid expected JSON passed as a raw string is treated as an invalid assertion 
 
 - `System.Text.Json` inputs plus raw JSON strings only
 - no direct `Newtonsoft.Json` support
-- no HTTP or API-response helpers
+- no HTTP or API-response helpers in this package; use `Axiom.Http` for `HttpResponseMessage`
 - no full JSONPath language
 - array order is significant
 

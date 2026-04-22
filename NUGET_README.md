@@ -1,6 +1,6 @@
 # Axiom Assertions for .NET
 
-Axiom Assertions is a fluent assertion library for .NET tests. It is designed around deterministic failure output, explicit batch aggregation, low pass-path overhead, configurable equivalency, and optional JSON, vector, and retrieval assertions.
+Axiom Assertions is a fluent assertion library for .NET tests. It is designed around deterministic failure output, explicit batch aggregation, low pass-path overhead, configurable equivalency, and optional JSON, HTTP/API, vector, and retrieval assertions.
 
 Target frameworks: `net8.0`, `net9.0`, and `net10.0`.
 
@@ -34,6 +34,12 @@ Install `Axiom.Json` when you want structural JSON equivalency and simple JSON p
 
 ```bash
 dotnet add package Axiom.Json
+```
+
+Install `Axiom.Http` when you want deterministic `HttpResponseMessage` assertions for exact status codes, headers, content types, JSON bodies, and ProblemDetails-style error responses:
+
+```bash
+dotnet add package Axiom.Http
 ```
 
 Install `Axiom.Vectors` when you want vector and embedding-focused assertions on top of the main Axiom assertion library:
@@ -214,6 +220,7 @@ Axiom currently includes:
 - temporal assertions: before/after, inclusive bounds, within-tolerance, inverse-tolerance, and range checks
 - vector assertions: dimension checks, NaN/infinity validation, approximate equality, dot product, Euclidean distance, cosine similarity thresholds, normalization, ranked retrieval evaluation
 - JSON assertions: structural equivalency plus simple path and scalar value-at-path checks for raw JSON strings, `JsonDocument`, and `JsonElement`
+- HTTP assertions: exact `HttpResponseMessage` status code, header, content-type, JSON body, and ProblemDetails checks
 - custom assertion authoring: `AssertionContext.Create(...)` for domain assertions on `ValueAssertions<T>` and `StringAssertions`, with comparer-provider-aware equality through `context.GetEqualityComparer<T>()`
 
 ## Documentation
@@ -225,5 +232,6 @@ Axiom currently includes:
 - [Custom assertions guide](https://spearzy.github.io/Axiom/custom-assertions/)
 - [Equivalency guide](https://spearzy.github.io/Axiom/equivalency/)
 - [JSON guide](https://spearzy.github.io/Axiom/json/)
+- [HTTP/API guide](https://spearzy.github.io/Axiom/http/)
 - [Analyzer guide](https://spearzy.github.io/Axiom/analyzers/)
 - [Vectors guide](https://spearzy.github.io/Axiom/vectors/)

@@ -21,6 +21,7 @@ dotnet add package Axiom.Core
 - you want the main fluent assertion library: install `Axiom.Assertions`
 - you want analyzers and code fixes only: install `Axiom.Analyzers`
 - you want JSON assertions: install `Axiom.Json` on top of `Axiom.Assertions`
+- you want `HttpResponseMessage` assertions: install `Axiom.Http` on top of `Axiom.Assertions`
 - you want vector and retrieval assertions: install `Axiom.Vectors` on top of `Axiom.Assertions`
 
 Documentation: [spearzy.github.io/Axiom](https://spearzy.github.io/Axiom/)
