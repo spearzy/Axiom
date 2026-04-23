@@ -87,6 +87,7 @@ Install this when you want vector, embedding, and retrieval-focused assertions f
 
 - New to the library? Start with [Getting Started](getting-started.md)
 - Need current package, framework, or prerequisite support details? Read the [Compatibility Matrix](compatibility-matrix.md)
+- Need a minimal test-project example? Use the repository starter projects for [xUnit](https://github.com/spearzy/Axiom/tree/main/starters/Axiom.Assertions.Starter.Xunit), [NUnit](https://github.com/spearzy/Axiom/tree/main/starters/Axiom.Assertions.Starter.NUnit), or [MSTest](https://github.com/spearzy/Axiom/tree/main/starters/Axiom.Assertions.Starter.MSTest)
 - For the API catalog: go to [Assertion Reference](assertion-reference.md)
 - Migrating a test suite: read [Migrating to Axiom](migrating-to-axiom.md) or the focused [Migrate from xUnit Assert to Axiom](migrate-from-xunit-assert.md) guide
 - Evaluating trade-offs: read [Axiom vs FluentAssertions](axiom-vs-fluentassertions.md), [Axiom vs Shouldly](axiom-vs-shouldly.md), or the broader [.NET assertion library](dotnet-assertion-library.md) page

@@ -138,6 +138,7 @@ response.Should().HaveProblemDetailsTitle("Validation failed");
 Use the docs site for the full guides and reference:
 
 - [Getting Started](https://spearzy.github.io/Axiom/getting-started/)
+- [Starter Projects](starters/)
 - [Compatibility Matrix](https://spearzy.github.io/Axiom/compatibility-matrix/)
 - [Assertion Reference](https://spearzy.github.io/Axiom/assertion-reference/)
 - [Migration Guide](https://spearzy.github.io/Axiom/migrating-to-axiom/)

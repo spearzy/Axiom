@@ -39,6 +39,12 @@ user.Roles.Should().Contain("admin");
 
 That default install path also bundles the Axiom analyzers/code fixes automatically, so common diagnostics light up without a second package.
 
+Starter consumer projects are available in the repository if you want a minimal xUnit, NUnit, or MSTest example wired to the normal `Axiom.Assertions` install path:
+
+- [xUnit starter](https://github.com/spearzy/Axiom/tree/main/starters/Axiom.Assertions.Starter.Xunit)
+- [NUnit starter](https://github.com/spearzy/Axiom/tree/main/starters/Axiom.Assertions.Starter.NUnit)
+- [MSTest starter](https://github.com/spearzy/Axiom/tree/main/starters/Axiom.Assertions.Starter.MSTest)
+
 ## Optional Packages
 
 These are add-ons on top of `Axiom.Assertions`.

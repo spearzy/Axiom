@@ -11,6 +11,8 @@ fi
 package_source="$1"
 package_version=""
 smoke_kind="xunit"
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+repo_root="$(cd "$script_dir/../.." && pwd)"
 
 if [[ $# -eq 2 ]]; then
   case "$2" in
@@ -52,11 +54,10 @@ fi
 smoke_root="$(mktemp -d)"
 trap 'rm -rf "$smoke_root"' EXIT
 
-consumer_project="$smoke_root/Axiom.ConsumerSmoke"
 local_packages_cache="$smoke_root/.nuget/packages"
 nuget_config="$smoke_root/NuGet.config"
 
-cat > "$nuget_config" <<EOF
+cat > "$nuget_config" <<EOF2
 <?xml version="1.0" encoding="utf-8"?>
 <configuration>
   <packageSources>
@@ -73,235 +74,11 @@ cat > "$nuget_config" <<EOF
     </packageSource>
   </packageSourceMapping>
 </configuration>
-EOF
-
-create_nunit_smoke_tests() {
-  rm -f UnitTest1.cs
-  cat > ConsumerSmokeTests.cs <<'EOF'
-using System;
-using System.Threading.Tasks;
-using Axiom.Assertions;
-using Axiom.Assertions.Extensions;
-using AAssert = Axiom.Core.Assert;
-using NUnit.Framework;
-
-namespace Axiom.ConsumerSmoke;
-
-public sealed class ConsumerSmokeTests
-{
-    [Test]
-    public void StringChaining_Works()
-    {
-        "abc".Should().StartWith("a").And.EndWith("c");
-    }
-
-    [Test]
-    public void ValueAssertions_Works()
-    {
-        42.Should().BeGreaterThan(1).And.BeInRange(40, 50);
-        42.1d.Should().BeApproximately(42d, 0.2d);
-    }
-
-    [Test]
-    public void CollectionAssertions_Works()
-    {
-        new[] { 1, 2, 3 }.Should().Contain(2).And.NotContain(9);
-    }
-
-    [Test]
-    public void EquivalencyAssertions_Works()
-    {
-        var actual = new UserSnapshot("ollie", 3);
-        var expected = new UserSnapshot("ollie", 3);
-
-        actual.Should().BeEquivalentTo(expected);
-    }
-
-    [Test]
-    public void Batch_AggregatesFailures()
-    {
-        var ex = Assert.Throws<AssertionException>(() =>
-        {
-            using var batch = AAssert.Batch("smoke");
-            "abc".Should().StartWith("z");
-            1.Should().BeGreaterThan(5);
-        });
-
-        Assert.That(ex, Is.Not.Null);
-        Assert.That(ex!.Message, Does.Contain("Batch 'smoke' failed with 2 assertion failure(s):"));
-    }
-
-    [Test]
-    public void DefaultFailureStrategy_UsesNativeAssertionException()
-    {
-        var ex = Assert.Throws<AssertionException>(() => 42.Should().Be(7));
-
-        Assert.That(ex, Is.Not.Null);
-        Assert.That(ex!.Message, Does.Contain("Expected 42 to be 7, but found 42."));
-    }
-
-    private sealed record UserSnapshot(string Name, int Level);
-}
-EOF
-}
-
-create_xunit_smoke_tests() {
-  rm -f UnitTest1.cs
-  cat > ConsumerSmokeTests.cs <<'EOF'
-using System;
-using System.Threading.Tasks;
-using Axiom.Assertions;
-using Axiom.Assertions.Extensions;
-using AAssert = Axiom.Core.Assert;
-using XAssert = Xunit.Assert;
-
-namespace Axiom.ConsumerSmoke;
-
-public sealed class ConsumerSmokeTests
-{
-    [Fact]
-    public void StringChaining_Works()
-    {
-        "abc".Should().StartWith("a").And.EndWith("c");
-    }
-
-    [Fact]
-    public void ValueAssertions_Works()
-    {
-        42.Should().BeGreaterThan(1).And.BeInRange(40, 50);
-        42.1d.Should().BeApproximately(42d, 0.2d);
-    }
-
-    [Fact]
-    public void CollectionAssertions_Works()
-    {
-        new[] { 1, 2, 3 }.Should().Contain(2).And.NotContain(9);
-    }
-
-    [Fact]
-    public void EquivalencyAssertions_Works()
-    {
-        var actual = new UserSnapshot("ollie", 3);
-        var expected = new UserSnapshot("ollie", 3);
-
-        actual.Should().BeEquivalentTo(expected);
-    }
-
-    [Fact]
-    public void Batch_AggregatesFailures()
-    {
-        var ex = XAssert.Throws<global::Xunit.Sdk.XunitException>(() =>
-        {
-            using var batch = AAssert.Batch("smoke");
-            "abc".Should().StartWith("z");
-            1.Should().BeGreaterThan(5);
-        });
-
-        XAssert.Contains("Batch 'smoke' failed with 2 assertion failure(s):", ex.Message, StringComparison.Ordinal);
-    }
-
-    [Fact]
-    public void DefaultFailureStrategy_UsesNativeAssertionException()
-    {
-        var ex = XAssert.Throws<global::Xunit.Sdk.XunitException>(() => 42.Should().Be(7));
-
-        XAssert.Contains("Expected 42 to be 7, but found 42.", ex.Message, StringComparison.Ordinal);
-    }
-
-    private sealed record UserSnapshot(string Name, int Level);
-}
-EOF
-}
-
-create_mstest_smoke_tests() {
-  rm -f UnitTest1.cs Test1.cs
-  cat > ConsumerSmokeTests.cs <<'EOF'
-using System;
-using System.Threading.Tasks;
-using Axiom.Assertions;
-using Axiom.Assertions.Extensions;
-using AAssert = Axiom.Core.Assert;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-
-namespace Axiom.ConsumerSmoke;
-
-[TestClass]
-public sealed class ConsumerSmokeTests
-{
-    [TestMethod]
-    public void StringChaining_Works()
-    {
-        "abc".Should().StartWith("a").And.EndWith("c");
-    }
-
-    [TestMethod]
-    public void ValueAssertions_Works()
-    {
-        42.Should().BeGreaterThan(1).And.BeInRange(40, 50);
-        42.1d.Should().BeApproximately(42d, 0.2d);
-    }
-
-    [TestMethod]
-    public void CollectionAssertions_Works()
-    {
-        new[] { 1, 2, 3 }.Should().Contain(2).And.NotContain(9);
-    }
-
-    [TestMethod]
-    public void EquivalencyAssertions_Works()
-    {
-        var actual = new UserSnapshot("ollie", 3);
-        var expected = new UserSnapshot("ollie", 3);
-
-        actual.Should().BeEquivalentTo(expected);
-    }
-
-    [TestMethod]
-    public void Batch_AggregatesFailures()
-    {
-        AssertFailedException? ex = null;
-        try
-        {
-            using var batch = AAssert.Batch("smoke");
-            "abc".Should().StartWith("z");
-            1.Should().BeGreaterThan(5);
-            Assert.Fail("Expected AssertFailedException, but no exception was thrown.");
-        }
-        catch (AssertFailedException caught)
-        {
-            ex = caught;
-        }
-
-        Assert.IsNotNull(ex);
-        StringAssert.Contains(ex.Message, "Batch 'smoke' failed with 2 assertion failure(s):");
-    }
-
-    [TestMethod]
-    public void DefaultFailureStrategy_UsesNativeAssertionException()
-    {
-        AssertFailedException? ex = null;
-        try
-        {
-            42.Should().Be(7);
-            Assert.Fail("Expected AssertFailedException, but no exception was thrown.");
-        }
-        catch (AssertFailedException caught)
-        {
-            ex = caught;
-        }
-
-        Assert.IsNotNull(ex);
-        StringAssert.Contains(ex.Message, "Expected 42 to be 7, but found 42.");
-    }
-
-    private sealed record UserSnapshot(string Name, int Level);
-}
-EOF
-}
+EOF2
 
 create_plain_smoke_program() {
   rm -f Program.cs
-  cat > Program.cs <<'EOF'
+  cat > Program.cs <<'EOF2'
 using System;
 using Axiom.Assertions;
 using Axiom.Assertions.Extensions;
@@ -349,49 +126,44 @@ catch (InvalidOperationException ex)
 Console.WriteLine("Axiom plain consumer smoke passed.");
 
 file sealed record UserSnapshot(string Name, int Level);
-EOF
+EOF2
+}
+
+copy_starter_project() {
+  local starter_name="$1"
+  local destination="$2"
+
+  rm -rf "$destination"
+  cp -R "$repo_root/starters/$starter_name" "$destination"
 }
 
 case "$smoke_kind" in
   xunit)
-    dotnet new xunit --framework net10.0 --output "$consumer_project" --no-restore
+    consumer_project="$smoke_root/Axiom.Assertions.Starter.Xunit"
+    copy_starter_project "Axiom.Assertions.Starter.Xunit" "$consumer_project"
     ;;
   nunit)
-    dotnet new nunit --framework net10.0 --output "$consumer_project" --no-restore
+    consumer_project="$smoke_root/Axiom.Assertions.Starter.NUnit"
+    copy_starter_project "Axiom.Assertions.Starter.NUnit" "$consumer_project"
     ;;
   mstest)
-    dotnet new mstest --framework net10.0 --output "$consumer_project" --no-restore
+    consumer_project="$smoke_root/Axiom.Assertions.Starter.MSTest"
+    copy_starter_project "Axiom.Assertions.Starter.MSTest" "$consumer_project"
     ;;
   plain)
+    consumer_project="$smoke_root/Axiom.ConsumerSmoke"
     dotnet new console --framework net10.0 --output "$consumer_project" --no-restore
     ;;
 esac
 
 cd "$consumer_project"
-dotnet add package Axiom.Assertions --version "$package_version" --source "$package_source" --no-restore
 
-case "$smoke_kind" in
-  xunit)
-    create_xunit_smoke_tests
-    ;;
-  nunit)
-    create_nunit_smoke_tests
-    ;;
-  mstest)
-    create_mstest_smoke_tests
-    ;;
-  plain)
-    create_plain_smoke_program
-    ;;
-esac
-
-dotnet restore --configfile "$nuget_config" --packages "$local_packages_cache"
-
-case "$smoke_kind" in
-  plain)
-    dotnet run --configuration Release --no-restore
-    ;;
-  *)
-    dotnet test --configuration Release --no-restore
-    ;;
-esac
+if [[ "$smoke_kind" == "plain" ]]; then
+  dotnet add package Axiom.Assertions --version "$package_version" --source "$package_source" --no-restore
+  create_plain_smoke_program
+  dotnet restore --configfile "$nuget_config" --packages "$local_packages_cache"
+  dotnet run --configuration Release --no-restore
+else
+  dotnet restore --configfile "$nuget_config" --packages "$local_packages_cache" /p:AxiomAssertionsVersion="$package_version"
+  dotnet test --configuration Release --no-restore /p:AxiomAssertionsVersion="$package_version"
+fi
