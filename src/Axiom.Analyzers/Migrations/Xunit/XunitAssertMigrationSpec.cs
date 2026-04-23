@@ -26,6 +26,8 @@ internal enum XunitAssertMigrationKind
     BeSameAs,
     NotBeSameAs,
     Throw,
+    ThrowExactlyAsync,
+    ThrowAsync,
     BeOfType,
     BeAssignableTo,
 }
@@ -265,6 +267,24 @@ internal static class XunitAssertMigrationSpecs
             "Migrate xUnit Assert.Throws to Axiom",
             "xUnit Assert.Throws<TException>(...) can be migrated to '.Should().Throw<TException>()', chaining '.WithParamName(...)' for non-null constant param-name overloads and appending '.Thrown' when the exception is used",
             "Convert to '.Should().Throw<TException>()'"),
+        new(
+            AxiomAnalyzerIds.MigrateXunitAssertThrowsAsync,
+            "ThrowsAsync",
+            1,
+            alternateArgumentCount: 2,
+            XunitAssertMigrationKind.ThrowExactlyAsync,
+            "Migrate xUnit Assert.ThrowsAsync to Axiom",
+            "xUnit Assert.ThrowsAsync<TException>(...) can be migrated to 'await ...Should().ThrowExactlyAsync<TException>()', chaining '.WithParamName(...)' for non-null constant param-name overloads and appending '.Thrown' when the exception is used",
+            "Convert to 'await ...Should().ThrowExactlyAsync<TException>()'"),
+        new(
+            AxiomAnalyzerIds.MigrateXunitAssertThrowsAnyAsync,
+            "ThrowsAnyAsync",
+            1,
+            alternateArgumentCount: null,
+            XunitAssertMigrationKind.ThrowAsync,
+            "Migrate xUnit Assert.ThrowsAnyAsync to Axiom",
+            "xUnit Assert.ThrowsAnyAsync<TException>(...) can be migrated to 'await ...Should().ThrowAsync<TException>()' and append '.Thrown' when the exception is used",
+            "Convert to 'await ...Should().ThrowAsync<TException>()'"),
         new(
             AxiomAnalyzerIds.MigrateXunitAssertIsType,
             "IsType",

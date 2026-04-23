@@ -11,6 +11,7 @@ internal sealed class XunitAssertMigrationMatch
     public XunitAssertMigrationMatch(
         XunitAssertMigrationSpec spec,
         InvocationExpressionSyntax invocationSyntax,
+        AwaitExpressionSyntax? awaitExpressionSyntax,
         ExpressionSyntax subjectExpression,
         ExpressionSyntax? expectedExpression,
         ExpressionSyntax? additionalArgumentExpression,
@@ -22,6 +23,7 @@ internal sealed class XunitAssertMigrationMatch
     {
         Spec = spec;
         InvocationSyntax = invocationSyntax;
+        AwaitExpressionSyntax = awaitExpressionSyntax;
         SubjectExpression = subjectExpression;
         ExpectedExpression = expectedExpression;
         AdditionalArgumentExpression = additionalArgumentExpression;
@@ -34,6 +36,7 @@ internal sealed class XunitAssertMigrationMatch
 
     public XunitAssertMigrationSpec Spec { get; }
     public InvocationExpressionSyntax InvocationSyntax { get; }
+    public AwaitExpressionSyntax? AwaitExpressionSyntax { get; }
     public ExpressionSyntax SubjectExpression { get; }
     public ExpressionSyntax? ExpectedExpression { get; }
     public ExpressionSyntax? AdditionalArgumentExpression { get; }
@@ -68,6 +71,8 @@ internal static class XunitAssertMigrationMatcher
         }
 
         var resultIsConsumed = IsResultConsumed(invocation);
+        var awaitExpressionSyntax = GetAwaitExpressionSyntax(invocationSyntax);
+        var awaitedResultIsConsumed = awaitExpressionSyntax is not null && IsAwaitedResultConsumed(awaitExpressionSyntax);
 
         foreach (var spec in XunitAssertMigrationSpecs.GetByMethodName(invocation.TargetMethod.Name))
         {
@@ -103,6 +108,7 @@ internal static class XunitAssertMigrationMatcher
             match = new XunitAssertMigrationMatch(
                 spec,
                 invocationSyntax,
+                awaitExpressionSyntax,
                 subjectExpression,
                 expectedExpression,
                 additionalArgumentExpression,
@@ -110,7 +116,12 @@ internal static class XunitAssertMigrationMatcher
                 RequiresAssertionsExtensionsNamespace(spec.Kind, GetSubjectType(spec.Kind, invocation.TargetMethod.Parameters)),
                 appendSingleItem: resultIsConsumed && spec.Kind is XunitAssertMigrationKind.ContainSingle or XunitAssertMigrationKind.ContainSingleMatching,
                 appendWhoseValue: resultIsConsumed && spec.Kind is XunitAssertMigrationKind.ContainKey,
-                appendThrown: resultIsConsumed && spec.Kind is XunitAssertMigrationKind.Throw && expectedExpression is not null);
+                appendThrown: spec.Kind switch
+                {
+                    XunitAssertMigrationKind.Throw => resultIsConsumed && expectedExpression is not null,
+                    XunitAssertMigrationKind.ThrowExactlyAsync or XunitAssertMigrationKind.ThrowAsync => awaitedResultIsConsumed,
+                    _ => false,
+                });
 
             return true;
         }
@@ -173,8 +184,15 @@ internal static class XunitAssertMigrationMatcher
             XunitAssertMigrationKind.ContainSingleMatching
                 => XunitSingleMigrationMatcher.IsSafeSupportedOverload(invocation, spec.Kind, symbols, resultIsConsumed),
 
-            XunitAssertMigrationKind.Throw
-                => XunitThrowsMigrationMatcher.IsSafeSupportedOverload(invocation, symbols, resultIsConsumed),
+            XunitAssertMigrationKind.Throw or
+            XunitAssertMigrationKind.ThrowExactlyAsync or
+            XunitAssertMigrationKind.ThrowAsync
+                => XunitThrowsMigrationMatcher.IsSafeSupportedOverload(
+                    invocation,
+                    spec.Kind,
+                    symbols,
+                    resultIsConsumed,
+                    GetAwaitExpressionSyntax(invocation.Syntax) is not null),
 
             XunitAssertMigrationKind.BeOfType or
             XunitAssertMigrationKind.BeAssignableTo
@@ -210,42 +228,56 @@ internal static class XunitAssertMigrationMatcher
     private static ExpressionSyntax GetSubjectExpression(
         XunitAssertMigrationKind kind,
         SeparatedSyntaxList<ArgumentSyntax> arguments)
-        => kind is XunitAssertMigrationKind.Be or
-                 XunitAssertMigrationKind.NotBe or
-                 XunitAssertMigrationKind.Contain or
-                 XunitAssertMigrationKind.NotContain or
-                 XunitAssertMigrationKind.ContainSubstring or
-                 XunitAssertMigrationKind.NotContainSubstring or
-                 XunitAssertMigrationKind.StartWith or
-                 XunitAssertMigrationKind.EndWith or
-                 XunitAssertMigrationKind.ContainKey or
-                 XunitAssertMigrationKind.NotContainKey or
-                 XunitAssertMigrationKind.BeSameAs or
-                 XunitAssertMigrationKind.NotBeSameAs
-            ? arguments[1].Expression
-            : kind is XunitAssertMigrationKind.Throw && arguments.Count == 2
-                ? arguments[1].Expression
-                : arguments[0].Expression;
+    {
+        return kind switch
+        {
+            XunitAssertMigrationKind.Be or
+            XunitAssertMigrationKind.NotBe or
+            XunitAssertMigrationKind.Contain or
+            XunitAssertMigrationKind.NotContain or
+            XunitAssertMigrationKind.ContainSubstring or
+            XunitAssertMigrationKind.NotContainSubstring or
+            XunitAssertMigrationKind.StartWith or
+            XunitAssertMigrationKind.EndWith or
+            XunitAssertMigrationKind.ContainKey or
+            XunitAssertMigrationKind.NotContainKey or
+            XunitAssertMigrationKind.BeSameAs or
+            XunitAssertMigrationKind.NotBeSameAs
+                => arguments[1].Expression,
+            XunitAssertMigrationKind.Throw when arguments.Count == 2
+                => arguments[1].Expression,
+            XunitAssertMigrationKind.ThrowExactlyAsync when arguments.Count == 2
+                => arguments[1].Expression,
+            _ => arguments[0].Expression,
+        };
+    }
 
     private static ITypeSymbol GetSubjectType(
         XunitAssertMigrationKind kind,
         ImmutableArray<IParameterSymbol> parameters)
-        => kind is XunitAssertMigrationKind.Be or
-                 XunitAssertMigrationKind.NotBe or
-                 XunitAssertMigrationKind.Contain or
-                 XunitAssertMigrationKind.NotContain or
-                 XunitAssertMigrationKind.ContainSubstring or
-                 XunitAssertMigrationKind.NotContainSubstring or
-                 XunitAssertMigrationKind.StartWith or
-                 XunitAssertMigrationKind.EndWith or
-                 XunitAssertMigrationKind.ContainKey or
-                 XunitAssertMigrationKind.NotContainKey or
-                 XunitAssertMigrationKind.BeSameAs or
-                 XunitAssertMigrationKind.NotBeSameAs
-            ? parameters[1].Type
-            : kind is XunitAssertMigrationKind.Throw && parameters.Length == 2
-                ? parameters[1].Type
-                : parameters[0].Type;
+    {
+        return kind switch
+        {
+            XunitAssertMigrationKind.Be or
+            XunitAssertMigrationKind.NotBe or
+            XunitAssertMigrationKind.Contain or
+            XunitAssertMigrationKind.NotContain or
+            XunitAssertMigrationKind.ContainSubstring or
+            XunitAssertMigrationKind.NotContainSubstring or
+            XunitAssertMigrationKind.StartWith or
+            XunitAssertMigrationKind.EndWith or
+            XunitAssertMigrationKind.ContainKey or
+            XunitAssertMigrationKind.NotContainKey or
+            XunitAssertMigrationKind.BeSameAs or
+            XunitAssertMigrationKind.NotBeSameAs
+                => parameters[1].Type,
+            XunitAssertMigrationKind.Throw when parameters.Length == 2
+                => parameters[1].Type,
+            XunitAssertMigrationKind.ThrowExactlyAsync when parameters.Length == 2
+                => parameters[1].Type,
+            _ => parameters[0].Type,
+        };
+    }
 
     private static ExpressionSyntax? GetExpectedExpression(
         XunitAssertMigrationKind kind,
@@ -266,6 +298,8 @@ internal static class XunitAssertMigrationMatcher
             XunitAssertMigrationKind.NotContainKey
                 => arguments[0].Expression,
             XunitAssertMigrationKind.Throw when arguments.Count == 2
+                => arguments[0].Expression,
+            XunitAssertMigrationKind.ThrowExactlyAsync when arguments.Count == 2
                 => arguments[0].Expression,
             XunitAssertMigrationKind.ContainSingleMatching
                 => arguments[1].Expression,
@@ -299,7 +333,11 @@ internal static class XunitAssertMigrationMatcher
         InvocationExpressionSyntax invocationSyntax)
     {
         // Only generic source calls give us a type argument to copy into the Axiom call.
-        if (kind is not XunitAssertMigrationKind.Throw and not XunitAssertMigrationKind.BeOfType and not XunitAssertMigrationKind.BeAssignableTo)
+        if (kind is not XunitAssertMigrationKind.Throw and
+            not XunitAssertMigrationKind.ThrowExactlyAsync and
+            not XunitAssertMigrationKind.ThrowAsync and
+            not XunitAssertMigrationKind.BeOfType and
+            not XunitAssertMigrationKind.BeAssignableTo)
         {
             return null;
         }
@@ -342,6 +380,25 @@ internal static class XunitAssertMigrationMatcher
             _ => false,
         };
     }
+
+    private static AwaitExpressionSyntax? GetAwaitExpressionSyntax(IOperation operation)
+    {
+        IOperation current = operation;
+        while (current.Parent is IConversionOperation conversion)
+        {
+            current = conversion;
+        }
+
+        return current.Parent?.Syntax as AwaitExpressionSyntax;
+    }
+
+    private static AwaitExpressionSyntax? GetAwaitExpressionSyntax(SyntaxNode syntax)
+    {
+        return syntax.Parent as AwaitExpressionSyntax;
+    }
+
+    private static bool IsAwaitedResultConsumed(AwaitExpressionSyntax awaitExpressionSyntax)
+        => awaitExpressionSyntax.Parent is not ExpressionStatementSyntax;
 
     private static bool IsResultConsumed(IInvocationOperation invocation)
     {

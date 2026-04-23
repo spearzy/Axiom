@@ -10,6 +10,7 @@ internal static class XunitAssertStubs
         using System.Collections.Generic;
         using System.Collections.Immutable;
         using System.Collections.ObjectModel;
+        using System.Threading.Tasks;
 
         namespace Xunit
         {
@@ -85,6 +86,9 @@ internal static class XunitAssertStubs
                 public static T Throws<T>(Action testCode) where T : Exception => default!;
                 public static T Throws<T>(Func<object?> testCode) where T : Exception => default!;
                 public static T Throws<T>(string? paramName, Action testCode) where T : Exception => default!;
+                public static Task<T> ThrowsAsync<T>(Func<Task> testCode) where T : Exception => throw null!;
+                public static Task<T> ThrowsAsync<T>(string? paramName, Func<Task> testCode) where T : Exception => throw null!;
+                public static Task<T> ThrowsAnyAsync<T>(Func<Task> testCode) where T : Exception => throw null!;
             }
         }
         """;

@@ -57,4 +57,6 @@ public static class AxiomAnalyzerIds
     public const string MigrateMstestStringAssertEndsWith = "AXM1051";
     public const string MigrateMstestCollectionAssertContains = "AXM1052";
     public const string MigrateMstestCollectionAssertDoesNotContain = "AXM1053";
+    public const string MigrateXunitAssertThrowsAsync = "AXM1054";
+    public const string MigrateXunitAssertThrowsAnyAsync = "AXM1055";
 }

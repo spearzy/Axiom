@@ -73,11 +73,12 @@ public sealed class XunitAssertMigrationCodeFixProvider : CodeFixProvider
             return document;
         }
 
+        var nodeToReplace = GetNodeToReplace(match);
         var replacementExpression = BuildReplacementExpression(match, semanticModel)
-            .WithTriviaFrom(match.InvocationSyntax)
+            .WithTriviaFrom(nodeToReplace)
             .WithAdditionalAnnotations(Formatter.Annotation);
 
-        var rewrittenRoot = compilationUnit.ReplaceNode(match.InvocationSyntax, replacementExpression);
+        var rewrittenRoot = compilationUnit.ReplaceNode(nodeToReplace, replacementExpression);
         rewrittenRoot = AddUsingIfMissing(rewrittenRoot, "Axiom.Assertions");
 
         if (RequiresSystemNamespace(match, semanticModel))
@@ -147,6 +148,10 @@ public sealed class XunitAssertMigrationCodeFixProvider : CodeFixProvider
             XunitAssertMigrationKind.Throw
                 => XunitThrowsMigrationRewriter.BuildReplacementExpression(match, semanticModel),
 
+            XunitAssertMigrationKind.ThrowExactlyAsync or
+            XunitAssertMigrationKind.ThrowAsync
+                => XunitAsyncThrowsMigrationRewriter.BuildReplacementExpression(match, semanticModel),
+
             XunitAssertMigrationKind.BeOfType or
             XunitAssertMigrationKind.BeAssignableTo
                 => XunitTypeMigrationRewriter.BuildReplacementExpression(match),
@@ -176,6 +181,10 @@ public sealed class XunitAssertMigrationCodeFixProvider : CodeFixProvider
             XunitAssertMigrationKind.Throw
                 => XunitThrowsMigrationRewriter.GetCodeFixTitle(match),
 
+            XunitAssertMigrationKind.ThrowExactlyAsync or
+            XunitAssertMigrationKind.ThrowAsync
+                => XunitAsyncThrowsMigrationRewriter.GetCodeFixTitle(match),
+
             _ => match.Spec.CodeFixTitle,
         };
     }
@@ -184,9 +193,18 @@ public sealed class XunitAssertMigrationCodeFixProvider : CodeFixProvider
         XunitAssertMigrationMatch match,
         SemanticModel semanticModel)
     {
-        return match.Spec.Kind is XunitAssertMigrationKind.Throw &&
-               XunitThrowsMigrationRewriter.RequiresSystemNamespace(match, semanticModel);
+        return match.Spec.Kind switch
+        {
+            XunitAssertMigrationKind.Throw => XunitThrowsMigrationRewriter.RequiresSystemNamespace(match, semanticModel),
+            XunitAssertMigrationKind.ThrowExactlyAsync or XunitAssertMigrationKind.ThrowAsync => XunitAsyncThrowsMigrationRewriter.RequiresSystemNamespace(match, semanticModel),
+            _ => false,
+        };
     }
+
+    private static SyntaxNode GetNodeToReplace(XunitAssertMigrationMatch match)
+        => match.Spec.Kind is XunitAssertMigrationKind.ThrowExactlyAsync or XunitAssertMigrationKind.ThrowAsync
+           ? (SyntaxNode?)match.AwaitExpressionSyntax ?? match.InvocationSyntax
+           : match.InvocationSyntax;
 
     internal static ExpressionSyntax BuildShouldCall(
         ExpressionSyntax subjectExpression,

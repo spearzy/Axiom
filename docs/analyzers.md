@@ -128,6 +128,8 @@ Rules:
 - `AXM1021` for `Assert.DoesNotContain(key, dictionary)`
 - `AXM1022` for `Assert.StartsWith(expectedPrefix, actualString)` and `StringComparison` overloads when the prefix is an obvious non-null constant string
 - `AXM1023` for `Assert.EndsWith(expectedSuffix, actualString)` and `StringComparison` overloads when the suffix is an obvious non-null constant string
+- `AXM1054` for awaited `Assert.ThrowsAsync<TException>(...)`, including non-null constant `paramName` + `Func<Task>` overloads and appending `.Thrown` when the exception is used
+- `AXM1055` for awaited `Assert.ThrowsAnyAsync<TException>(...)`, appending `.Thrown` when the exception is used
 
 The migration support is intentionally narrow and high-confidence. It only offers diagnostics and code fixes for xUnit assertion shapes that map cleanly to Axiom's fluent API without changing value flow or subtle overload semantics.
 
@@ -187,6 +189,8 @@ They also intentionally skip shapes that are not obviously semantics-preserving 
 - nongeneric `Assert.Single(subject)` calls when the returned item is used
 - `Assert.Throws<TException>(...)` consumed-result shapes outside the `string? paramName, Action testCode` overload
 - `Assert.Throws<TException>(paramName, ...)` when `paramName` is not an obvious non-null constant string
+- non-awaited `Assert.ThrowsAsync<TException>(...)` and `Assert.ThrowsAnyAsync<TException>(...)` shapes
+- `Assert.ThrowsAsync<TException>(paramName, ...)` when `paramName` is not an obvious non-null constant string
 
 ## NUnit Assert.That Migration Suggestions
 

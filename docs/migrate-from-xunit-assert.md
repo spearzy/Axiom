@@ -31,6 +31,8 @@ That directness is the main reason teams can migrate in stages instead of pausin
 
 The Axiom analyzers cover a growing set of safe, mechanical xUnit rewrites. They are useful when you want to move a codebase gradually and reserve manual review time for the tests that really need judgment.
 
+That now includes awaited async exception assertions such as `Assert.ThrowsAsync<T>(...)`, `Assert.ThrowsAsync<T>(paramName, ...)`, and `Assert.ThrowsAnyAsync<T>(...)` when they map directly onto Axiom's async throw assertions without changing value flow.
+
 Install path:
 
 ```bash
@@ -46,6 +48,7 @@ Some tests should stay manual during migration:
 - assertions with precision rules or xUnit comparer overloads that do not have a direct, semantics-preserving Axiom equivalent yet
 - structural comparisons that are really object-graph assertions
 - exception assertions where the returned exception is used in detail
+- non-awaited async exception assertions that would need a broader rewrite than a direct awaited `Should()` conversion
 - tests that currently hide several behaviors inside a long chain of `Assert.*` calls
 
 For those cases, use the broader [Migrating to Axiom](migrating-to-axiom.md) guide.

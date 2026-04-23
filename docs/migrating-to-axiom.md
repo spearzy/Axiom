@@ -47,6 +47,9 @@ The current analyzer and code-fix support focuses on high-confidence xUnit `Asse
 | `Assert.IsAssignableFrom<T>(actual)` | `actual.Should().BeAssignableTo<T>()` |
 | `Assert.Throws<TException>(() => work())` | `new Action(() => work()).Should().Throw<TException>()` |
 | `Assert.Throws<TException>("name", () => work())` with a non-null constant param name | `new Action(() => work()).Should().Throw<TException>().WithParamName("name")` or append `.Thrown` when you use the exception |
+| `await Assert.ThrowsAsync<TException>(() => work())` | `await new Func<Task>(() => work()).Should().ThrowExactlyAsync<TException>()` or append `.Thrown` when you use the exception |
+| `await Assert.ThrowsAsync<TException>("name", () => work())` with a non-null constant param name | `(await new Func<Task>(() => work()).Should().ThrowExactlyAsync<TException>()).WithParamName("name")` or append `.Thrown` when you use the exception |
+| `await Assert.ThrowsAnyAsync<TException>(() => work())` | `await new Func<Task>(() => work()).Should().ThrowAsync<TException>()` or append `.Thrown` when you use the exception |
 | `Assert.That(actual, Is.EqualTo(expected))` | `actual.Should().Be(expected)` |
 | `Assert.That(actual, Is.Not.EqualTo(expected))` | `actual.Should().NotBe(expected)` |
 | `Assert.That(value, Is.Null)` | `value.Should().BeNull()` |

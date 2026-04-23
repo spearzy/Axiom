@@ -17,6 +17,7 @@ internal static class AxiomAssertionStubs
                 public static StringAssertions Should(this string? subject) => throw null!;
                 public static ValueAssertions<T> Should<T>(this T subject) => throw null!;
                 public static Axiom.Assertions.AssertionTypes.AsyncActionAssertions Should(this Action subject) => throw null!;
+                public static Axiom.Assertions.AssertionTypes.AsyncActionAssertions Should(this Func<Task> subject) => throw null!;
                 public static Axiom.Assertions.AssertionTypes.AsyncFunctionAssertions<T> Should<T>(this Func<Task<T>> subject) => throw null!;
                 public static Axiom.Assertions.AssertionTypes.TaskAssertions Should(this Task subject) => throw null!;
                 public static Axiom.Assertions.AssertionTypes.TaskAssertions<T> Should<T>(this Task<T> subject) => throw null!;
@@ -147,6 +148,7 @@ internal static class AxiomAssertionStubs
             {
                 public ThrownExceptionAssertions<AsyncActionAssertions, TException> Throw<TException>() where TException : Exception => default;
                 public ValueTask<ThrownExceptionAssertions<AsyncActionAssertions, TException>> ThrowAsync<TException>() where TException : Exception => default;
+                public ValueTask<ThrownExceptionAssertions<AsyncActionAssertions, TException>> ThrowExactlyAsync<TException>() where TException : Exception => default;
                 public ValueTask<AndContinuation<AsyncActionAssertions>> NotThrowAsync() => default;
             }
 

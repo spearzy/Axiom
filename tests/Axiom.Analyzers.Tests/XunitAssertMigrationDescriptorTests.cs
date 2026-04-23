@@ -195,6 +195,22 @@ public sealed class XunitAssertMigrationDescriptorTests
                 Assert.Equal(DiagnosticSeverity.Info, rule.DefaultSeverity);
                 Assert.Equal("Migrate xUnit Assert.EndsWith to Axiom", rule.Title.ToString());
                 Assert.Equal("xUnit Assert.EndsWith(expectedSuffix, actualString) can be migrated to 'actualString.Should().EndWith(expectedSuffix)'", rule.MessageFormat.ToString());
+            },
+            rule =>
+            {
+                Assert.Equal("AXM1054", rule.Id);
+                Assert.Equal("Migration", rule.Category);
+                Assert.Equal(DiagnosticSeverity.Info, rule.DefaultSeverity);
+                Assert.Equal("Migrate xUnit Assert.ThrowsAsync to Axiom", rule.Title.ToString());
+                Assert.Equal("xUnit Assert.ThrowsAsync<TException>(...) can be migrated to 'await ...Should().ThrowExactlyAsync<TException>()', chaining '.WithParamName(...)' for non-null constant param-name overloads and appending '.Thrown' when the exception is used", rule.MessageFormat.ToString());
+            },
+            rule =>
+            {
+                Assert.Equal("AXM1055", rule.Id);
+                Assert.Equal("Migration", rule.Category);
+                Assert.Equal(DiagnosticSeverity.Info, rule.DefaultSeverity);
+                Assert.Equal("Migrate xUnit Assert.ThrowsAnyAsync to Axiom", rule.Title.ToString());
+                Assert.Equal("xUnit Assert.ThrowsAnyAsync<TException>(...) can be migrated to 'await ...Should().ThrowAsync<TException>()' and append '.Thrown' when the exception is used", rule.MessageFormat.ToString());
             });
     }
 

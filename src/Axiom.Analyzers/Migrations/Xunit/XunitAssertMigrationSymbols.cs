@@ -296,6 +296,20 @@ internal sealed class XunitAssertMigrationSymbols
                SymbolEqualityComparer.Default.Equals(namedType.OriginalDefinition, PredicateType);
     }
 
+    public bool IsFuncReturningTask(ITypeSymbol type)
+    {
+        if (FuncType is null ||
+            TaskType is null ||
+            type is not INamedTypeSymbol namedType ||
+            !SymbolEqualityComparer.Default.Equals(namedType.OriginalDefinition, FuncType) ||
+            namedType.TypeArguments.Length != 1)
+        {
+            return false;
+        }
+
+        return SymbolEqualityComparer.Default.Equals(namedType.TypeArguments[0], TaskType);
+    }
+
     private bool UsesSpecializedShouldReceiver(ITypeSymbol type)
     {
         if (ActionType is not null &&
