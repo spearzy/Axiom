@@ -2,7 +2,7 @@
 
 `Axiom.Json` is an optional extension package on top of `Axiom.Assertions`.
 
-It adds deterministic JSON assertions for raw JSON strings, `JsonDocument`, and `JsonElement` in .NET tests.
+Most users should start with `Axiom.Assertions` and add `Axiom.Json` only when they need deterministic JSON assertions for raw JSON strings, `JsonDocument`, and `JsonElement`.
 
 ## Install
 
@@ -27,3 +27,4 @@ This package is designed to be used with `Axiom.Assertions`.
 - you want vector and retrieval assertions: install `Axiom.Vectors` on top of `Axiom.Assertions`
 
 Documentation: [spearzy.github.io/Axiom](https://spearzy.github.io/Axiom/)
+Getting started: [Getting Started](https://spearzy.github.io/Axiom/getting-started/)

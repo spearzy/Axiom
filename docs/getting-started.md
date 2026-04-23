@@ -41,6 +41,8 @@ That default install path also bundles the Axiom analyzers/code fixes automatica
 
 ## Optional Packages
 
+These are add-ons on top of `Axiom.Assertions`.
+
 Install `Axiom.Json` when you want structural JSON equivalency and simple JSON path assertions:
 
 ```bash
@@ -64,6 +66,8 @@ Install `Axiom.Analyzers` separately only if you want the diagnostics without th
 ```bash
 dotnet add package Axiom.Analyzers
 ```
+
+Install `Axiom.Core` directly only when you want low-level primitives such as `Batch`, formatting, or configuration without the full fluent assertion surface.
 
 ## Optional Configuration
 

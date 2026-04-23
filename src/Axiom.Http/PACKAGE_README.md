@@ -2,7 +2,7 @@
 
 `Axiom.Http` is an optional extension package on top of `Axiom.Assertions` and `Axiom.Json`.
 
-It adds deterministic `HttpResponseMessage` assertions for status codes, headers, content types, JSON bodies, and ProblemDetails-style error responses in .NET tests.
+Most users should start with `Axiom.Assertions` and add `Axiom.Http` only when they need deterministic `HttpResponseMessage` assertions for status codes, headers, content types, JSON bodies, and ProblemDetails-style error responses.
 
 ## Install
 
@@ -28,3 +28,4 @@ This package is designed to be used with `Axiom.Assertions` and reuses `Axiom.Js
 - you want vector and retrieval assertions: install `Axiom.Vectors` on top of `Axiom.Assertions`
 
 Documentation: [spearzy.github.io/Axiom](https://spearzy.github.io/Axiom/)
+Getting started: [Getting Started](https://spearzy.github.io/Axiom/getting-started/)

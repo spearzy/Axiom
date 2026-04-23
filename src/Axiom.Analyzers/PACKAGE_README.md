@@ -2,7 +2,7 @@
 
 `Axiom.Analyzers` contains the Roslyn analyzers and code fixes for Axiom.
 
-It does not include the runtime fluent assertion APIs. Use it when you want the diagnostics only.
+It is a special-case package. It does not include the runtime fluent assertion APIs. Use it when you want the diagnostics only.
 
 ## Install
 
@@ -25,3 +25,4 @@ dotnet add package Axiom.Analyzers
 - you want vector and retrieval assertions: install `Axiom.Vectors` on top of `Axiom.Assertions`
 
 Documentation: [spearzy.github.io/Axiom](https://spearzy.github.io/Axiom/)
+Getting started: [Getting Started](https://spearzy.github.io/Axiom/getting-started/)
