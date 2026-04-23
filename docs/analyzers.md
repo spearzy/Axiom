@@ -133,7 +133,8 @@ The migration support is intentionally narrow and high-confidence. It only offer
 
 Before:
 
-```csharp axiom-context=migration-gallery
+<!-- axiom-context=migration-gallery -->
+```csharp
 Assert.Equal(expected, actual);
 Assert.Equal(42, 42, EqualityComparer<int>.Default);
 Assert.True(condition);
@@ -153,7 +154,8 @@ var ex = Assert.Throws<ArgumentNullException>("name", () => work());
 
 After:
 
-```csharp axiom-context=migration-gallery
+<!-- axiom-context=migration-gallery -->
+```csharp
 actual.Should().Be(expected);
 42.Should().Be(42, EqualityComparer<int>.Default);
 condition.Should().BeTrue();
@@ -210,7 +212,8 @@ The NUnit migration support is still intentionally narrow. It now covers a small
 
 Before:
 
-```csharp axiom-context=migration-gallery
+<!-- axiom-context=migration-gallery -->
+```csharp
 Assert.That(actual, Is.EqualTo(expected));
 Assert.That(value, Is.Not.Null);
 Assert.That(condition, Is.True);
@@ -225,7 +228,8 @@ Assert.That(value, Is.SameAs(value));
 
 After:
 
-```csharp axiom-context=migration-gallery
+<!-- axiom-context=migration-gallery -->
+```csharp
 actual.Should().Be(expected);
 value.Should().NotBeNull();
 condition.Should().BeTrue();
@@ -264,7 +268,8 @@ MSTest migrations only cover `Assert`, `StringAssert`, and `CollectionAssert` sh
 
 Before:
 
-```csharp axiom-context=migration-gallery
+<!-- axiom-context=migration-gallery -->
+```csharp
 Microsoft.VisualStudio.TestTools.UnitTesting.Assert.AreEqual(expected, actual);
 Microsoft.VisualStudio.TestTools.UnitTesting.Assert.IsNull(value);
 Microsoft.VisualStudio.TestTools.UnitTesting.Assert.IsFalse(condition);
@@ -275,7 +280,8 @@ CollectionAssert.DoesNotContain(values, "blocked");
 
 After:
 
-```csharp axiom-context=migration-gallery
+<!-- axiom-context=migration-gallery -->
+```csharp
 actual.Should().Be(expected);
 value.Should().BeNull();
 condition.Should().BeFalse();

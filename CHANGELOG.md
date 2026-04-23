@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project follows [Semantic Versioning](https://semver.org/).
 
+## [2.2.0] - 2026-04-22
+
+### Added
+- Added `Axiom.Http` as an optional package for deterministic `HttpResponseMessage` assertions, including exact status-code, header, content-type, JSON body, and `ProblemDetails` checks.
+
+### Changed
+- Reused `Axiom.Json` for HTTP JSON body assertions and narrowed the internal boundary so HTTP-specific concepts stay in `Axiom.Http` while generic JSON behavior stays in `Axiom.Json`.
+- Updated docs, package metadata, and release guidance to reflect the shipped first-wave HTTP surface.
+
+### Fixed
+- Tightened HTTP and JSON regression coverage so the shipped `Axiom.Http` surface and bridge behavior stay stable.
+
 ## [2.1.0] - 2026-04-22
 
 ### Added

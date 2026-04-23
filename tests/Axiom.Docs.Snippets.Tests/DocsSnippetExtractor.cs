@@ -9,6 +9,8 @@ internal static class DocsSnippetExtractor
 {
     // Markdown fences can opt into a specific verification setup when inference is not enough.
     private const string ContextKey = "axiom-context=";
+    private const string HtmlCommentOpen = "<!--";
+    private const string HtmlCommentClose = "-->";
 
     private static readonly Lazy<IReadOnlyList<DocsSnippet>> AllSnippetsCache = new(LoadAllSnippets);
 
@@ -38,26 +40,47 @@ internal static class DocsSnippetExtractor
         var snippetStartLine = 0;
         var snippetLines = new List<string>();
         var snippetIndex = 0;
+        string? pendingContextToken = null;
 
         for (var lineIndex = 0; lineIndex < lines.Length; lineIndex++)
         {
             var line = lines[lineIndex];
             if (!insideFence)
             {
+                if (TryExtractContextToken(line, out var contextToken))
+                {
+                    pendingContextToken = contextToken;
+                    continue;
+                }
+
                 if (!line.StartsWith("```", StringComparison.Ordinal))
                 {
+                    if (!string.IsNullOrWhiteSpace(line))
+                    {
+                        pendingContextToken = null;
+                    }
+
                     continue;
                 }
 
                 infoString = line[3..].Trim();
                 if (!IsCSharpFence(infoString))
                 {
+                    pendingContextToken = null;
                     continue;
+                }
+
+                if (pendingContextToken is not null)
+                {
+                    infoString = string.IsNullOrEmpty(infoString)
+                        ? pendingContextToken
+                        : $"{infoString} {pendingContextToken}";
                 }
 
                 insideFence = true;
                 snippetStartLine = lineIndex + 2;
                 snippetLines.Clear();
+                pendingContextToken = null;
                 continue;
             }
 
@@ -294,5 +317,25 @@ internal static class DocsSnippetExtractor
             .Split(new[] { ' ', '\t' }, StringSplitOptions.RemoveEmptyEntries)
             .Skip(1)
             .ToArray();
+    }
+
+    private static bool TryExtractContextToken(string line, out string? contextToken)
+    {
+        var trimmed = line.Trim();
+        if (!trimmed.StartsWith(HtmlCommentOpen, StringComparison.Ordinal) || !trimmed.EndsWith(HtmlCommentClose, StringComparison.Ordinal))
+        {
+            contextToken = null;
+            return false;
+        }
+
+        var content = trimmed[HtmlCommentOpen.Length..^HtmlCommentClose.Length].Trim();
+        if (!content.StartsWith(ContextKey, StringComparison.Ordinal))
+        {
+            contextToken = null;
+            return false;
+        }
+
+        contextToken = content;
+        return true;
     }
 }
