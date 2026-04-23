@@ -2,7 +2,7 @@
 
 `Axiom.Vectors` is an optional extension package on top of `Axiom.Assertions`.
 
-It adds vector, embedding, and ranked retrieval assertions for .NET tests.
+Most users should start with `Axiom.Assertions` and add `Axiom.Vectors` only when they need vector, embedding, or ranked retrieval assertions.
 
 ## Install
 
@@ -27,3 +27,4 @@ This package is designed to be used with `Axiom.Assertions`.
 - you want `HttpResponseMessage` assertions: install `Axiom.Http` on top of `Axiom.Assertions`
 
 Documentation: [spearzy.github.io/Axiom](https://spearzy.github.io/Axiom/)
+Getting started: [Getting Started](https://spearzy.github.io/Axiom/getting-started/)

@@ -18,17 +18,7 @@ dotnet add package Axiom.Assertions
 
 Install it and start writing assertions. You do not need `AxiomSetup.cs` just to get started.
 
-Install `Axiom.Analyzers` separately only if you want the diagnostics without the runtime assertion library:
-
-```bash
-dotnet add package Axiom.Analyzers
-```
-
-Install `Axiom.Core` directly only when you want low-level primitives such as `Batch`, formatting, or configuration without the full fluent assertion surface:
-
-```bash
-dotnet add package Axiom.Core
-```
+Optional add-ons:
 
 Install `Axiom.Json` when you want structural JSON equivalency and simple JSON path assertions on top of the main Axiom assertion library:
 
@@ -48,7 +38,23 @@ Install `Axiom.Vectors` when you want vector and embedding-focused assertions on
 dotnet add package Axiom.Vectors
 ```
 
+Advanced or special-case installs:
+
+Install `Axiom.Analyzers` separately only if you want the diagnostics without the runtime assertion library:
+
+```bash
+dotnet add package Axiom.Analyzers
+```
+
+Install `Axiom.Core` directly only when you want low-level primitives such as `Batch`, formatting, or configuration without the full fluent assertion surface:
+
+```bash
+dotnet add package Axiom.Core
+```
+
 `Axiom.Vectors` adds dimension, approximate equality, dot product, Euclidean distance, cosine similarity, zero-vector, NaN/infinity, normalization, and ranked retrieval evaluation assertions for vector, embedding, and search-style test scenarios.
+
+If you are not sure which package to install, use the package guide: [Which Axiom package should I install?](https://spearzy.github.io/Axiom/which-package-should-i-install/)
 
 ```csharp
 embedding.Should().HaveDotProductWith(expected, expectedDotProduct: 1f, tolerance: 0.001f);

@@ -18,6 +18,8 @@ dotnet add package Axiom.Assertions
 - built-in equivalency support
 - bundled analyzers and code fixes
 
+If you are not sure which Axiom package to install, start here.
+
 ## Install a different package when
 
 - you only want low-level primitives such as batching, formatting, or configuration: install `Axiom.Core`
@@ -27,3 +29,4 @@ dotnet add package Axiom.Assertions
 - you want vector, embedding, or retrieval assertions on top of the main package: install `Axiom.Vectors`
 
 Documentation: [spearzy.github.io/Axiom](https://spearzy.github.io/Axiom/)
+Getting started: [Getting Started](https://spearzy.github.io/Axiom/getting-started/)

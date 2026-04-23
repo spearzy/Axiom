@@ -2,7 +2,7 @@
 
 `Axiom.Core` contains low-level Axiom primitives such as batching, failure modelling, formatting, and configuration.
 
-It is not the default install path for most test projects. Most users should install `Axiom.Assertions` instead.
+It is a special-case package, not the default install path for most test projects. Most users should install `Axiom.Assertions` instead.
 
 ## Install
 
@@ -25,3 +25,4 @@ dotnet add package Axiom.Core
 - you want vector and retrieval assertions: install `Axiom.Vectors` on top of `Axiom.Assertions`
 
 Documentation: [spearzy.github.io/Axiom](https://spearzy.github.io/Axiom/)
+Getting started: [Getting Started](https://spearzy.github.io/Axiom/getting-started/)

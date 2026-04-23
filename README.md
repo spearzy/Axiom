@@ -25,15 +25,22 @@ dotnet add package Axiom.Assertions
 
 `Axiom.Assertions` gives you the main `Should()` API, pulls in `Axiom.Core`, and bundles the Axiom analyzers/code fixes automatically.
 
-Install the other packages when you need something more specific:
+Optional add-ons:
 
 ```bash
-dotnet add package Axiom.Core
-dotnet add package Axiom.Analyzers
 dotnet add package Axiom.Json
 dotnet add package Axiom.Http
 dotnet add package Axiom.Vectors
 ```
+
+Advanced or special-case installs:
+
+```bash
+dotnet add package Axiom.Core
+dotnet add package Axiom.Analyzers
+```
+
+If you are not sure which package to install, start with `Axiom.Assertions` and add the optional packages only when the test suite needs them.
 
 ## Examples
 
@@ -111,11 +118,11 @@ response.Should().HaveProblemDetailsTitle("Validation failed");
 | Package | Use it when you want... |
 | --- | --- |
 | [`Axiom.Assertions`](https://www.nuget.org/packages/Axiom.Assertions) | the main fluent assertion library for most test projects |
-| [`Axiom.Core`](https://www.nuget.org/packages/Axiom.Core) | low-level primitives such as `Batch`, formatting, and configuration without the full assertion surface |
-| [`Axiom.Analyzers`](https://www.nuget.org/packages/Axiom.Analyzers) | the analyzers and code fixes without the runtime assertion library |
-| [`Axiom.Json`](https://www.nuget.org/packages/Axiom.Json) | structural JSON equivalency and simple JSON path assertions on top of the main Axiom assertion library |
-| [`Axiom.Http`](https://www.nuget.org/packages/Axiom.Http) | `HttpResponseMessage` assertions for exact status codes, headers, content types, JSON bodies, and ProblemDetails-style API responses |
-| [`Axiom.Vectors`](https://www.nuget.org/packages/Axiom.Vectors) | vector, embedding, and ranked retrieval assertions on top of the main Axiom assertion library |
+| [`Axiom.Json`](https://www.nuget.org/packages/Axiom.Json) | optional JSON assertions on top of `Axiom.Assertions` |
+| [`Axiom.Http`](https://www.nuget.org/packages/Axiom.Http) | optional `HttpResponseMessage` assertions on top of `Axiom.Assertions` |
+| [`Axiom.Vectors`](https://www.nuget.org/packages/Axiom.Vectors) | optional vector, embedding, and ranked retrieval assertions on top of `Axiom.Assertions` |
+| [`Axiom.Core`](https://www.nuget.org/packages/Axiom.Core) | advanced low-level primitives such as `Batch`, formatting, and configuration without the full assertion surface |
+| [`Axiom.Analyzers`](https://www.nuget.org/packages/Axiom.Analyzers) | special-case diagnostics and code fixes without the runtime assertion library |
 
 ## Why Axiom
 

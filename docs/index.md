@@ -38,16 +38,20 @@ Most test projects should start with `Axiom.Assertions`:
 dotnet add package Axiom.Assertions
 ```
 
-Install the optional packages only when they fit the test suite you are building:
+Optional add-ons:
 
 ```bash
-dotnet add package Axiom.Analyzers
 dotnet add package Axiom.Json
 dotnet add package Axiom.Http
 dotnet add package Axiom.Vectors
 ```
 
-Install `Axiom.Core` directly only when you want low-level primitives such as `Batch`, formatting, or configuration without the full fluent assertion surface.
+Advanced or special-case installs:
+
+```bash
+dotnet add package Axiom.Core
+dotnet add package Axiom.Analyzers
+```
 
 ## Package Lineup
 
