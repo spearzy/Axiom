@@ -31,6 +31,6 @@
     <None Include="$(MSBuildThisFileDirectory)assets/images/axiom-logo.png" Pack="true" PackagePath="assets/images/" />
     <None Include="$(MSBuildThisFileDirectory)assets/images/axiom-icon-dark.png" Pack="true" PackagePath="assets/images/" />
     <None Include="$(MSBuildThisFileDirectory)assets/images/axiom-icon-light.png" Pack="true" PackagePath="assets/images/" />
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="10.0.203" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="10.0.300" PrivateAssets="All" />
   </ItemGroup>
 </Project>
